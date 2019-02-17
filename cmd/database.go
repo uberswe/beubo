@@ -1,51 +1,38 @@
 package cmd
 
 import (
-	"database/sql"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/markustenghamn/beubo/cmd/models"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 )
 
 var DB = setupDB()
 
-func setupDB() *sql.DB {
-	db, err := sql.Open("sqlite3", "./godirectory.db")
+func setupDB() *gorm.DB {
+	db, err := gorm.Open("mysql", "root:h2BCZ39Q23@/beubo?charset=utf8&parseTime=True&loc=Local")
 	checkErr(err)
 
 	return db
 }
 
 func Init() {
-	var err error
+	DB.AutoMigrate(&models.User{}, models.UserActivation{})
+}
 
-	username := "john"
-	email := "john@example.com"
-	password := "supersecret"
+func Seed() {
+	var err error
+	email := "m@rkus.io"
+	password := "Test1234!"
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 
 	checkErr(err)
 
-	_, err = DB.Exec(`CREATE TABLE IF NOT EXISTS users (
-                 id INT,
-                 user_name VARCHAR(60),  
-                 user_email VARCHAR(60),  
-                 user_password VARCHAR(60),  
-                 user_created TIMESTAMP WITH TIME ZONE,
-                 user_last_login TIMESTAMP WITH TIME ZONE, 
-                 PRIMARY KEY  (id),  
-                 CONSTRAINT users_email UNIQUE (user_email)
-            );`)
+	user := models.User{Email: email, Password: string(hashedPassword)}
 
-	checkErr(err)
-
-	err = DB.QueryRow("SELECT user_email FROM users WHERE user_name = $1", username).Scan(&email)
-	if err == sql.ErrNoRows {
-		_, err = DB.Exec(`INSERT INTO users (user_name, user_email, user_password) VALUES ($1, $2, $3);`, username, email, hashedPassword)
-	} else if err != nil {
-		log.Print(err)
+	if DB.NewRecord(user) { // => returns `true` as primary key is blank
+		DB.Create(&user)
 	}
-
-	checkErr(err)
 }
