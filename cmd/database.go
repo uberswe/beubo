@@ -18,7 +18,14 @@ func setupDB() *gorm.DB {
 }
 
 func Init() {
-	DB.AutoMigrate(&models.User{}, models.UserActivation{})
+	DB.AutoMigrate(
+		&models.User{},
+		&models.UserActivation{},
+		&models.UserRole{},
+		&models.Config{},
+		&models.Post{},
+		&models.Theme{},
+		&models.Site{})
 }
 
 func Seed() {

@@ -6,7 +6,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/markustenghamn/beubo/cmd/models"
 )
+
+var SenderEmail = "no-reply@qby.se"
 
 func SendEmail(sender string, recipient string, subject string, htmlBody string, textBody string) {
 	// Create a new session in the us-west-2 region.
@@ -77,4 +80,13 @@ func SendEmail(sender string, recipient string, subject string, htmlBody string,
 
 	fmt.Println("Email Sent to address: " + recipient)
 	fmt.Println(result)
+}
+
+func SendUserActivationEmail(user models.User) {
+	// TODO generate activation code
+	// TODO Make activation html and text template
+	subject := ""
+	htmlBody := ""
+	textBody := ""
+	SendEmail(SenderEmail, user.Email, subject, htmlBody, textBody)
 }

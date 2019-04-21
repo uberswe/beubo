@@ -8,12 +8,18 @@ import (
 	"github.com/markustenghamn/beubo/cmd/models"
 	"github.com/urfave/negroni"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 var tmpl *template.Template
-var rootDir = "web/static/template/"
+var rootDir = "web/static/"
+var currentTheme = ""
+var themes []string
+var fileServers = map[string]http.Handler{}
 
 type PageData struct {
 	Title       string
@@ -23,6 +29,7 @@ type PageData struct {
 	Error       string
 	Warning     string
 	Message     string
+	Year        string
 }
 
 type MenuItem struct {
@@ -51,11 +58,32 @@ func InitRoutes() {
 	cssFs := http.FileServer(http.Dir("web/static/css/"))
 	jsFs := http.FileServer(http.Dir("web/static/js/"))
 	imgFs := http.FileServer(http.Dir("web/static/images/"))
+	fontFs := http.FileServer(http.Dir("web/static/fonts/"))
 
 	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", cssFs))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", jsFs))
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", imgFs))
 	r.PathPrefix("/favicon.ico").Handler(imgFs)
+	r.PathPrefix("/fonts/").Handler(http.StripPrefix("/fonts/", fontFs))
+
+	log.Println("Registering themes...")
+
+	files, err := ioutil.ReadDir("web/static/themes/")
+	checkErr(err)
+	for _, f := range files {
+		themes = append(themes, f.Name())
+		// Register file paths for themes
+		fileServers[f.Name()+"_css"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/css/"))
+		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/js/"))
+		fileServers[f.Name()+"_images"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/images/"))
+		fileServers[f.Name()+"_fonts"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/fonts/"))
+
+		r.PathPrefix("/" + f.Name() + "/css/").Handler(http.StripPrefix("/"+f.Name()+"/css/", fileServers[f.Name()+"_css"]))
+		r.PathPrefix("/" + f.Name() + "/js/").Handler(http.StripPrefix("/"+f.Name()+"/js/", fileServers[f.Name()+"_js"]))
+		r.PathPrefix("/" + f.Name() + "/images/").Handler(http.StripPrefix("/"+f.Name()+"/images/", fileServers[f.Name()+"_images"]))
+		r.PathPrefix("/" + f.Name() + "/favicon.ico").Handler(fileServers["/"+f.Name()+"_images"])
+		r.PathPrefix("/" + f.Name() + "/fonts/").Handler(http.StripPrefix("/"+f.Name()+"/fonts/", fileServers[f.Name()+"_fonts"]))
+	}
 
 	r.HandleFunc("/", Home)
 	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
@@ -88,6 +116,11 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 
 	var err error
 
+	// Loads theme templates if defined and falls back to base otherwise
+	if currentTheme != "" && tmpl.Lookup(currentTheme+"."+pageTemplate) != nil {
+		pageTemplate = currentTheme + "." + pageTemplate
+	}
+
 	// Session flash messages to prompt failed logins etc..
 	errorMessage, err := GetFlash(w, r, "error")
 	errHandler(err)
@@ -98,7 +131,7 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 
 	data := PageData{
 		Title:       pageTitle,
-		WebsiteName: "QBY.se",
+		WebsiteName: "qby.se",
 		Url:         "http://localhost:3000",
 		Menu: []MenuItem{
 			{Title: "Home", Path: "/"},
@@ -108,6 +141,7 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 		Error:   string(errorMessage),
 		Warning: string(warningMessage),
 		Message: string(stringMessage),
+		Year:    strconv.Itoa(time.Now().Year()),
 	}
 
 	err = tmpl.ExecuteTemplate(w, pageTemplate, data)
