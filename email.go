@@ -1,4 +1,4 @@
-package cmd
+package beubo
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/markustenghamn/beubo/cmd/models"
+	"github.com/markustenghamn/beubo/pkg/models"
 )
 
 var SenderEmail = "no-reply@qby.se"

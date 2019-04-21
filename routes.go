@@ -1,11 +1,11 @@
-package cmd
+package beubo
 
 import (
 	"encoding/json"
 	"github.com/goincremental/negroni-sessions"
 	"github.com/goincremental/negroni-sessions/cookiestore"
 	"github.com/gorilla/mux"
-	"github.com/markustenghamn/beubo/cmd/models"
+	"github.com/markustenghamn/beubo/pkg/models"
 	"github.com/urfave/negroni"
 	"html/template"
 	"io/ioutil"
@@ -16,7 +16,7 @@ import (
 )
 
 var tmpl *template.Template
-var rootDir = "web/static/"
+var rootDir = "./web/static/"
 var currentTheme = ""
 var themes []string
 var fileServers = map[string]http.Handler{}

@@ -1,4 +1,4 @@
-package cmd
+package beubo
 
 import "net/http"
 

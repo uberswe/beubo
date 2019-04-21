@@ -1,9 +1,9 @@
-package cmd
+package beubo
 
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/markustenghamn/beubo/cmd/models"
+	"github.com/markustenghamn/beubo/pkg/models"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -18,6 +18,18 @@ func setupDB() *gorm.DB {
 }
 
 func Init() {
+	type Result struct {
+		DropQuery string
+	}
+
+	var result []Result
+
+	DB.Raw("SELECT concat('DROP TABLE IF EXISTS `', table_name, '`;') as drop_query FROM information_schema.tables WHERE table_schema = 'beubo';").Scan(&result)
+
+	for _, r := range result {
+		DB.Exec(r.DropQuery)
+	}
+
 	DB.AutoMigrate(
 		&models.User{},
 		&models.UserActivation{},
