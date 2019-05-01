@@ -1,13 +1,45 @@
 {{ define "page" }}
 {{ template "header" . }}
 
-<main role="main" class="container">
-    <div class="container">
-        <h1>{{.Title}}</h1>
-        <p class="lead">Use this document as a way to quickly start any new project.<br>
-            All you get is this text and a mostly barebones HTML document.</p>
+<!-- First Grid -->
+<div class="beubo-row-padding beubo-padding-64 beubo-container">
+    <div class="beubo-content">
+        <div class="beubo-twothird">
+            <h1>{{.Title}}</h1>
+            <h5 class="beubo-padding-32">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</h5>
+
+            <p class="beubo-text-grey">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Excepteur sint
+                occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </div>
+
+        <div class="beubo-third beubo-center">
+            <i class="fa fa-anchor beubo-padding-64 beubo-text-red"></i>
+        </div>
     </div>
-</main><!-- /.container -->
+</div>
+
+<!-- Second Grid -->
+<div class="beubo-row-padding beubo-light-grey beubo-padding-64 beubo-container">
+    <div class="beubo-content">
+        <div class="beubo-third beubo-center">
+            <i class="fa fa-coffee beubo-padding-64 beubo-text-red beubo-margin-right"></i>
+        </div>
+
+        <div class="beubo-twothird">
+            <h1>Lorem Ipsum</h1>
+            <h5 class="beubo-padding-32">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</h5>
+
+            <p class="beubo-text-grey">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Excepteur sint
+                occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </div>
+    </div>
+</div>
+
+<div class="beubo-container beubo-black beubo-center beubo-opacity beubo-padding-64">
+    <h1 class="beubo-margin beubo-xlarge">Quote of the day: live life</h1>
+</div>
 
 {{ template "footer" . }}
 {{ end }}
