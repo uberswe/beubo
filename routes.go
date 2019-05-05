@@ -2,9 +2,11 @@ package beubo
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/goincremental/negroni-sessions"
 	"github.com/goincremental/negroni-sessions/cookiestore"
 	"github.com/gorilla/mux"
+	"github.com/lpar/gzipped"
 	"github.com/markustenghamn/beubo/pkg/models"
 	"github.com/urfave/negroni"
 	"html/template"
@@ -16,8 +18,6 @@ import (
 )
 
 var tmpl *template.Template
-var rootDir = "./web/static/"
-var currentTheme = ""
 var themes []string
 var fileServers = map[string]http.Handler{}
 
@@ -37,7 +37,7 @@ type MenuItem struct {
 	Path  string
 }
 
-func InitRoutes() {
+func routesInit() {
 	var port = ":3000"
 	var err error
 
@@ -53,19 +53,6 @@ func InitRoutes() {
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
-	log.Println("Registering routes...")
-
-	cssFs := http.FileServer(http.Dir("web/static/css/"))
-	jsFs := http.FileServer(http.Dir("web/static/js/"))
-	imgFs := http.FileServer(http.Dir("web/static/images/"))
-	fontFs := http.FileServer(http.Dir("web/static/fonts/"))
-
-	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", cssFs))
-	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", jsFs))
-	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", imgFs))
-	r.PathPrefix("/favicon.ico").Handler(imgFs)
-	r.PathPrefix("/fonts/").Handler(http.StripPrefix("/fonts/", fontFs))
-
 	log.Println("Registering themes...")
 
 	files, err := ioutil.ReadDir("web/static/themes/")
@@ -73,7 +60,7 @@ func InitRoutes() {
 	for _, f := range files {
 		themes = append(themes, f.Name())
 		// Register file paths for themes
-		fileServers[f.Name()+"_css"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/css/"))
+		fileServers[f.Name()+"_css"] = gzipped.FileServer(http.Dir("web/static/themes/" + f.Name() + "/css/"))
 		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/js/"))
 		fileServers[f.Name()+"_images"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/images/"))
 		fileServers[f.Name()+"_fonts"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/fonts/"))
@@ -84,6 +71,8 @@ func InitRoutes() {
 		r.PathPrefix("/" + f.Name() + "/favicon.ico").Handler(fileServers["/"+f.Name()+"_images"])
 		r.PathPrefix("/" + f.Name() + "/fonts/").Handler(http.StripPrefix("/"+f.Name()+"/fonts/", fileServers[f.Name()+"_fonts"]))
 	}
+
+	log.Println("Registering routes...")
 
 	r.HandleFunc("/", Home)
 	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
@@ -149,10 +138,42 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
+	// TODO check if installed here, if db is configured
+
+	log.Println(r.Host)
+
+	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			errHandler(err)
+		}
+
+		domain := r.PostFormValue("domain")
+		adminpath := r.PostFormValue("adminpath")
+		dbhost := r.PostFormValue("dbhost")
+		dbname := r.PostFormValue("dbname")
+		dbuser := r.PostFormValue("dbuser")
+		dbpassword := r.PostFormValue("dbpassword")
+		email := r.PostFormValue("email")
+		password := r.PostFormValue("password")
+
+		fmt.Println(domain, adminpath, dbhost, dbname, dbuser, dbpassword, email, password)
+
+		// TODO perform an actual install
+
+		installed = true
+		currentTheme = "default"
+
+	}
 	renderHtmlPage("Home", "page", w, r)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
+	if !installed {
+		_, err := w.Write([]byte("Beubo is not installed"))
+		errHandler(err)
+		return
+	}
 	renderHtmlPage("Login", "login", w, r)
 }
 

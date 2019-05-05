@@ -17,7 +17,7 @@ func setupDB() *gorm.DB {
 	return db
 }
 
-func Init() {
+func databaseInit() {
 	type Result struct {
 		DropQuery string
 	}
@@ -40,7 +40,7 @@ func Init() {
 		&models.Site{})
 }
 
-func Seed() {
+func databaseSeed() {
 	var err error
 	email := "m@rkus.io"
 	password := "Test1234!"
