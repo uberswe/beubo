@@ -2,7 +2,6 @@ package beubo
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/goincremental/negroni-sessions"
 	"github.com/goincremental/negroni-sessions/cookiestore"
 	"github.com/gorilla/mux"
@@ -38,11 +37,10 @@ type MenuItem struct {
 }
 
 func routesInit() {
+	// TODO make this port configurable as an argument
 	var port = ":3000"
 	var err error
 
-	log.Println("Parsing and loading templates...")
-	tmpl, err = findAndParseTemplates(rootDir, template.FuncMap{})
 	errHandler(err)
 
 	r := mux.NewRouter()
@@ -55,22 +53,7 @@ func routesInit() {
 
 	log.Println("Registering themes...")
 
-	files, err := ioutil.ReadDir("web/static/themes/")
-	checkErr(err)
-	for _, f := range files {
-		themes = append(themes, f.Name())
-		// Register file paths for themes
-		fileServers[f.Name()+"_css"] = gzipped.FileServer(http.Dir("web/static/themes/" + f.Name() + "/css/"))
-		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/js/"))
-		fileServers[f.Name()+"_images"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/images/"))
-		fileServers[f.Name()+"_fonts"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/fonts/"))
-
-		r.PathPrefix("/" + f.Name() + "/css/").Handler(http.StripPrefix("/"+f.Name()+"/css/", fileServers[f.Name()+"_css"]))
-		r.PathPrefix("/" + f.Name() + "/js/").Handler(http.StripPrefix("/"+f.Name()+"/js/", fileServers[f.Name()+"_js"]))
-		r.PathPrefix("/" + f.Name() + "/images/").Handler(http.StripPrefix("/"+f.Name()+"/images/", fileServers[f.Name()+"_images"]))
-		r.PathPrefix("/" + f.Name() + "/favicon.ico").Handler(fileServers["/"+f.Name()+"_images"])
-		r.PathPrefix("/" + f.Name() + "/fonts/").Handler(http.StripPrefix("/"+f.Name()+"/fonts/", fileServers[f.Name()+"_fonts"]))
-	}
+	r = registerStaticFiles(r)
 
 	log.Println("Registering routes...")
 
@@ -101,6 +84,31 @@ func routesInit() {
 	}
 }
 
+func registerStaticFiles(r *mux.Router) *mux.Router {
+	var err error
+
+	log.Println("Parsing and loading templates...")
+	tmpl, err = findAndParseTemplates(rootDir, template.FuncMap{})
+
+	files, err := ioutil.ReadDir("web/static/themes/")
+	checkErr(err)
+	for _, f := range files {
+		themes = append(themes, f.Name())
+		// Register file paths for themes
+		fileServers[f.Name()+"_css"] = gzipped.FileServer(http.Dir("web/static/themes/" + f.Name() + "/css/"))
+		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/js/"))
+		fileServers[f.Name()+"_images"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/images/"))
+		fileServers[f.Name()+"_fonts"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/fonts/"))
+
+		r.PathPrefix("/" + f.Name() + "/css/").Handler(http.StripPrefix("/"+f.Name()+"/css/", fileServers[f.Name()+"_css"]))
+		r.PathPrefix("/" + f.Name() + "/js/").Handler(http.StripPrefix("/"+f.Name()+"/js/", fileServers[f.Name()+"_js"]))
+		r.PathPrefix("/" + f.Name() + "/images/").Handler(http.StripPrefix("/"+f.Name()+"/images/", fileServers[f.Name()+"_images"]))
+		r.PathPrefix("/" + f.Name() + "/favicon.ico").Handler(fileServers["/"+f.Name()+"_images"])
+		r.PathPrefix("/" + f.Name() + "/fonts/").Handler(http.StripPrefix("/"+f.Name()+"/fonts/", fileServers[f.Name()+"_fonts"]))
+	}
+	return r
+}
+
 func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter, r *http.Request) {
 
 	var err error
@@ -109,6 +117,8 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 	if currentTheme != "" && tmpl.Lookup(currentTheme+"."+pageTemplate) != nil {
 		pageTemplate = currentTheme + "." + pageTemplate
 	}
+
+	log.Println(pageTemplate)
 
 	// Session flash messages to prompt failed logins etc..
 	errorMessage, err := GetFlash(w, r, "error")
@@ -138,33 +148,6 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
-	// TODO check if installed here, if db is configured
-
-	log.Println(r.Host)
-
-	if r.Method == http.MethodPost {
-		err := r.ParseForm()
-		if err != nil {
-			errHandler(err)
-		}
-
-		domain := r.PostFormValue("domain")
-		adminpath := r.PostFormValue("adminpath")
-		dbhost := r.PostFormValue("dbhost")
-		dbname := r.PostFormValue("dbname")
-		dbuser := r.PostFormValue("dbuser")
-		dbpassword := r.PostFormValue("dbpassword")
-		email := r.PostFormValue("email")
-		password := r.PostFormValue("password")
-
-		fmt.Println(domain, adminpath, dbhost, dbname, dbuser, dbpassword, email, password)
-
-		// TODO perform an actual install
-
-		installed = true
-		currentTheme = "default"
-
-	}
 	renderHtmlPage("Home", "page", w, r)
 }
 

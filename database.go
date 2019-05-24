@@ -1,6 +1,7 @@
 package beubo
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/markustenghamn/beubo/pkg/models"
@@ -8,16 +9,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var DB = setupDB()
+var DB *gorm.DB
 
 func setupDB() *gorm.DB {
-	db, err := gorm.Open("mysql", "root:h2BCZ39Q23@/beubo?charset=utf8&parseTime=True&loc=Local")
+	db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", databaseUser, databasePassword, databaseHost, databasePort, databaseName))
 	checkErr(err)
 
 	return db
 }
 
 func databaseInit() {
+	DB = setupDB()
+
 	type Result struct {
 		DropQuery string
 	}

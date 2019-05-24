@@ -1,17 +1,27 @@
 package beubo
 
 import (
+	"context"
+	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
+	"github.com/urfave/negroni"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 )
 
 var (
-	databaseHost     = ""
+	// TODO make this port configurable as an argument
+	port = ":3000"
+
+	databaseHost     = "localhost"
 	databaseName     = ""
 	databaseUser     = ""
 	databasePassword = ""
+	databasePort     = "3306"
 
 	rootDir      = "./web/static/"
 	currentTheme = "install"
@@ -19,12 +29,13 @@ var (
 )
 
 func settingsInit() {
+
 	err := godotenv.Load()
 
 	if err != nil {
 		// No .env file
 		errHandler(err)
-
+		log.Println("Attempting to create .env file")
 		writeEnv("", "", "", "", "", "")
 	}
 
@@ -36,12 +47,99 @@ func settingsInit() {
 	databaseUser = setSetting(os.Getenv("DB_USER"), databaseUser)
 	databasePassword = setSetting(os.Getenv("DB_PASSWORD"), databasePassword)
 
-	if databaseHost != "" && databaseName != "" {
+	if databaseUser != "" && databaseName != "" {
 		installed = true
+		currentTheme = "default"
 	} else {
-		log.Println("Running installation, no database configured")
+		log.Println("No installation detected, starting install server")
+		srv := startInstallServer()
+
+		for !installed {
+			// Keep running install server until installed is finished
+		}
+
+		if err := srv.Shutdown(context.TODO()); err != nil {
+			panic(err) // failure/timeout shutting down the server gracefully
+		}
+		log.Println("Install complete, restarting server")
+		// settingsInit() calls itself after install to reload settings
+		settingsInit()
 	}
 
+}
+
+func startInstallServer() *http.Server {
+	r := mux.NewRouter()
+	n := negroni.Classic()
+
+	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
+
+	log.Println("Registering themes...")
+
+	r = registerStaticFiles(r)
+
+	log.Println("Registering routes...")
+
+	r.HandleFunc("/", Install)
+
+	n.UseHandler(r)
+
+	srv := &http.Server{Addr: port, Handler: n}
+
+	log.Println("listening on:", port)
+	go func() {
+		// returns ErrServerClosed on graceful close
+		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+			// NOTE: there is a chance that next line won't have time to run,
+			// as main() doesn't wait for this goroutine to stop. don't use
+			// code with race conditions like these for production. see post
+			// comments below on more discussion on how to handle this.
+			log.Fatalf("ListenAndServe(): %s", err)
+		}
+	}()
+
+	// returning reference so caller can call Shutdown()
+	return srv
+}
+
+func Install(w http.ResponseWriter, r *http.Request) {
+	// TODO check if installed here, if db is configured
+
+	log.Println(r.Host)
+
+	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			errHandler(err)
+		}
+
+		domain := r.PostFormValue("domain")
+		adminpath := r.PostFormValue("adminpath")
+		dbhost := r.PostFormValue("dbhost")
+		dbname := r.PostFormValue("dbname")
+		dbuser := r.PostFormValue("dbuser")
+		dbpassword := r.PostFormValue("dbpassword")
+		email := r.PostFormValue("email")
+		password := r.PostFormValue("password")
+
+		fmt.Println(domain, adminpath, dbhost, dbname, dbuser, dbpassword, email, password)
+
+		connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", dbuser, dbpassword, dbhost, databasePort, dbname)
+		log.Println(connectString)
+		_, err = gorm.Open("mysql", connectString)
+		if err != nil {
+			// TODO return error and go back to install page
+			renderHtmlPage("Install", "page", w, r)
+		} else {
+			writeEnv("", "", dbhost, dbname, dbuser, dbpassword)
+			renderHtmlPage("Install", "finished", w, r)
+			currentTheme = "default"
+			installed = true
+		}
+
+	} else {
+		renderHtmlPage("Install", "page", w, r)
+	}
 }
 
 func setSetting(key string, variable string) string {
