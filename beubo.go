@@ -4,7 +4,14 @@ type Domain struct {
 	Name string
 }
 
-var domainList []Domain
+type Path struct {
+	String string
+}
+
+var (
+	domains []Domain
+	paths   []Path
+)
 
 func Init() {
 	settingsInit()
