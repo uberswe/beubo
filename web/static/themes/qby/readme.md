@@ -1,1 +1,0 @@
-## QBY.se default template

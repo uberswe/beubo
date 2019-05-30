@@ -1,28 +1,12 @@
 {{ define "default.footer" }}
-    <!-- Footer -->
-    <footer class="beubo-container beubo-padding-64 beubo-center beubo-opacity">
-        <div class="beubo-xlarge beubo-padding-32">
-            <i class="fa fa-facebook-official beubo-hover-opacity"></i>
-            <i class="fa fa-instagram beubo-hover-opacity"></i>
-            <i class="fa fa-snapchat beubo-hover-opacity"></i>
-            <i class="fa fa-pinterest-p beubo-hover-opacity"></i>
-            <i class="fa fa-twitter beubo-hover-opacity"></i>
-            <i class="fa fa-linkedin beubo-hover-opacity"></i>
-        </div>
-        <p>Copyright {{ .Year }}</p>
+
+    <footer class="footer">
+        <section class="container">
+            <p>Created with ♥ by <a target="_blank" href="https://ma.rkus.io" title="Markus Tenghamn">Markus Tenghamn</a>.</p>
+        </section>
     </footer>
 
-    <script>
-        // Used to toggle the menu on small screens when clicking on the menu button
-        function myFunction() {
-            var x = document.getElementById ("navDemo");
-            if (x.className.indexOf ("beubo-show") == -1) {
-                x.className += " beubo-show";
-            } else {
-                x.className = x.className.replace (" beubo-show", "");
-            }
-        }
-    </script>
+    </main>
 
     </body>
     </html>

@@ -93,7 +93,12 @@ func registerStaticFiles(r *mux.Router) *mux.Router {
 	files, err := ioutil.ReadDir("web/static/themes/")
 	checkErr(err)
 	for _, f := range files {
+		if !f.IsDir() {
+			continue
+		}
 		themes = append(themes, f.Name())
+		log.Println("Adding ", f.Name())
+		log.Println("Adding ", "web/static/themes/"+f.Name()+"/css/")
 		// Register file paths for themes
 		fileServers[f.Name()+"_css"] = gzipped.FileServer(http.Dir("web/static/themes/" + f.Name() + "/css/"))
 		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/js/"))
@@ -117,8 +122,6 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 	if currentTheme != "" && tmpl.Lookup(currentTheme+"."+pageTemplate) != nil {
 		pageTemplate = currentTheme + "." + pageTemplate
 	}
-
-	log.Println(pageTemplate)
 
 	// Session flash messages to prompt failed logins etc..
 	errorMessage, err := GetFlash(w, r, "error")

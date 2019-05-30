@@ -4,28 +4,24 @@
 {{ template "default.head" . }}
 <body>
 
-<!-- Navbar -->
-<div class="beubo-top">
-    <div class="beubo-bar beubo-red beubo-card beubo-left-align beubo-large">
-        <a class="beubo-bar-item beubo-button beubo-hide-medium beubo-hide-large beubo-right beubo-padding-large beubo-hover-white beubo-large beubo-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
-        <a href="/" class="beubo-bar-item beubo-button beubo-padding-large beubo-white">{{.WebsiteName}}</a>
-        {{range .Menu}}
-            <a href="{{.Path}}" class="beubo-bar-item beubo-button beubo-hide-small beubo-padding-large beubo-hover-white">{{.Title}}</a>
-        {{end}}
-    </div>
+<main class="wrapper">
 
-    <!-- Navbar on small screens -->
-    <div id="navDemo" class="beubo-bar-block beubo-white beubo-hide beubo-hide-large beubo-hide-medium beubo-large">
-        {{range .Menu}}
-            <a href="{{.Path}}" class="beubo-bar-item beubo-button beubo-padding-large">{{.Title}}</a>
-        {{end}}
-    </div>
-</div>
+    <nav class="navigation">
+        <section class="container">
 
-<!-- Header -->
-<header class="beubo-container beubo-red beubo-center" style="padding:128px 16px">
-    <h1 class="beubo-margin beubo-jumbo">START PAGE</h1>
-    <p class="beubo-xlarge">Default Template</p>
-    <button class="beubo-button beubo-black beubo-padding-large beubo-large beubo-margin-top">Get Started</button>
-</header>
+            <a class="navigation-title" href="/">
+                <!-- TODO insert logo? -->
+                <h1 class="title">{{.WebsiteName}}</h1>
+            </a>
+
+            <ul class="navigation-list float-right">
+                <li class="navigation-item">
+                    <a class="navigation-link" href="/login">Login</a>
+                </li>
+                <li class="navigation-item">
+                    <a class="navigation-link" href="/register">Register</a>
+                </li>
+            </ul>
+        </section>
+    </nav>
 {{ end }}
