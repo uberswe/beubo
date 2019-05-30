@@ -124,11 +124,11 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		password := r.PostFormValue("password")
 
 		if len(email) == 0 && len(password) == 0 {
-			err = errors.New("Email and password must be filled")
+			err = errors.New("email and password must be filled")
 		}
 
 		if len(domain) == 0 && len(adminpath) == 0 {
-			err = errors.New("Email and password must be filled")
+			err = errors.New("email and password must be filled")
 		}
 
 		connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", dbuser, dbpassword, dbhost, databasePort, dbname)
@@ -136,10 +136,10 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		_, err = gorm.Open("mysql", connectString)
 		if err != nil {
 			// TODO return error and go back to install page
-			renderHtmlPage("Install", "page", w, r)
+			renderHtmlPage("Install", "page", w, r, nil)
 		} else {
 			writeEnv("", "", dbhost, dbname, dbuser, dbpassword)
-			renderHtmlPage("Install", "finished", w, r)
+			renderHtmlPage("Install", "finished", w, r, nil)
 			currentTheme = "default"
 			prepareSeed(email, password)
 			// TODO should save these objects to database at some point
@@ -149,7 +149,7 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else {
-		renderHtmlPage("Install", "page", w, r)
+		renderHtmlPage("Install", "page", w, r, nil)
 	}
 }
 

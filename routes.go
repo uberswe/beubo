@@ -73,6 +73,7 @@ func routesInit() {
 			RegisterPost(w, r)
 		}
 	})
+	r.HandleFunc("/admin", Admin)
 	r.HandleFunc("/logout", Logout)
 	r.HandleFunc("/api", APIHandler)
 
@@ -98,8 +99,6 @@ func registerStaticFiles(r *mux.Router) *mux.Router {
 			continue
 		}
 		themes = append(themes, f.Name())
-		log.Println("Adding ", f.Name())
-		log.Println("Adding ", "web/static/themes/"+f.Name()+"/css/")
 		// Register file paths for themes
 		fileServers[f.Name()+"_css"] = gzipped.FileServer(http.Dir("web/static/themes/" + f.Name() + "/css/"))
 		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/js/"))
@@ -134,7 +133,7 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 
 	data := PageData{
 		Title:       pageTitle,
-		WebsiteName: "qby.se",
+		WebsiteName: "Beubo",
 		Url:         "http://localhost:3000",
 		Menu: []MenuItem{
 			{Title: "Home", Path: "/"},
@@ -153,6 +152,10 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 
 func Home(w http.ResponseWriter, r *http.Request) {
 	renderHtmlPage("Home", "page", w, r, nil)
+}
+
+func Admin(w http.ResponseWriter, r *http.Request) {
+	renderHtmlPage("Admin", "admin.home", w, r, nil)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {

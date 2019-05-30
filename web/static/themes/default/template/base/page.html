@@ -2,14 +2,15 @@
 {{ template "default.header" . }}
 
     <section class="page-header" id="main-header">
-        <h1>Header Content</h1>
+        <div class="container">
+            <h2>{{.Title}}</h2>
+        </div>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
             <polygon fill="white" points="0,0 40,100 100,20 100,100 0,100"></polygon>
         </svg>
     </section>
 
     <section class="container" id="example-section">
-        <h5 class="title">Example Section</h5>
         <p>This is an example section</p>
     </section>
 
