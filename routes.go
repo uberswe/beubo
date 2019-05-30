@@ -29,6 +29,7 @@ type PageData struct {
 	Warning     string
 	Message     string
 	Year        string
+	Extra       interface{}
 }
 
 type MenuItem struct {
@@ -114,7 +115,7 @@ func registerStaticFiles(r *mux.Router) *mux.Router {
 	return r
 }
 
-func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter, r *http.Request) {
+func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter, r *http.Request, extra interface{}) {
 
 	var err error
 
@@ -151,7 +152,7 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
-	renderHtmlPage("Home", "page", w, r)
+	renderHtmlPage("Home", "page", w, r, nil)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -160,7 +161,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		errHandler(err)
 		return
 	}
-	renderHtmlPage("Login", "login", w, r)
+	renderHtmlPage("Login", "login", w, r, nil)
 }
 
 func LoginPost(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +184,7 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	renderHtmlPage("Register", "register", w, r)
+	renderHtmlPage("Register", "register", w, r, nil)
 }
 
 func RegisterPost(w http.ResponseWriter, r *http.Request) {

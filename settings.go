@@ -2,6 +2,7 @@ package beubo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -122,10 +123,16 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		email := r.PostFormValue("email")
 		password := r.PostFormValue("password")
 
-		fmt.Println(domain, adminpath, dbhost, dbname, dbuser, dbpassword, email, password)
+		if len(email) == 0 && len(password) == 0 {
+			err = errors.New("Email and password must be filled")
+		}
+
+		if len(domain) == 0 && len(adminpath) == 0 {
+			err = errors.New("Email and password must be filled")
+		}
 
 		connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", dbuser, dbpassword, dbhost, databasePort, dbname)
-		log.Println(connectString)
+
 		_, err = gorm.Open("mysql", connectString)
 		if err != nil {
 			// TODO return error and go back to install page
@@ -134,6 +141,10 @@ func Install(w http.ResponseWriter, r *http.Request) {
 			writeEnv("", "", dbhost, dbname, dbuser, dbpassword)
 			renderHtmlPage("Install", "finished", w, r)
 			currentTheme = "default"
+			prepareSeed(email, password)
+			// TODO should save these objects to database at some point
+			domains = append(domains, Domain{Name: domain})
+			paths = append(paths, Path{String: adminpath})
 			installed = true
 		}
 

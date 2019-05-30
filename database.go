@@ -9,7 +9,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var DB *gorm.DB
+var (
+	seedEmail    = ""
+	seedPassword = ""
+	shouldSeed   = false
+	DB           *gorm.DB
+)
 
 func setupDB() *gorm.DB {
 	db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", databaseUser, databasePassword, databaseHost, databasePort, databaseName))
@@ -43,18 +48,28 @@ func databaseInit() {
 		&models.Site{})
 }
 
+func prepareSeed(email string, password string) {
+	shouldSeed = true
+	seedEmail = email
+	seedPassword = password
+}
+
 func databaseSeed() {
-	var err error
-	email := "m@rkus.io"
-	password := "Test1234!"
+	if shouldSeed {
+		var err error
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+		// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(seedPassword), 14)
 
-	checkErr(err)
+		checkErr(err)
 
-	user := models.User{Email: email, Password: string(hashedPassword)}
+		user := models.User{Email: seedEmail, Password: string(hashedPassword)}
 
-	if DB.NewRecord(user) { // => returns `true` as primary key is blank
-		DB.Create(&user)
+		if DB.NewRecord(user) { // => returns `true` as primary key is blank
+			DB.Create(&user)
+		}
+		shouldSeed = false
+		seedEmail = ""
+		seedPassword = ""
 	}
 }
