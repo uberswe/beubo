@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 var (
@@ -56,10 +57,12 @@ func settingsInit() {
 		srv := startInstallServer()
 
 		for !installed {
+			// Pause for 100 ms, this was causing high cpu load without this here
+			time.Sleep(time.Second / 10)
 			// Keep running install server until installed is finished
 		}
 
-		if err := srv.Shutdown(context.TODO()); err != nil {
+		if err := srv.Shutdown(context.Background()); err != nil {
 			panic(err) // failure/timeout shutting down the server gracefully
 		}
 		log.Println("Install complete, restarting server")
@@ -97,6 +100,7 @@ func startInstallServer() *http.Server {
 			// comments below on more discussion on how to handle this.
 			log.Fatalf("ListenAndServe(): %s", err)
 		}
+		log.Println("Server stopped")
 	}()
 
 	// returning reference so caller can call Shutdown()
@@ -109,6 +113,7 @@ func Install(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.Host)
 
 	if r.Method == http.MethodPost {
+		fmt.Println("post request")
 		err := r.ParseForm()
 		if err != nil {
 			errHandler(err)
@@ -125,19 +130,38 @@ func Install(w http.ResponseWriter, r *http.Request) {
 
 		if len(email) == 0 && len(password) == 0 {
 			err = errors.New("email and password must be filled")
+			log.Println("install error")
+			SetFlash(w, "error", []byte(err.Error()))
+			// Redirect back with error
+			w.Header().Add("Location", "/")
+			w.WriteHeader(302)
+			return
 		}
 
 		if len(domain) == 0 && len(adminpath) == 0 {
 			err = errors.New("domain and admin path must be filled")
+			log.Println("install error")
+			SetFlash(w, "error", []byte(err.Error()))
+			// Redirect back with error
+			w.Header().Add("Location", "/")
+			w.WriteHeader(302)
+			return
 		}
 
 		connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", dbuser, dbpassword, dbhost, databasePort, dbname)
 
-		_, err = gorm.Open("mysql", connectString)
+		db, err := gorm.Open("mysql", connectString)
 		if err != nil {
+			log.Println("install error")
 			SetFlash(w, "error", []byte(err.Error()))
-			renderHtmlPage("Install", "page", w, r, nil)
+			// Redirect back with error
+			w.Header().Add("Location", "/")
+			w.WriteHeader(302)
+			return
 		} else {
+			fmt.Println("no error, install done")
+			err2 := db.Close()
+			errHandler(err2)
 			writeEnv("", "", dbhost, dbname, dbuser, dbpassword)
 			renderHtmlPage("Install", "finished", w, r, nil)
 			currentTheme = "default"
@@ -146,10 +170,13 @@ func Install(w http.ResponseWriter, r *http.Request) {
 			domains = append(domains, Domain{Name: domain})
 			paths = append(paths, Path{String: adminpath})
 			installed = true
+			return
 		}
 
 	} else {
+		fmt.Println("get request")
 		renderHtmlPage("Install", "page", w, r, nil)
+		return
 	}
 }
 

@@ -125,11 +125,16 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 
 	// Session flash messages to prompt failed logins etc..
 	errorMessage, err := GetFlash(w, r, "error")
+	log.Println(string(errorMessage))
 	errHandler(err)
 	warningMessage, err := GetFlash(w, r, "warning")
+	log.Println(string(warningMessage))
 	errHandler(err)
 	stringMessage, err := GetFlash(w, r, "message")
+	log.Println(string(stringMessage))
 	errHandler(err)
+
+	log.Println("setting data")
 
 	data := PageData{
 		Title:       pageTitle,
@@ -146,7 +151,10 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 		Year:    strconv.Itoa(time.Now().Year()),
 	}
 
+	log.Println("execute template")
+
 	err = tmpl.ExecuteTemplate(w, pageTemplate, data)
+	log.Println("done")
 	errHandler(err)
 }
 

@@ -21,10 +21,12 @@ func errHandler(err error) {
 
 func SetFlash(w http.ResponseWriter, name string, value []byte) {
 	c := &http.Cookie{Name: name, Value: encode(value)}
+	log.Println("Setting cookie flash")
 	http.SetCookie(w, c)
 }
 
 func GetFlash(w http.ResponseWriter, r *http.Request, name string) ([]byte, error) {
+	log.Println("Getting cookie flash")
 	c, err := r.Cookie(name)
 	if err != nil {
 		switch err {
