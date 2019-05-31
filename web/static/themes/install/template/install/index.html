@@ -5,9 +5,14 @@
         <title>Install Beubo</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="/install/css/style.min.css">
+        <link rel="icon" href="/default/images/favicon.ico">
+        <link rel="stylesheet" href="/default/css/normalize.min.css">
+        <link rel="stylesheet" href="/default/css/milligram.min.css">
+        <link rel="stylesheet" href="/default/css/style.min.css">
     </head>
     <body>
+
+    {{if .Error}} <p>{{.Error}}</p> {{end}}
 
     <div class="wrapper top-margin">
         <form action="/" method="post">

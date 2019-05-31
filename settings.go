@@ -128,14 +128,14 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(domain) == 0 && len(adminpath) == 0 {
-			err = errors.New("email and password must be filled")
+			err = errors.New("domain and admin path must be filled")
 		}
 
 		connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", dbuser, dbpassword, dbhost, databasePort, dbname)
 
 		_, err = gorm.Open("mysql", connectString)
 		if err != nil {
-			// TODO return error and go back to install page
+			SetFlash(w, "error", []byte(err.Error()))
 			renderHtmlPage("Install", "page", w, r, nil)
 		} else {
 			writeEnv("", "", dbhost, dbname, dbuser, dbpassword)
