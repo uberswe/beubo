@@ -62,7 +62,7 @@ func settingsInit() {
 			// Keep running install server until installed is finished
 		}
 
-		if err := srv.Shutdown(context.Background()); err != nil {
+		if err := srv.Shutdown(context.TODO()); err != nil {
 			panic(err) // failure/timeout shutting down the server gracefully
 		}
 		log.Println("Install complete, restarting server")

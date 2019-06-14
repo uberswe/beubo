@@ -12,51 +12,57 @@
     </head>
     <body>
 
-    {{if .Error}} <p>{{.Error}}</p> {{end}}
 
-    <div class="wrapper top-margin">
-        <form action="/" method="post">
-            <fieldset>
-                <legend>Install</legend>
-                <p>
-                    <label class="form-label" for="domain">Domain</label>
-                    <input class="form-input" name="domain" id="domain" type="text" placeholder="add current domain here?">
-                </p>
-                <p>
-                    <label class="form-label" for="adminpath">Admin path</label>
-                    <input class="form-input" name="adminpath" id="adminpath" type="text" placeholder="/admin">
-                </p>
-                <p>
-                    <label class="form-label" for="dbhost">Database host</label>
-                    <input class="form-input" name="dbhost" id="dbhost" type="text">
-                </p>
-                <p>
-                    <label class="form-label" for="dbname">Database name</label>
-                    <input class="form-input" name="dbname" id="dbname" type="text">
-                </p>
-                <p>
-                    <label class="form-label" for="dbuser">Database user</label>
-                    <input class="form-input" name="dbuser" id="dbuser" type="text">
-                </p>
-                <p>
-                    <label class="form-label" for="dbpassword">Database password</label>
-                    <input class="form-input" name="dbpassword" id="dbpassword" type="password">
-                </p>
-            </fieldset>
-            <fieldset>
-                <legend>Admin user</legend>
-                <p>
-                    <label class="form-label" for="email">Email</label>
-                    <input class="form-input" name="email" id="email" type="text">
-                </p>
-                <p>
-                    <label class="form-label" for="password">Password</label>
-                    <input class="form-input" name="password" id="password" type="password">
-                </p>
-            </fieldset>
-            <input type="submit" class="btn btn-primary" value="Install">
-        </form>
-    </div>
+    <main class="wrapper">
+
+        <section class="container">
+
+            <div class="wrapper top-margin">
+                <form action="/" method="post">
+                    <fieldset>
+                        <legend>Install</legend>
+
+                        {{ if .Error }}
+                            <div class="alert alert-danger" role="alert">
+                                {{ .Error }}
+                            </div>
+                        {{ end }}
+
+                        <label class="form-label" for="domain">Domain</label>
+                        <input class="form-input" name="domain" id="domain" type="text"
+                               placeholder="add current domain here?">
+
+                        <label class="form-label" for="adminpath">Admin path</label>
+                        <input class="form-input" name="adminpath" id="adminpath" type="text" placeholder="/admin">
+
+                        <label class="form-label" for="dbhost">Database host</label>
+                        <input class="form-input" name="dbhost" id="dbhost" type="text">
+
+                        <label class="form-label" for="dbname">Database name</label>
+                        <input class="form-input" name="dbname" id="dbname" type="text">
+
+                        <label class="form-label" for="dbuser">Database user</label>
+                        <input class="form-input" name="dbuser" id="dbuser" type="text">
+
+                        <label class="form-label" for="dbpassword">Database password</label>
+                        <input class="form-input" name="dbpassword" id="dbpassword" type="password">
+
+                    </fieldset>
+                    <fieldset>
+                        <legend>Admin user</legend>
+
+                        <label class="form-label" for="email">Email</label>
+                        <input class="form-input" name="email" id="email" type="text">
+
+                        <label class="form-label" for="password">Password</label>
+                        <input class="form-input" name="password" id="password" type="password">
+
+                    </fieldset>
+                    <input type="submit" class="btn btn-primary" value="Install">
+                </form>
+            </div>
+        </section>
+    </main>
 
     </body>
     </html>
