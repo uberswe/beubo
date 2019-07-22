@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -29,18 +30,34 @@ type UserRole struct {
 
 func CreateUser(db *gorm.DB, email string, password string) bool {
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-
-	if err != nil {
-		return false
-	}
-
-	user := User{Email: email, Password: string(hashedPassword)}
+	user := User{Email: email}
 
 	if db.NewRecord(user) { // => returns `true` as primary key is blank
-		db.Create(&user)
+		if err := db.Create(&user).Error; err != nil {
+			fmt.Println("Could not create user")
+			return false
+		}
+		// User password is hashed after the response is returned to improve performance
+		go hashUserPassword(db, user, password)
+		return true
 	}
-	return true
+	return false
+}
+
+func hashUserPassword(db *gorm.DB, user User, password string) {
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+
+	if err != nil {
+		fmt.Println("Password hashing failed for user")
+		return
+	}
+
+	user.Password = string(hashedPassword)
+
+	if err := db.Save(&user).Error; err != nil {
+		fmt.Println("Could not update hashed password for user")
+	}
 }
 
 func AuthUser(db *gorm.DB, email string, password string) bool {

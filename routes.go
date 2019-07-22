@@ -92,7 +92,7 @@ func registerStaticFiles(r *mux.Router) *mux.Router {
 	log.Println("Parsing and loading templates...")
 	tmpl, err = findAndParseTemplates(rootDir, template.FuncMap{})
 
-	files, err := ioutil.ReadDir("web/static/themes/")
+	files, err := ioutil.ReadDir("web/themes/")
 	checkErr(err)
 	for _, f := range files {
 		if !f.IsDir() {
@@ -100,10 +100,10 @@ func registerStaticFiles(r *mux.Router) *mux.Router {
 		}
 		themes = append(themes, f.Name())
 		// Register file paths for themes
-		fileServers[f.Name()+"_css"] = gzipped.FileServer(http.Dir("web/static/themes/" + f.Name() + "/css/"))
-		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/js/"))
-		fileServers[f.Name()+"_images"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/images/"))
-		fileServers[f.Name()+"_fonts"] = http.FileServer(http.Dir("web/static/themes/" + f.Name() + "/fonts/"))
+		fileServers[f.Name()+"_css"] = gzipped.FileServer(http.Dir("web/themes/" + f.Name() + "/css/"))
+		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir("web/themes/" + f.Name() + "/js/"))
+		fileServers[f.Name()+"_images"] = http.FileServer(http.Dir("web/themes/" + f.Name() + "/images/"))
+		fileServers[f.Name()+"_fonts"] = http.FileServer(http.Dir("web/themes/" + f.Name() + "/fonts/"))
 
 		r.PathPrefix("/" + f.Name() + "/css/").Handler(http.StripPrefix("/"+f.Name()+"/css/", fileServers[f.Name()+"_css"]))
 		r.PathPrefix("/" + f.Name() + "/js/").Handler(http.StripPrefix("/"+f.Name()+"/js/", fileServers[f.Name()+"_js"]))
@@ -114,7 +114,7 @@ func registerStaticFiles(r *mux.Router) *mux.Router {
 	return r
 }
 
-func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter, r *http.Request, extra interface{}) {
+func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter, r *http.Request, extra map[string]map[string]string) {
 
 	log.Println(r.Host)
 
@@ -146,6 +146,7 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 		Warning: string(warningMessage),
 		Message: string(stringMessage),
 		Year:    strconv.Itoa(time.Now().Year()),
+		Extra:   extra,
 	}
 
 	err = tmpl.ExecuteTemplate(w, pageTemplate, data)

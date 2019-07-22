@@ -20,7 +20,7 @@
             <div class="wrapper top-margin">
                 <form action="/" method="post">
                     <fieldset>
-                        <legend>Install</legend>
+                        <legend><h1>Install</h1></legend>
 
                         {{ if .Error }}
                             <div class="alert alert-danger" role="alert">
@@ -28,34 +28,27 @@
                             </div>
                         {{ end }}
 
-                        <label class="form-label" for="domain">Domain</label>
-                        <input class="form-input" name="domain" id="domain" type="text"
-                               placeholder="add current domain here?">
-
-                        <label class="form-label" for="adminpath">Admin path</label>
-                        <input class="form-input" name="adminpath" id="adminpath" type="text" placeholder="/admin">
-
                         <label class="form-label" for="dbhost">Database host</label>
-                        <input class="form-input" name="dbhost" id="dbhost" type="text">
+                        <input class="form-input" name="dbhost" id="dbhost" type="text" value="{{if and (.Extra) (.Extra.form) }}{{ .Extra.form.dbhost }}{{ end }}">
 
                         <label class="form-label" for="dbname">Database name</label>
-                        <input class="form-input" name="dbname" id="dbname" type="text">
+                        <input class="form-input" name="dbname" id="dbname" type="text" value="{{if and (.Extra) (.Extra.form) }}{{ .Extra.form.dbname }}{{ end }}">
 
                         <label class="form-label" for="dbuser">Database user</label>
-                        <input class="form-input" name="dbuser" id="dbuser" type="text">
+                        <input class="form-input" name="dbuser" id="dbuser" type="text" value="{{if and (.Extra) (.Extra.form) }}{{ .Extra.form.dbuser }}{{ end }}">
 
                         <label class="form-label" for="dbpassword">Database password</label>
-                        <input class="form-input" name="dbpassword" id="dbpassword" type="password">
+                        <input class="form-input" name="dbpassword" id="dbpassword" type="password" value="{{if and (.Extra) (.Extra.form) }}{{ .Extra.form.dbpassword }}{{ end }}">
 
                     </fieldset>
                     <fieldset>
                         <legend>Admin user</legend>
 
-                        <label class="form-label" for="email">Email</label>
-                        <input class="form-input" name="email" id="email" type="text">
+                        <label class="form-label" for="email">Email/Username/Phone</label>
+                        <input class="form-input" name="username" id="username" type="text" value="{{if and (.Extra) (.Extra.form) }}{{ .Extra.form.username }}{{ end }}">
 
                         <label class="form-label" for="password">Password</label>
-                        <input class="form-input" name="password" id="password" type="password">
+                        <input class="form-input" name="password" id="password" type="password" value="{{if and (.Extra) (.Extra.form) }}{{ .Extra.form.password }}{{ end }}">
 
                     </fieldset>
                     <input type="submit" class="btn btn-primary" value="Install">

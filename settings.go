@@ -25,9 +25,11 @@ var (
 	databasePassword = ""
 	databasePort     = "3306"
 
-	rootDir      = "./web/static/"
+	rootDir      = "./web/"
 	currentTheme = "install"
 	installed    = false // TODO handle this in a middleware or something
+
+	failures map[string]map[string]string
 )
 
 func settingsInit() {
@@ -56,6 +58,7 @@ func settingsInit() {
 		log.Println("No installation detected, starting install server")
 		srv := startInstallServer()
 
+		// TODO there might be a bug here where we might have multiple instances waiting for installed to be true
 		for !installed {
 			// Pause for 100 ms, this was causing high cpu load without this here
 			time.Sleep(time.Second / 10)
@@ -108,29 +111,45 @@ func startInstallServer() *http.Server {
 }
 
 func Install(w http.ResponseWriter, r *http.Request) {
-	// TODO check if installed here, if db is configured
+	formKey := "form"
+	dbhostKey := "dbhost"
+	dbnameKey := "dbname"
+	dbuserKey := "dbuser"
+	dbpasswordKey := "dbpassword"
+	usernameKey := "username"
+	passwordKey := "password"
 
-	log.Println(r.Host)
+	if failures == nil {
+		failures = make(map[string]map[string]string)
+	}
+
+	extra := make(map[string]map[string]string)
 
 	if r.Method == http.MethodPost {
-		fmt.Println("post request")
+		extra[formKey] = make(map[string]string)
 		err := r.ParseForm()
 		if err != nil {
 			errHandler(err)
 		}
 
-		domain := r.PostFormValue("domain")
-		adminpath := r.PostFormValue("adminpath")
-		dbhost := r.PostFormValue("dbhost")
-		dbname := r.PostFormValue("dbname")
-		dbuser := r.PostFormValue("dbuser")
-		dbpassword := r.PostFormValue("dbpassword")
-		email := r.PostFormValue("email")
-		password := r.PostFormValue("password")
+		extra[formKey][dbhostKey] = r.PostFormValue(dbhostKey)
+		extra[formKey][dbnameKey] = r.PostFormValue(dbnameKey)
+		extra[formKey][dbuserKey] = r.PostFormValue(dbuserKey)
+		extra[formKey][dbpasswordKey] = r.PostFormValue(dbpasswordKey)
+		extra[formKey][usernameKey] = r.PostFormValue(usernameKey)
+		extra[formKey][passwordKey] = r.PostFormValue(passwordKey)
 
-		if len(email) == 0 && len(password) == 0 {
-			err = errors.New("email and password must be filled")
-			log.Println("install error")
+		token, err := generateToken(30)
+		if err != nil {
+			panic(err)
+		}
+
+		failures[token] = extra[formKey]
+
+		SetFlash(w, "token", []byte(token))
+
+		if len(extra[formKey][usernameKey]) < 8 || len(extra[formKey][passwordKey]) < 8 {
+			err = errors.New("username and password must be filled with a minimum of 8 characters")
 			SetFlash(w, "error", []byte(err.Error()))
 			// Redirect back with error
 			w.Header().Add("Location", "/")
@@ -138,21 +157,11 @@ func Install(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if len(domain) == 0 && len(adminpath) == 0 {
-			err = errors.New("domain and admin path must be filled")
-			log.Println("install error")
-			SetFlash(w, "error", []byte(err.Error()))
-			// Redirect back with error
-			w.Header().Add("Location", "/")
-			w.WriteHeader(302)
-			return
-		}
-
-		connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", dbuser, dbpassword, dbhost, databasePort, dbname)
+		connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", extra[formKey][dbuserKey], extra[formKey][dbpasswordKey], extra[formKey][dbhostKey], databasePort, extra[formKey][dbnameKey])
 
 		db, err := gorm.Open("mysql", connectString)
 		if err != nil {
-			log.Println("install error")
+
 			SetFlash(w, "error", []byte(err.Error()))
 			// Redirect back with error
 			w.Header().Add("Location", "/")
@@ -162,20 +171,25 @@ func Install(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("no error, install done")
 			err2 := db.Close()
 			errHandler(err2)
-			writeEnv("", "", dbhost, dbname, dbuser, dbpassword)
+			writeEnv("", "", extra[formKey][dbhostKey], extra[formKey][dbnameKey], extra[formKey][dbuserKey], extra[formKey][dbpasswordKey])
 			renderHtmlPage("Install", "finished", w, r, nil)
 			currentTheme = "default"
-			prepareSeed(email, password)
-			// TODO should save these objects to database at some point
-			domains = append(domains, Domain{Name: domain})
-			paths = append(paths, Path{String: adminpath})
+			prepareSeed(extra[formKey][usernameKey], extra[formKey][passwordKey])
+			// TODO save path to database, could be moved to seed
+			paths = append(paths, Path{String: "/admin"})
 			installed = true
 			return
 		}
 
 	} else {
-		fmt.Println("get request")
-		renderHtmlPage("Install", "page", w, r, nil)
+		extra := make(map[string]map[string]string)
+		token, err := GetFlash(w, r, "token")
+		if err == nil {
+			extra[formKey] = make(map[string]string)
+			extra[formKey] = failures[string(token)]
+			failures[string(token)] = nil
+		}
+		renderHtmlPage("Install", "page", w, r, extra)
 		return
 	}
 }

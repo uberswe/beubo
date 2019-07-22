@@ -1,7 +1,9 @@
 package beubo
 
 import (
+	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -50,4 +52,13 @@ func encode(src []byte) string {
 
 func decode(src string) ([]byte, error) {
 	return base64.URLEncoding.DecodeString(src)
+}
+
+func generateToken(len int) (string, error) {
+	b := make([]byte, len)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", b), nil
 }
