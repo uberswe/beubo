@@ -3,9 +3,9 @@ package beubo
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	// Gorm recommends a blank import to support underlying mysql
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/markustenghamn/beubo/pkg/models"
-	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -13,7 +13,10 @@ var (
 	seedEmail    = ""
 	seedPassword = ""
 	shouldSeed   = false
-	DB           *gorm.DB
+	// DB is used to perform database queries globally. In the future this should probably
+	// be changed so that database.go declares methods that can be used to perform types of
+	// queries
+	DB *gorm.DB
 )
 
 func setupDB() *gorm.DB {

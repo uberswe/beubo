@@ -6,6 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// User is a user who can authenticate with Beubo
 type User struct {
 	gorm.Model
 	Email       string `gorm:"size:255;unique_index"`
@@ -14,6 +15,7 @@ type User struct {
 	Roles       []UserRole
 }
 
+// UserActivation is used to verify a user when signing up
 type UserActivation struct {
 	gorm.Model
 	UserID uint
@@ -22,12 +24,14 @@ type UserActivation struct {
 	Code   string
 }
 
+// UserRole can be admin, moderator, normal or guest
 type UserRole struct {
 	gorm.Model
 	UserID uint
 	Name   string
 }
 
+// CreateUser is a method which creates a user using gorm
 func CreateUser(db *gorm.DB, email string, password string) bool {
 
 	user := User{Email: email}
@@ -44,6 +48,7 @@ func CreateUser(db *gorm.DB, email string, password string) bool {
 	return false
 }
 
+// hashUserPassword hashes the user password using bcrypt
 func hashUserPassword(db *gorm.DB, user User, password string) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
@@ -60,6 +65,7 @@ func hashUserPassword(db *gorm.DB, user User, password string) {
 	}
 }
 
+// AuthUser authenticates the user by verifying a username and password
 func AuthUser(db *gorm.DB, email string, password string) bool {
 	var user User
 

@@ -1,18 +1,7 @@
 package beubo
 
-type Domain struct {
-	Name string
-}
-
-type Path struct {
-	String string
-}
-
-var (
-	domains []Domain
-	paths   []Path
-)
-
+// Init is called to start Beubo, this calls various other functions that initialises
+// the database, settings and routes for example.
 func Init() {
 	settingsInit()
 	databaseInit()

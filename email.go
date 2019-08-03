@@ -9,9 +9,14 @@ import (
 	"github.com/markustenghamn/beubo/pkg/models"
 )
 
+// SenderEmail is the email of the sender
+// TODO this should be moved to env or db
 var SenderEmail = "no-reply@qby.se"
 
-func SendEmail(sender string, recipient string, subject string, htmlBody string, textBody string) {
+// sendEmail is a general function for handling the sending of email. Currently it is configured to use
+// AWS SES and should probably be changed to a module
+// TODO move this to a module or make it more general to support SMTP as well
+func sendEmail(sender string, recipient string, subject string, htmlBody string, textBody string) {
 	// Create a new session in the us-west-2 region.
 	// Replace us-west-2 with the AWS Region you're using for Amazon SES.
 	sess, err := session.NewSession(&aws.Config{
@@ -82,11 +87,12 @@ func SendEmail(sender string, recipient string, subject string, htmlBody string,
 	fmt.Println(result)
 }
 
-func SendUserActivationEmail(user models.User) {
+// sendUserActivationEmail should send an email to new users to verify their accounts
+func sendUserActivationEmail(user models.User) {
 	// TODO generate activation code
 	// TODO Make activation html and text template
 	subject := ""
 	htmlBody := ""
 	textBody := ""
-	SendEmail(SenderEmail, user.Email, subject, htmlBody, textBody)
+	sendEmail(SenderEmail, user.Email, subject, htmlBody, textBody)
 }

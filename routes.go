@@ -20,10 +20,12 @@ var tmpl *template.Template
 var themes []string
 var fileServers = map[string]http.Handler{}
 
+// PageData is a general structure that holds all data that can be displayed on a page
+// using go html templates
 type PageData struct {
 	Title       string
 	WebsiteName string
-	Url         string
+	URL         string
 	Menu        []MenuItem
 	Error       string
 	Warning     string
@@ -32,11 +34,14 @@ type PageData struct {
 	Extra       interface{}
 }
 
+// MenuItem is one item that can be part of a nav in the frontend
+// TODO might be too specific consider removing/redoing this
 type MenuItem struct {
 	Title string
 	Path  string
 }
 
+// routesInit initializes the routes and starts a web server that listens on the specified port
 func routesInit() {
 	// TODO make this port configurable as an argument
 	var port = ":3000"
@@ -86,6 +91,7 @@ func routesInit() {
 	}
 }
 
+// registerStaticFiles handles the loading of all static files for all templates
 func registerStaticFiles(r *mux.Router) *mux.Router {
 	var err error
 
@@ -114,7 +120,8 @@ func registerStaticFiles(r *mux.Router) *mux.Router {
 	return r
 }
 
-func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter, r *http.Request, extra map[string]map[string]string) {
+// renderHTMLPage handles rendering of the html template and should be the last function called before returning the response
+func renderHTMLPage(pageTitle string, pageTemplate string, w http.ResponseWriter, r *http.Request, extra map[string]map[string]string) {
 
 	log.Println(r.Host)
 
@@ -153,23 +160,27 @@ func renderHtmlPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 	errHandler(err)
 }
 
+// Home is the default home route and template
 func Home(w http.ResponseWriter, r *http.Request) {
-	renderHtmlPage("Home", "page", w, r, nil)
+	renderHTMLPage("Home", "page", w, r, nil)
 }
 
+// Admin is the default admin route and template
 func Admin(w http.ResponseWriter, r *http.Request) {
-	renderHtmlPage("Admin", "admin.home", w, r, nil)
+	renderHTMLPage("Admin", "admin.home", w, r, nil)
 }
 
+// Login is the default login route
 func Login(w http.ResponseWriter, r *http.Request) {
 	if !installed {
 		_, err := w.Write([]byte("Beubo is not installed"))
 		errHandler(err)
 		return
 	}
-	renderHtmlPage("Login", "login", w, r, nil)
+	renderHTMLPage("Login", "login", w, r, nil)
 }
 
+// LoginPost handles authentication via post request and verifies a username/password via the database
 func LoginPost(w http.ResponseWriter, r *http.Request) {
 	session := sessions.GetSession(r)
 
@@ -189,10 +200,12 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin", 302)
 }
 
+// Register renders the default registration page
 func Register(w http.ResponseWriter, r *http.Request) {
-	renderHtmlPage("Register", "register", w, r, nil)
+	renderHTMLPage("Register", "register", w, r, nil)
 }
 
+// RegisterPost handles a registration request and inserts the user into the database
 func RegisterPost(w http.ResponseWriter, r *http.Request) {
 
 	invalidError := "Please make sure the email is correct or that it does not already belong to a registered account"
@@ -210,12 +223,15 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", 302)
 }
 
+// Logout handles a GET logout request and removes the user session
 func Logout(w http.ResponseWriter, r *http.Request) {
 	session := sessions.GetSession(r)
 	session.Delete("useremail")
 	http.Redirect(w, r, "/", 302)
 }
 
+// APIHandler is a prototype route for making base API routes
+// TODO implement an external API, preferably with concepts taken from Bridgely, see ticket #15
 func APIHandler(w http.ResponseWriter, r *http.Request) {
 	data, _ := json.Marshal("{'API Test':'Works!'}")
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")

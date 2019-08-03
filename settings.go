@@ -32,6 +32,8 @@ var (
 	failures map[string]map[string]string
 )
 
+// Initializes the settings and checks if Beubo is installed by checking the env file
+// If no env file is present then this function will start it's own http listener to go through the installation process
 func settingsInit() {
 
 	err := godotenv.Load()
@@ -58,7 +60,7 @@ func settingsInit() {
 		log.Println("No installation detected, starting install server")
 		srv := startInstallServer()
 
-		// TODO there might be a bug here where we might have multiple instances waiting for installed to be true
+		// TODO there might be a bug here where we might have multiple instances waiting for installed to be true which causes an infinite loop
 		for !installed {
 			// Pause for 100 ms, this was causing high cpu load without this here
 			time.Sleep(time.Second / 10)
@@ -75,6 +77,7 @@ func settingsInit() {
 
 }
 
+// startInstallServer starts a http listener and presents the installation page to anyone visiting the port on the host
 func startInstallServer() *http.Server {
 	r := mux.NewRouter()
 	n := negroni.Classic()
@@ -110,6 +113,7 @@ func startInstallServer() *http.Server {
 	return srv
 }
 
+// Install handles installation requests and presents the install page
 func Install(w http.ResponseWriter, r *http.Request) {
 	formKey := "form"
 	dbhostKey := "dbhost"
@@ -167,33 +171,31 @@ func Install(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Location", "/")
 			w.WriteHeader(302)
 			return
-		} else {
-			fmt.Println("no error, install done")
-			err2 := db.Close()
-			errHandler(err2)
-			writeEnv("", "", extra[formKey][dbhostKey], extra[formKey][dbnameKey], extra[formKey][dbuserKey], extra[formKey][dbpasswordKey])
-			renderHtmlPage("Install", "finished", w, r, nil)
-			currentTheme = "default"
-			prepareSeed(extra[formKey][usernameKey], extra[formKey][passwordKey])
-			// TODO save path to database, could be moved to seed
-			paths = append(paths, Path{String: "/admin"})
-			installed = true
-			return
 		}
-
-	} else {
-		extra := make(map[string]map[string]string)
-		token, err := GetFlash(w, r, "token")
-		if err == nil {
-			extra[formKey] = make(map[string]string)
-			extra[formKey] = failures[string(token)]
-			failures[string(token)] = nil
-		}
-		renderHtmlPage("Install", "page", w, r, extra)
+		fmt.Println("no error, install done")
+		err2 := db.Close()
+		errHandler(err2)
+		writeEnv("", "", extra[formKey][dbhostKey], extra[formKey][dbnameKey], extra[formKey][dbuserKey], extra[formKey][dbpasswordKey])
+		renderHTMLPage("Install", "finished", w, r, nil)
+		currentTheme = "default"
+		prepareSeed(extra[formKey][usernameKey], extra[formKey][passwordKey])
+		installed = true
 		return
+
 	}
+	extra = make(map[string]map[string]string)
+	token, err := GetFlash(w, r, "token")
+	if err == nil {
+		extra[formKey] = make(map[string]string)
+		extra[formKey] = failures[string(token)]
+		failures[string(token)] = nil
+	}
+	renderHTMLPage("Install", "page", w, r, extra)
+	return
+
 }
 
+// setSetting returns the key value if it is set and otherwise falls back to return the variable value
 func setSetting(key string, variable string) string {
 	if key != "" {
 		variable = key
@@ -201,6 +203,7 @@ func setSetting(key string, variable string) string {
 	return variable
 }
 
+// writeEnv writes environmental variables to an .env file
 func writeEnv(assetDir string, theme string, dbHost string, dbName string, dbUser string, dbPassword string) {
 	envContent := []byte("ASSETS_DIR=" + assetDir + "\nTHEME=" + theme + "\n\nDB_HOST=" + dbHost + "\nDB_NAME=" + dbName + "\nDB_USER=" + dbUser + "\nDB_PASSWORD=" + dbPassword)
 	// TODO allow users to specify folder or even config filename, maybe beuboConfig
