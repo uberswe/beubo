@@ -16,9 +16,6 @@ import (
 )
 
 var (
-	// TODO make this port configurable as an argument
-	port = ":3000"
-
 	databaseHost     = "localhost"
 	databaseName     = ""
 	databaseUser     = ""
@@ -94,7 +91,7 @@ func startInstallServer() *http.Server {
 
 	n.UseHandler(r)
 
-	srv := &http.Server{Addr: port, Handler: n}
+	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: n}
 
 	log.Println("listening on:", port)
 	go func() {

@@ -2,6 +2,7 @@ package beubo
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/goincremental/negroni-sessions"
 	"github.com/goincremental/negroni-sessions/cookiestore"
 	"github.com/gorilla/mux"
@@ -44,7 +45,6 @@ type MenuItem struct {
 // routesInit initializes the routes and starts a web server that listens on the specified port
 func routesInit() {
 	// TODO make this port configurable as an argument
-	var port = ":3000"
 	var err error
 
 	errHandler(err)
@@ -85,7 +85,7 @@ func routesInit() {
 	n.UseHandler(r)
 
 	log.Println("listening on:", port)
-	err = http.ListenAndServe(port, n)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", port), n)
 	if err != nil {
 		log.Println(err)
 	}
@@ -143,7 +143,7 @@ func renderHTMLPage(pageTitle string, pageTemplate string, w http.ResponseWriter
 	data := PageData{
 		Title:       pageTitle,
 		WebsiteName: "Beubo",
-		Url:         "http://localhost:3000",
+		URL:         "http://localhost:3000",
 		Menu: []MenuItem{
 			{Title: "Home", Path: "/"},
 			{Title: "Register", Path: "/register"},
