@@ -11,7 +11,7 @@ import (
 
 // SenderEmail is the email of the sender
 // TODO this should be moved to env or db
-var SenderEmail = "no-reply@qby.se"
+var SenderEmail = "no-reply@beubo.com"
 
 // sendEmail is a general function for handling the sending of email. Currently it is configured to use
 // AWS SES and should probably be changed to a module
