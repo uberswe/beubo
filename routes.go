@@ -167,7 +167,20 @@ func Home(w http.ResponseWriter, r *http.Request) {
 
 // Admin is the default admin route and template
 func Admin(w http.ResponseWriter, r *http.Request) {
-	renderHTMLPage("Admin", "admin.home", w, r, nil)
+	var sites []models.Site
+
+	extra := make(map[string]map[string]string)
+	extra["sites"] = make(map[string]string)
+
+	if err := DB.Find(&sites).Error; err != nil {
+		errHandler(err)
+	}
+
+	for _, site := range sites {
+		extra["sites"][fmt.Sprintf("%d", site.ID)] = site.Title
+	}
+
+	renderHTMLPage("Admin", "admin.home", w, r, extra)
 }
 
 // Login is the default login route
