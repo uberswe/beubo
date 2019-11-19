@@ -1,6 +1,8 @@
 package beubo
 
-import "flag"
+import (
+	"flag"
+)
 
 var port = 3000
 
@@ -14,6 +16,7 @@ func Run() {
 	settingsInit()
 	databaseInit()
 	databaseSeed()
+	go grpcInit() // grpc runs it's own server and is blocking
 	routesInit()
 }
 
