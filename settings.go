@@ -21,6 +21,7 @@ var (
 	databaseUser     = ""
 	databasePassword = ""
 	databasePort     = "3306"
+	databaseDriver   = "mysql"
 
 	rootDir      = "./web/"
 	currentTheme = "install"
@@ -48,6 +49,7 @@ func settingsInit() {
 	databaseHost = setSetting(os.Getenv("DB_HOST"), databaseHost)
 	databaseName = setSetting(os.Getenv("DB_NAME"), databaseName)
 	databaseUser = setSetting(os.Getenv("DB_USER"), databaseUser)
+	databaseDriver = setSetting(os.Getenv("DB_DRIVER"), databaseDriver)
 	databasePassword = setSetting(os.Getenv("DB_PASSWORD"), databasePassword)
 
 	if databaseUser != "" && databaseName != "" {

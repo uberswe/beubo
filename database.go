@@ -5,6 +5,7 @@ import (
 	"github.com/jinzhu/gorm"
 	// Gorm recommends a blank import to support underlying mysql
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/markustenghamn/beubo/pkg/models"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -20,7 +21,11 @@ var (
 )
 
 func setupDB() *gorm.DB {
-	db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", databaseUser, databasePassword, databaseHost, databasePort, databaseName))
+	connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", databaseUser, databasePassword, databaseHost, databasePort, databaseName)
+	if databaseDriver == "sqlite3" {
+		connectString = "beubo.db"
+	}
+	db, err := gorm.Open(databaseDriver, connectString)
 	checkErr(err)
 
 	return db
