@@ -7,7 +7,7 @@ import (
 	"github.com/goincremental/negroni-sessions/cookiestore"
 	"github.com/gorilla/mux"
 	"github.com/lpar/gzipped"
-	"github.com/markustenghamn/beubo/pkg/models"
+	"github.com/markustenghamn/beubo/pkg/structs"
 	"github.com/urfave/negroni"
 	"html/template"
 	"io/ioutil"
@@ -167,7 +167,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 
 // Admin is the default admin route and template
 func Admin(w http.ResponseWriter, r *http.Request) {
-	var sites []models.Site
+	var sites []structs.Site
 
 	extra := make(map[string]map[string]string)
 	extra["sites"] = make(map[string]string)
@@ -203,7 +203,7 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	sessionid := "sessionidgoeshere"
 
-	if !models.AuthUser(DB, email, password) {
+	if !structs.AuthUser(DB, email, password) {
 		SetFlash(w, "error", []byte(invalidError))
 		http.Redirect(w, r, "/login", 302)
 		return
@@ -226,7 +226,7 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	if !models.CreateUser(DB, email, password) {
+	if !structs.CreateUser(DB, email, password) {
 		SetFlash(w, "error", []byte(invalidError))
 		http.Redirect(w, r, "/login", 302)
 	}

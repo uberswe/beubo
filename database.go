@@ -6,7 +6,7 @@ import (
 	// Gorm recommends a blank import to support underlying mysql
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/markustenghamn/beubo/pkg/models"
+	"github.com/markustenghamn/beubo/pkg/structs"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -47,13 +47,13 @@ func databaseInit() {
 	}
 
 	DB.AutoMigrate(
-		&models.User{},
-		&models.UserActivation{},
-		&models.UserRole{},
-		&models.Config{},
-		&models.Post{},
-		&models.Theme{},
-		&models.Site{})
+		&structs.User{},
+		&structs.UserActivation{},
+		&structs.UserRole{},
+		&structs.Config{},
+		&structs.Page{},
+		&structs.Theme{},
+		&structs.Site{})
 }
 
 func prepareSeed(email string, password string) {
@@ -71,7 +71,7 @@ func databaseSeed() {
 
 		checkErr(err)
 
-		user := models.User{Email: seedEmail, Password: string(hashedPassword)}
+		user := structs.User{Email: seedEmail, Password: string(hashedPassword)}
 
 		if DB.NewRecord(user) { // => returns `true` as primary key is blank
 			DB.Create(&user)

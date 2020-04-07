@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/markustenghamn/beubo/pkg/models"
+	"github.com/markustenghamn/beubo/pkg/structs"
 )
 
 // SenderEmail is the email of the sender
@@ -88,7 +88,7 @@ func sendEmail(sender string, recipient string, subject string, htmlBody string,
 }
 
 // sendUserActivationEmail should send an email to new users to verify their accounts
-func sendUserActivationEmail(user models.User) {
+func sendUserActivationEmail(user structs.User) {
 	// TODO generate activation code
 	// TODO Make activation html and text template
 	subject := ""

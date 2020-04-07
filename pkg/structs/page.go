@@ -1,11 +1,11 @@
-package models
+package structs
 
 import (
 	"github.com/jinzhu/gorm"
 )
 
-// Post represents the content of a page, I wanted to go with the concept of having everything be a post even if it's a page, contact form or product
-type Post struct {
+// Page represents the content of a page, I wanted to go with the concept of having everything be a post even if it's a page, contact form or product
+type Page struct {
 	gorm.Model
 	Title       string `gorm:"size:255;unique_index"`
 	Content     string `sql:"type:text"`
