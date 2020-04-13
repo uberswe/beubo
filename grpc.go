@@ -20,18 +20,19 @@ type server struct{}
 
 func (s *server) Connect(stream pb.BeuboGRPC_ConnectServer) error {
 	for {
-		in, err := stream.Recv()
+		event, err := stream.Recv()
 		if err == io.EOF {
 			return nil
 		}
 		if err != nil {
 			return err
 		}
-		log.Printf("Received: %v", in.Name)
+		log.Printf("Event received: %s (%s)\n", event.Key, event.Data)
 	}
 }
 
 func (s *server) Requests(pluginMessage *pb.PluginMessage, stream pb.BeuboGRPC_RequestsServer) error {
+	log.Printf("Plugin registered to receive requests: %s (%s)\n", pluginMessage.Name, pluginMessage.Identifier)
 	for {
 		request := <-requestChannel
 		if err := stream.Send(&request); err != nil {

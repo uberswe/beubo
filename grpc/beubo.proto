@@ -4,21 +4,28 @@ option java_multiple_files = true;
 option java_package = "beubo";
 option java_outer_classname = "BeuboProto";
 
+import "google/protobuf/any.proto";
+
+// protoc -I grpc --go_out=plugins=grpc:grpc grpc/beubo.proto
+
 package beubo;
 
-// The greeting service definition.
+// The Beubo service definition.
 service BeuboGRPC {
     // Bidirectional plugin connection
-    rpc Connect (stream PluginMessage) returns (stream PluginMessage) {}
+    rpc Connect (stream Event) returns (stream Event) {}
+    // For plugins that want to listen to incoming requests and perform action on the data
     rpc Requests (PluginMessage) returns (stream Request) {}
 }
 
+// Request is a basic representation of a http request
 message Request {
     string url = 1;
     string method = 2;
     repeated Header headers = 3;
 }
 
+// Header represents all the headers of a request
 message Header {
     string key = 1;
     repeated string values = 2;
@@ -38,4 +45,11 @@ message PluginMessage {
     }
 
     repeated Endpoint endpoints = 6; // These are endpoints that Beubo or other plugins can call
+}
+
+// Event is the struct used for plugins to communicate with Beubo.
+message Event {
+    string key = 1;
+    string data = 2;
+    repeated google.protobuf.Any values = 3;
 }
