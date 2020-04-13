@@ -38,12 +38,16 @@ func databaseInit() {
 		DropQuery string
 	}
 
-	var result []Result
+	if databaseDriver != "sqlite3" {
 
-	DB.Raw("SELECT concat('DROP TABLE IF EXISTS `', table_name, '`;') as drop_query FROM information_schema.tables WHERE table_schema = 'beubo';").Scan(&result)
+		var result []Result
+		// TODO if sqlite3 we can not use information_schema here
+		DB.Raw("SELECT concat('DROP TABLE IF EXISTS `', table_name, '`;') as drop_query FROM information_schema.tables WHERE table_schema = 'beubo';").Scan(&result)
 
-	for _, r := range result {
-		DB.Exec(r.DropQuery)
+		for _, r := range result {
+			DB.Exec(r.DropQuery)
+		}
+
 	}
 
 	DB.AutoMigrate(

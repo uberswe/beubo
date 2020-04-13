@@ -1,16 +1,16 @@
 package beubo
 
 import (
-	"context"
 	pb "github.com/markustenghamn/beubo/grpc"
 	"google.golang.org/grpc"
+	"io"
 	"log"
 	"net"
 )
 
 // Grpc
 
-//go:generate protoc -I grpc --go_out=plugins=grpc:grpc grpc/beubo.proto
+// protoc -I grpc --go_out=plugins=grpc:grpc grpc/beubo.proto
 
 const (
 	grpcPort = ":50051"
@@ -18,44 +18,26 @@ const (
 
 type server struct{}
 
-func (s *server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	log.Printf("Received: %v", in.Name)
-	return &pb.RegisterResponse{Message: "Registered", Success: true}, nil
+func (s *server) Connect(stream pb.BeuboGRPC_ConnectServer) error {
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		log.Printf("Received: %v", in.Name)
+	}
 }
 
-func (s *server) Insert(ctx context.Context, in *pb.InsertRequest) (*pb.InsertResponse, error) {
-	log.Printf("Received: ")
-	return &pb.InsertResponse{}, nil
-}
-
-func (s *server) Update(ctx context.Context, in *pb.UpdateRequest) (*pb.UpdateResponse, error) {
-	log.Printf("Received: ")
-	return &pb.UpdateResponse{}, nil
-}
-
-func (s *server) Delete(ctx context.Context, in *pb.DeleteRequest) (*pb.DeleteResponse, error) {
-	log.Printf("Received: ")
-	return &pb.DeleteResponse{}, nil
-}
-
-func (s *server) Select(ctx context.Context, in *pb.SelectRequest) (*pb.SelectResponse, error) {
-	log.Printf("Received: ")
-	return &pb.SelectResponse{}, nil
-}
-
-func (s *server) Handle(ctx context.Context, in *pb.HandleRequest) (*pb.HandleResponse, error) {
-	log.Printf("Received: ")
-	return &pb.HandleResponse{}, nil
-}
-
-func (s *server) FetchEndpoints(ctx context.Context, in *pb.EmptyRequest) (*pb.FetchEndpointsResponse, error) {
-	log.Printf("Received: ")
-	return &pb.FetchEndpointsResponse{}, nil
-}
-
-func (s *server) CallEndpoint(ctx context.Context, in *pb.CallEndpointRequest) (*pb.CallEndpointResponse, error) {
-	log.Printf("Received: ")
-	return &pb.CallEndpointResponse{}, nil
+func (s *server) Requests(pluginMessage *pb.PluginMessage, stream pb.BeuboGRPC_RequestsServer) error {
+	for {
+		request := <-requestChannel
+		if err := stream.Send(&request); err != nil {
+			return err
+		}
+	}
 }
 
 func grpcInit() {

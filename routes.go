@@ -7,6 +7,7 @@ import (
 	"github.com/goincremental/negroni-sessions/cookiestore"
 	"github.com/gorilla/mux"
 	"github.com/lpar/gzipped"
+	beubo "github.com/markustenghamn/beubo/grpc"
 	"github.com/markustenghamn/beubo/pkg/structs"
 	"github.com/urfave/negroni"
 	"html/template"
@@ -20,6 +21,7 @@ import (
 var tmpl *template.Template
 var themes []string
 var fileServers = map[string]http.Handler{}
+var requestChannel = make(chan beubo.Request)
 
 // PageData is a general structure that holds all data that can be displayed on a page
 // using go html templates
@@ -54,6 +56,7 @@ func routesInit() {
 
 	store := cookiestore.New([]byte("kd8ekdleodjfiek"))
 	n.Use(sessions.Sessions("global_session_store", store))
+	n.Use(negroni.HandlerFunc(PluginMiddleware))
 
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
@@ -250,4 +253,22 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	_, err := w.Write(data)
 	errHandler(err)
+}
+
+func PluginMiddleware(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	// do some stuff before
+	var headers []*beubo.Header
+	for key, value := range r.Header {
+		headers = append(headers, &beubo.Header{
+			Key:    key,
+			Values: value,
+		})
+	}
+	requestChannel <- beubo.Request{
+		Url:     r.URL.String(),
+		Method:  r.Method,
+		Headers: headers,
+	}
+	next(rw, r)
+	// do some stuff after
 }
