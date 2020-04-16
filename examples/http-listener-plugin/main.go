@@ -10,8 +10,10 @@ import (
 )
 
 const (
-	remoteHost = "localhost"
-	remotePort = "50051"
+	pluginName       = "HTTP Listener Example Plugin"
+	pluginIdentifier = "http-listener-example"
+	remoteHost       = "localhost"
+	remotePort       = "50051"
 )
 
 func main() {
@@ -27,9 +29,8 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	r, err := c.Requests(ctx, &pb.PluginMessage{
-		Name:       "Plugin",
-		Identifier: "plugin",
-		Host:       "",
+		Name:       pluginName,
+		Identifier: pluginIdentifier,
 	})
 	if err != nil {
 		log.Fatalf("could not connect: %v", err)

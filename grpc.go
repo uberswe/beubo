@@ -1,6 +1,7 @@
 package beubo
 
 import (
+	"github.com/golang/protobuf/proto"
 	pb "github.com/markustenghamn/beubo/grpc"
 	"google.golang.org/grpc"
 	"io"
@@ -28,6 +29,19 @@ func (s *server) Connect(stream pb.BeuboGRPC_ConnectServer) error {
 			return err
 		}
 		log.Printf("Event received: %s (%s)\n", event.Key, event.Data)
+		for _, any := range event.Values {
+			log.Println(any.TypeUrl)
+			if any.TypeUrl == "beubo.PluginMessage" {
+				var m pb.PluginMessage
+				err := proto.Unmarshal(any.Value, &m)
+				if err != nil {
+					return err
+				}
+				log.Printf("Plugin message unmarshalled %s\n", m.Name)
+			}
+
+			// TODO make a channel which sends back request/response structs
+		}
 	}
 }
 
