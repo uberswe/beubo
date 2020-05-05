@@ -18,3 +18,8 @@ auto migrate and seed a fresh database.
 ```
 -port=8080      Allows you to specify which port Beubo should listen on
 ```
+
+## Templating
+
+Beubo uses the go html templates to build pages. These templates use functions to render sections of 
+content which plugins can hook into when a request is made.

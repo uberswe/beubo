@@ -1,6 +1,33 @@
 {{ define "default.admin.home" }}
     {{ template "default.admin.header" . }}
 
+    <section class="container" id="sites-list">
+        <a class="button" href="/admin/sites/add">Add Site</a>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Site</th>
+                <th>Domain</th>
+                <th></th>
+            </tr>
+        {{if and (.Extra) (.Extra.sites) }}
+            {{range .Extra.sites}}
+                <tr>
+                    <td>{{ .id }}</td>
+                    <td>{{ .title }}</td>
+                    <td>{{ .domain }}</td>
+                    <td><a class="button" href="/admin/sites/{{ .id }}">Edit</a></td>
+                </tr>
+            {{end}}
+
+        {{ else }}
+            <tr>
+                <td colspan="3">There are currently no sites</td>
+            </tr>
+        {{ end }}
+
+        </table>
+    </section>
 
     {{ template "default.footer" . }}
 {{ end }}

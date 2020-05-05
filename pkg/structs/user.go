@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 )
 
 // User is a user who can authenticate with Beubo
@@ -48,6 +49,14 @@ func CreateUser(db *gorm.DB, email string, password string) bool {
 	return false
 }
 
+func FetchUser(db *gorm.DB, id int) User {
+	user := User{}
+
+	db.First(&user, id)
+
+	return user
+}
+
 // hashUserPassword hashes the user password using bcrypt
 func hashUserPassword(db *gorm.DB, user User, password string) {
 
@@ -66,21 +75,20 @@ func hashUserPassword(db *gorm.DB, user User, password string) {
 }
 
 // AuthUser authenticates the user by verifying a username and password
-func AuthUser(db *gorm.DB, email string, password string) bool {
-	var user User
+func AuthUser(db *gorm.DB, email string, password string) *User {
+	user := User{}
 
-	if db.Model(&user).Where("email = ?", email).RecordNotFound() {
-		return false
+	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
+		log.Println(err)
+		return nil
 	}
-
-	db.Where("email = ?", email).First(&user)
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err == bcrypt.ErrMismatchedHashAndPassword {
-		return false
+		return nil
 	} else if err != nil {
-		return false
+		return nil
 	}
 
-	return true
+	return &user
 }

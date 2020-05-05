@@ -21,9 +21,11 @@ var (
 )
 
 func setupDB() *gorm.DB {
-	connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", databaseUser, databasePassword, databaseHost, databasePort, databaseName)
+	connectString := ""
 	if databaseDriver == "sqlite3" {
-		connectString = "beubo.db"
+		connectString = databaseName
+	} else {
+		connectString = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", databaseUser, databasePassword, databaseHost, databasePort, databaseName)
 	}
 	db, err := gorm.Open(databaseDriver, connectString)
 	checkErr(err)
@@ -38,16 +40,16 @@ func databaseInit() {
 		DropQuery string
 	}
 
-	if databaseDriver != "sqlite3" {
+	var result []Result
 
-		var result []Result
-		// TODO if sqlite3 we can not use information_schema here
+	if databaseDriver == "sqlite3" {
+		DB.Raw("SELECT 'DROP TABLE IF EXISTS `' || name || '`;'  as drop_query FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';").Scan(&result)
+	} else {
 		DB.Raw("SELECT concat('DROP TABLE IF EXISTS `', table_name, '`;') as drop_query FROM information_schema.tables WHERE table_schema = 'beubo';").Scan(&result)
+	}
 
-		for _, r := range result {
-			DB.Exec(r.DropQuery)
-		}
-
+	for _, r := range result {
+		DB.Exec(r.DropQuery)
 	}
 
 	DB.AutoMigrate(
@@ -67,6 +69,20 @@ func prepareSeed(email string, password string) {
 }
 
 func databaseSeed() {
+	if environment != "production" && testuser != "" && testpass != "" {
+		var err error
+
+		// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(testpass), 14)
+
+		checkErr(err)
+
+		user := structs.User{Email: testuser, Password: string(hashedPassword)}
+
+		if DB.NewRecord(user) { // => returns `true` as primary key is blank
+			DB.Create(&user)
+		}
+	}
 	if shouldSeed {
 		var err error
 

@@ -1,6 +1,7 @@
 {{ define "default.page" }}
 {{ template "default.header" . }}
 
+{{block "content" .}}
     <section class="page-header" id="main-header">
         <div class="container">
             <h2>{{.Title}}</h2>
@@ -13,6 +14,7 @@
     <section class="container" id="example-section">
         <p>This is an example section</p>
     </section>
+{{ end }}
 
 {{ template "default.footer" . }}
 {{ end }}

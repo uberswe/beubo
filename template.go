@@ -9,6 +9,13 @@ import (
 	"strings"
 )
 
+type TemplateRender struct {
+	Template template.Template
+	PageData PageData
+}
+
+// findAndParseTemplates finds all the templates in the rootDir and makes a template map
+// This method was found here https://stackoverflow.com/a/50581032/1260548
 func findAndParseTemplates(rootDir string, funcMap template.FuncMap) (*template.Template, error) {
 	cleanRoot, err := filepath.Abs(rootDir)
 	if err != nil {
@@ -41,4 +48,22 @@ func findAndParseTemplates(rootDir string, funcMap template.FuncMap) (*template.
 	})
 
 	return root, err
+}
+
+// TODO we could build function maps for some areas of the template? but why?
+func buildFuncMap() template.FuncMap {
+	return template.FuncMap{
+		"bContent": func(feature string) bool {
+			return false
+		},
+		"bHead": func(feature string) bool {
+			return false
+		},
+		"bHeader": func(feature string) bool {
+			return false
+		},
+		"bFooter": func(feature string) bool {
+			return false
+		},
+	}
 }

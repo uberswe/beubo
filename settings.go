@@ -22,6 +22,9 @@ var (
 	databasePassword = ""
 	databasePort     = "3306"
 	databaseDriver   = "mysql"
+	environment      = "production"
+	testuser         = ""
+	testpass         = ""
 
 	rootDir      = "./web/"
 	currentTheme = "install"
@@ -30,9 +33,19 @@ var (
 	failures map[string]map[string]string
 )
 
+type logWriter struct {
+}
+
+func (writer logWriter) Write(bytes []byte) (int, error) {
+	return fmt.Printf("[beubo] %s | %s", time.Now().Format("2006-01-02T15:04:05-07:00"), string(bytes))
+} //2006-01-02T15:04:05.999Z
+
 // Initializes the settings and checks if Beubo is installed by checking the env file
 // If no env file is present then this function will start it's own http listener to go through the installation process
 func settingsInit() {
+
+	log.SetFlags(0)
+	log.SetOutput(new(logWriter))
 
 	err := godotenv.Load()
 
@@ -51,6 +64,11 @@ func settingsInit() {
 	databaseUser = setSetting(os.Getenv("DB_USER"), databaseUser)
 	databaseDriver = setSetting(os.Getenv("DB_DRIVER"), databaseDriver)
 	databasePassword = setSetting(os.Getenv("DB_PASSWORD"), databasePassword)
+
+	environment = setSetting(os.Getenv("ENVIRONMENT"), environment)
+
+	testpass = setSetting(os.Getenv("TEST_PASS"), testpass)
+	testuser = setSetting(os.Getenv("TEST_USER"), testuser)
 
 	if databaseUser != "" && databaseName != "" {
 		installed = true

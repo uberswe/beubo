@@ -62,17 +62,40 @@ func main() {
 			log.Fatalf("could not send: %v", err)
 		}
 
-		request, err := stream.Recv()
+		for {
+			request, err := stream.Recv()
 
-		if err == io.EOF {
-			// read done.
-			return
+			if err == io.EOF {
+				// read done.
+				return
+			}
+
+			if err != nil {
+				log.Fatalf("could not receive: %v", err)
+			}
+
+			log.Printf("Request received: %s\n", request.Key)
+
+			for _, anyVar := range request.Values {
+				log.Println(anyVar.TypeUrl)
+				if anyVar.TypeUrl == "beubo.Request" {
+					var m pb.Request
+					err := proto.Unmarshal(anyVar.Value, &m)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+					log.Printf("Request message unmarshalled: %s\n", m.Url)
+				} else if anyVar.TypeUrl == "beubo.Response" {
+					var m pb.Response
+					err := proto.Unmarshal(anyVar.Value, &m)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+					log.Printf("Response message unmarshalled: %s\n", m.Content)
+				}
+			}
 		}
-
-		if err != nil {
-			log.Fatalf("could not receive: %v", err)
-		}
-
-		log.Printf("Request received %s: %s\n", request.Key, request.Data)
 	}
 }

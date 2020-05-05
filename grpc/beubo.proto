@@ -25,6 +25,11 @@ message Request {
     repeated Header headers = 3;
 }
 
+// Request is a basic representation of a http request
+message Response {
+    string content = 3;
+}
+
 // Header represents all the headers of a request
 message Header {
     string key = 1;
