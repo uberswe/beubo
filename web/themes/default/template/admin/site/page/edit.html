@@ -1,8 +1,8 @@
-{{ define "default.admin.site.edit" }}
+{{ define "default.admin.site.page.edit" }}
     {{ template "default.admin.header" . }}
 
     <section class="container" id="site-edit">
-        <a class="button" href="/admin/">Back</a>
+        <a class="button" href="/admin/sites/admin/{{ .Extra.SiteID }}">Back</a>
 
         {{ if .Error }}
             <div class="alert alert-danger" role="alert">
@@ -25,13 +25,16 @@
         <form method="post">
             <fieldset>
                 <label for="titleField">Title</label>
-                <input type="text" value="{{ .Extra.Title }}" name="titleField" id="titleField">
-                <label for="domainField">Domain name</label>
-                <input type="text" value="{{ .Extra.Domain }}" name="domainField" id="domainField">
-                <div class="float-right">
-                    <input type="checkbox" name="configureSsl" id="configureSslField" {{ if .Extra.HandleSsl }} checked {{ end }}>
-                    <label class="label-inline" for="configureSslField">Automatically configure SSL</label>
-                </div>
+                <input type="text" placeholder="" name="titleField" id="titleField" value="{{ .Extra.Title }}">
+                <label for="slugField">Slug</label>
+                <input type="text" placeholder="" name="slugField" id="slugField" value="{{ .Extra.Slug }}">
+                <p>
+                    <a href="{{ .Extra.Slug }}">View Page</a>
+                </p>
+                <label for="contentField">Content</label>
+                <textarea placeholder="" name="contentField" id="contentField">
+                    {{ .Extra.Content }}
+                </textarea>
                 <input class="button-primary" type="submit" value="Update">
             </fieldset>
         </form>

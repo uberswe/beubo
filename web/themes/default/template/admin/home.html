@@ -2,12 +2,34 @@
     {{ template "default.admin.header" . }}
 
     <section class="container" id="sites-list">
-        <a class="button" href="/admin/sites/add">Add Site</a>
+
+        {{ if .Error }}
+            <div class="alert alert-danger" role="alert">
+                {{ .Error }}
+            </div>
+        {{ end }}
+
+        {{ if .Warning }}
+            <div class="alert alert-warning" role="alert">
+                {{ .Warning }}
+            </div>
+        {{ end }}
+
+        {{ if .Message }}
+            <div class="alert alert-info" role="alert">
+                {{ .Message }}
+            </div>
+        {{ end }}
+
+        <a class="button" href="/admin/sites/add/">Add Site</a>
         <table>
             <tr>
                 <th>ID</th>
                 <th>Site</th>
                 <th>Domain</th>
+                <th></th>
+                <th></th>
+                <th></th>
                 <th></th>
             </tr>
         {{if and (.Extra) (.Extra.sites) }}
@@ -16,7 +38,10 @@
                     <td>{{ .id }}</td>
                     <td>{{ .title }}</td>
                     <td>{{ .domain }}</td>
-                    <td><a class="button" href="/admin/sites/{{ .id }}">Edit</a></td>
+                    <td><a class="button" target="_blank" href="//{{ .domain }}">View</a></td>
+                    <td><a class="button" href="/admin/sites/admin/{{ .id }}">Admin</a></td>
+                    <td><a class="button" href="/admin/sites/edit/{{ .id }}">Edit</a></td>
+                    <td><a class="button button-clear" href="/admin/sites/delete/{{ .id }}">Delete</a></td>
                 </tr>
             {{end}}
 

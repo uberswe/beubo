@@ -1,8 +1,8 @@
-{{ define "default.admin.site.add" }}
+{{ define "default.admin.site.page.add" }}
     {{ template "default.admin.header" . }}
 
-    <section class="container" id="site-add">
-        <a class="button" href="/admin/">Back</a>
+    <section class="container" id="site-page-new">
+        <a class="button" href="/admin/sites/admin/{{ .Extra.SiteID }}">Back</a>
 
         {{ if .Error }}
             <div class="alert alert-danger" role="alert">
@@ -26,14 +26,13 @@
             <fieldset>
                 <label for="titleField">Title</label>
                 <input type="text" placeholder="" name="titleField" id="titleField">
-                <label for="domainField">Domain name</label>
-                <input type="text" placeholder="" name="domainField" id="domainField">
-                <div class="float-right">
-                    <input type="checkbox" name="configureSsl" id="configureSslField">
-                    <label class="label-inline" for="configureSslField">Automatically configure SSL</label>
-                </div>
-                <!-- TODO add a dropdown for themes  -->
-                <input class="button-primary" type="submit" value="Add">
+                <label for="slugField">Slug</label>
+                <input type="text" placeholder="" name="slugField" id="slugField">
+                <label for="contentField">Content</label>
+                <textarea placeholder="" name="contentField" id="contentField">
+
+                </textarea>
+                <input class="button-primary" type="submit" value="Create">
             </fieldset>
         </form>
     </section>

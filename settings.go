@@ -5,8 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
+	"github.com/markustenghamn/beubo/pkg/routes"
+	"github.com/markustenghamn/beubo/pkg/template"
+	"github.com/markustenghamn/beubo/pkg/utility"
 	"github.com/urfave/negroni"
 	"io/ioutil"
 	"log"
@@ -26,9 +30,12 @@ var (
 	testuser         = ""
 	testpass         = ""
 
-	rootDir      = "./web/"
-	currentTheme = "install"
-	installed    = false // TODO handle this in a middleware or something
+	rootDir         = "./web/"
+	currentTheme    = "default"
+	installed       = false // TODO handle this in a middleware or something
+	reloadTemplates = false
+
+	sessionKey = string(securecookie.GenerateRandomKey(64))
 
 	failures map[string]map[string]string
 )
@@ -51,7 +58,7 @@ func settingsInit() {
 
 	if err != nil {
 		// No .env file
-		errHandler(err)
+		utility.ErrorHandler(err, false)
 		log.Println("Attempting to create .env file")
 		writeEnv("", "", "", "", "", "")
 	}
@@ -70,17 +77,19 @@ func settingsInit() {
 	testpass = setSetting(os.Getenv("TEST_PASS"), testpass)
 	testuser = setSetting(os.Getenv("TEST_USER"), testuser)
 
+	sessionKey = setSetting(os.Getenv("SESSION_KEY"), sessionKey)
+
 	if databaseUser != "" && databaseName != "" {
 		installed = true
-		currentTheme = "default"
 	} else {
 		log.Println("No installation detected, starting install server")
 		srv := startInstallServer()
 
 		// TODO there might be a bug here where we might have multiple instances waiting for installed to be true which causes an infinite loop
+		// TODO make this use a channel instead of a loop to wait for install to finish
 		for !installed {
 			// Pause for 100 ms, this was causing high cpu load without this here
-			time.Sleep(time.Second / 10)
+			time.Sleep(time.Millisecond * 100)
 			// Keep running install server until installed is finished
 		}
 
@@ -99,7 +108,9 @@ func startInstallServer() *http.Server {
 	r := mux.NewRouter()
 	n := negroni.Classic()
 
-	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
+	beuboRouter := &routes.BeuboRouter{}
+
+	r.NotFoundHandler = http.HandlerFunc(beuboRouter.NotFoundHandler)
 
 	log.Println("Registering themes...")
 
@@ -132,6 +143,12 @@ func startInstallServer() *http.Server {
 
 // Install handles installation requests and presents the install page
 func Install(w http.ResponseWriter, r *http.Request) {
+
+	beuboTemplateRenderer := template.BeuboTemplateRenderer{
+		ReloadTemplates: true,
+		CurrentTheme:    "install",
+	}
+
 	formKey := "form"
 	dbhostKey := "dbhost"
 	dbnameKey := "dbname"
@@ -150,7 +167,7 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		extra[formKey] = make(map[string]string)
 		err := r.ParseForm()
 		if err != nil {
-			errHandler(err)
+			utility.ErrorHandler(err, false)
 		}
 
 		extra[formKey][dbhostKey] = r.PostFormValue(dbhostKey)
@@ -160,18 +177,18 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		extra[formKey][usernameKey] = r.PostFormValue(usernameKey)
 		extra[formKey][passwordKey] = r.PostFormValue(passwordKey)
 
-		token, err := generateToken(30)
+		token, err := utility.GenerateToken(30)
 		if err != nil {
 			panic(err)
 		}
 
 		failures[token] = extra[formKey]
 
-		SetFlash(w, "token", []byte(token))
+		utility.SetFlash(w, "token", []byte(token))
 
 		if len(extra[formKey][usernameKey]) < 8 || len(extra[formKey][passwordKey]) < 8 {
 			err = errors.New("username and password must be filled with a minimum of 8 characters")
-			SetFlash(w, "error", []byte(err.Error()))
+			utility.SetFlash(w, "error", []byte(err.Error()))
 			// Redirect back with error
 			w.Header().Add("Location", "/")
 			w.WriteHeader(302)
@@ -183,7 +200,7 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		db, err := gorm.Open("mysql", connectString)
 		if err != nil {
 
-			SetFlash(w, "error", []byte(err.Error()))
+			utility.SetFlash(w, "error", []byte(err.Error()))
 			// Redirect back with error
 			w.Header().Add("Location", "/")
 			w.WriteHeader(302)
@@ -191,9 +208,9 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Println("no error, install done")
 		err2 := db.Close()
-		errHandler(err2)
+		utility.ErrorHandler(err2, false)
 		writeEnv("", "", extra[formKey][dbhostKey], extra[formKey][dbnameKey], extra[formKey][dbuserKey], extra[formKey][dbpasswordKey])
-		renderHTMLPage("Install", "finished", w, r, nil)
+		beuboTemplateRenderer.RenderHTMLPage("Install", "finished", w, r, nil)
 		currentTheme = "default"
 		prepareSeed(extra[formKey][usernameKey], extra[formKey][passwordKey])
 		installed = true
@@ -201,13 +218,13 @@ func Install(w http.ResponseWriter, r *http.Request) {
 
 	}
 	extra = make(map[string]map[string]string)
-	token, err := GetFlash(w, r, "token")
+	token, err := utility.GetFlash(w, r, "token")
 	if err == nil {
 		extra[formKey] = make(map[string]string)
 		extra[formKey] = failures[string(token)]
 		failures[string(token)] = nil
 	}
-	renderHTMLPage("Install", "page", w, r, extra)
+	beuboTemplateRenderer.RenderHTMLPage("Install", "page", w, r, extra)
 	return
 
 }
@@ -227,5 +244,5 @@ func writeEnv(assetDir string, theme string, dbHost string, dbName string, dbUse
 	err := ioutil.WriteFile(".env", envContent, 0600) // TODO allow user to change permissions here?
 
 	// We panic if we can not write env
-	checkErr(err)
+	utility.ErrorHandler(err, false)
 }

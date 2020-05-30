@@ -3,6 +3,8 @@ package beubo
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"github.com/markustenghamn/beubo/pkg/utility"
+
 	// Gorm recommends a blank import to support underlying mysql
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -28,7 +30,7 @@ func setupDB() *gorm.DB {
 		connectString = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", databaseUser, databasePassword, databaseHost, databasePort, databaseName)
 	}
 	db, err := gorm.Open(databaseDriver, connectString)
-	checkErr(err)
+	utility.ErrorHandler(err, true)
 
 	return db
 }
@@ -59,6 +61,7 @@ func databaseInit() {
 		&structs.Config{},
 		&structs.Page{},
 		&structs.Theme{},
+		&structs.Session{},
 		&structs.Site{})
 }
 
@@ -75,7 +78,7 @@ func databaseSeed() {
 		// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(testpass), 14)
 
-		checkErr(err)
+		utility.ErrorHandler(err, true)
 
 		user := structs.User{Email: testuser, Password: string(hashedPassword)}
 
@@ -89,7 +92,7 @@ func databaseSeed() {
 		// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(seedPassword), 14)
 
-		checkErr(err)
+		utility.ErrorHandler(err, true)
 
 		user := structs.User{Email: seedEmail, Password: string(hashedPassword)}
 
@@ -99,5 +102,17 @@ func databaseSeed() {
 		shouldSeed = false
 		seedEmail = ""
 		seedPassword = ""
+	}
+
+	// Always seed a localhost site
+
+	site := structs.Site{
+		Title:     "Default",
+		Domain:    "localhost",
+		HandleSsl: false,
+	}
+
+	if DB.NewRecord(site) {
+		DB.Create(&site)
 	}
 }

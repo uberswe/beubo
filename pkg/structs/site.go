@@ -55,3 +55,11 @@ func UpdateSite(db *gorm.DB, id int, title string, domain string, ssl bool) bool
 	}
 	return true
 }
+
+func DeleteSite(db *gorm.DB, id int) Site {
+	site := FetchSite(db, id)
+
+	db.Delete(site)
+
+	return site
+}
