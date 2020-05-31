@@ -26,5 +26,11 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 		extra["sites"][sid]["domain"] = site.Domain
 	}
 
-	br.Renderer.RenderHTMLPage("Admin", "admin.home", w, r, extra)
+	pageData := structs.PageData{
+		Template: "admin.home",
+		Title:    "Admin",
+		Extra:    extra,
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
 }

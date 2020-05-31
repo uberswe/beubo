@@ -48,7 +48,7 @@ func routesInit() {
 	store := cookiestore.New([]byte(sessionKey))
 	n.Use(sessions.Sessions("beubo", store))
 
-	r.NotFoundHandler = http.HandlerFunc(beuboRouter.NotFoundHandler)
+	r.NotFoundHandler = http.HandlerFunc(beuboRouter.PageHandler)
 
 	log.Println("Registering themes...")
 
@@ -56,62 +56,34 @@ func routesInit() {
 
 	log.Println("Registering routes...")
 
-	r.HandleFunc("/", beuboRouter.Home)
-	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			beuboRouter.Login(w, r)
-		} else if r.Method == "POST" {
-			beuboRouter.LoginPost(w, r)
-		}
-	})
-	r.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			beuboRouter.Register(w, r)
-		} else if r.Method == "POST" {
-			beuboRouter.RegisterPost(w, r)
-		}
-	})
+	r.HandleFunc("/login", beuboRouter.Login).Methods("GET")
+	r.HandleFunc("/login", beuboRouter.LoginPost).Methods("POST")
+
+	r.HandleFunc("/register", beuboRouter.Register).Methods("GET")
+	r.HandleFunc("/register", beuboRouter.RegisterPost).Methods("POST")
 
 	admin := r.PathPrefix("/admin").Subrouter()
 	admin.HandleFunc("/", beuboRouter.Admin)
 
-	admin.HandleFunc("/sites/add", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			beuboRouter.AdminSiteAdd(w, r)
-		} else if r.Method == "POST" {
-			beuboRouter.AdminSiteAddPost(w, r)
-		}
-	})
+	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAdd).Methods("GET")
+	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAddPost).Methods("POST")
 
 	admin.HandleFunc("/sites/delete/{id:[0-9]+}", beuboRouter.AdminSiteDelete)
 
-	admin.HandleFunc("/sites/edit/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			beuboRouter.AdminSiteEdit(w, r)
-		} else if r.Method == "POST" {
-			beuboRouter.AdminSiteEditPost(w, r)
-		}
-	})
+	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEdit).Methods("GET")
+	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEditPost).Methods("POST")
 
 	siteAdmin := admin.PathPrefix("/sites/admin/{id:[0-9]+}").Subrouter()
 
 	siteAdmin.HandleFunc("/", beuboRouter.SiteAdmin)
 
-	siteAdmin.HandleFunc("/page/new", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			beuboRouter.SiteAdminPageNew(w, r)
-		} else if r.Method == "POST" {
-			beuboRouter.SiteAdminPageNewPost(w, r)
-		}
-	})
+	siteAdmin.HandleFunc("/page/new", beuboRouter.SiteAdminPageNew).Methods("GET")
+	siteAdmin.HandleFunc("/page/new", beuboRouter.SiteAdminPageNewPost).Methods("POST")
 
-	siteAdmin.HandleFunc("/page/edit/{pageId:[0-9]+}", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			beuboRouter.AdminSitePageEdit(w, r)
-		} else if r.Method == "POST" {
-			beuboRouter.AdminSitePageEditPost(w, r)
-		}
-	})
+	siteAdmin.HandleFunc("/page/edit/{pageId:[0-9]+}", beuboRouter.AdminSitePageEdit).Methods("GET")
+	siteAdmin.HandleFunc("/page/edit/{pageId:[0-9]+}", beuboRouter.AdminSitePageEditPost).Methods("POST")
+
+	siteAdmin.HandleFunc("/page/delete/{pageId:[0-9]+}", beuboRouter.AdminSitePageDelete)
 
 	r.HandleFunc("/logout", beuboRouter.Logout)
 	r.HandleFunc("/api", beuboRouter.APIHandler)
@@ -125,7 +97,7 @@ func routesInit() {
 
 	n.UseHandler(muxer)
 
-	log.Println("listening on:", port)
+	log.Println("HTTP Server listening on:", port)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), n)
 	if err != nil {
 		log.Println(err)

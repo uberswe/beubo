@@ -3,6 +3,7 @@ package structs
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"html/template"
 )
 
 // Page represents the content of a page, I wanted to go with the concept of having everything be a post even if it's a page, contact form or product
@@ -21,7 +22,9 @@ type Page struct {
 // PageData is a general structure that holds all data that can be displayed on a page
 // using go html templates
 type PageData struct {
+	Template    string
 	Title       string
+	Content     template.HTML
 	WebsiteName string
 	URL         string
 	Menu        []MenuItem
@@ -29,6 +32,9 @@ type PageData struct {
 	Warning     string
 	Message     string
 	Year        string
+	Stylesheets []string
+	Scripts     []string
+	Favicon     string
 	Extra       interface{}
 }
 
@@ -62,6 +68,14 @@ func FetchPage(db *gorm.DB, id int) Page {
 	page := Page{}
 
 	db.First(&page, id)
+
+	return page
+}
+
+func FetchPageBySiteIDAndSlug(db *gorm.DB, SiteID int, slug string) Page {
+	page := Page{}
+
+	db.Where("slug = ? AND site_id = ?", slug, SiteID).First(&page)
 
 	return page
 }

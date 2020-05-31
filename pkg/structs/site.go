@@ -41,6 +41,14 @@ func FetchSite(db *gorm.DB, id int) Site {
 	return site
 }
 
+func FetchSiteByHost(db *gorm.DB, host string) Site {
+	site := Site{}
+
+	db.Where("domain = ?", host).First(&site)
+
+	return site
+}
+
 // CreateUser is a method which creates a user using gorm
 func UpdateSite(db *gorm.DB, id int, title string, domain string, ssl bool) bool {
 	site := FetchSite(db, id)

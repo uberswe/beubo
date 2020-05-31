@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/markustenghamn/beubo/pkg/utility"
+	"log"
 
 	// Gorm recommends a blank import to support underlying mysql
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -15,7 +16,8 @@ import (
 var (
 	seedEmail    = ""
 	seedPassword = ""
-	shouldSeed   = false
+	// TODO change this to a config
+	shouldSeed = true
 	// DB is used to perform database queries globally. In the future this should probably
 	// be changed so that database.go declares methods that can be used to perform types of
 	// queries
@@ -23,6 +25,7 @@ var (
 )
 
 func setupDB() *gorm.DB {
+	log.Println("Opening database")
 	connectString := ""
 	if databaseDriver == "sqlite3" {
 		connectString = databaseName
@@ -44,6 +47,8 @@ func databaseInit() {
 
 	var result []Result
 
+	log.Println("Dropping all database tables")
+
 	if databaseDriver == "sqlite3" {
 		DB.Raw("SELECT 'DROP TABLE IF EXISTS `' || name || '`;'  as drop_query FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';").Scan(&result)
 	} else {
@@ -53,6 +58,8 @@ func databaseInit() {
 	for _, r := range result {
 		DB.Exec(r.DropQuery)
 	}
+
+	log.Println("Running database migrations")
 
 	DB.AutoMigrate(
 		&structs.User{},
@@ -86,7 +93,9 @@ func databaseSeed() {
 			DB.Create(&user)
 		}
 	}
+
 	if shouldSeed {
+		log.Println("Seeding database")
 		var err error
 
 		// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
@@ -99,20 +108,37 @@ func databaseSeed() {
 		if DB.NewRecord(user) { // => returns `true` as primary key is blank
 			DB.Create(&user)
 		}
+
+		// Create a site
+
+		site := structs.Site{
+			Title:     "Default",
+			Domain:    "localhost:3000",
+			HandleSsl: false,
+		}
+
+		if DB.NewRecord(site) {
+			DB.Create(&site)
+		}
+
+		// Create a page
+
+		content := `<p>This is a default page</p>`
+
+		page := structs.Page{
+			Model:   gorm.Model{},
+			Title:   "Default page",
+			Content: content,
+			Slug:    "/",
+			SiteID:  int(site.ID),
+		}
+
+		if DB.NewRecord(page) {
+			DB.Create(&page)
+		}
+
 		shouldSeed = false
 		seedEmail = ""
 		seedPassword = ""
-	}
-
-	// Always seed a localhost site
-
-	site := structs.Site{
-		Title:     "Default",
-		Domain:    "localhost",
-		HandleSsl: false,
-	}
-
-	if DB.NewRecord(site) {
-		DB.Create(&site)
 	}
 }

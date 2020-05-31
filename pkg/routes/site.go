@@ -40,12 +40,23 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 	}
 	extra["pagesRes"] = pagesRes
 
-	br.Renderer.RenderHTMLPage("Admin", "admin.site.page.home", w, r, extra)
+	pageData := structs.PageData{
+		Template: "admin.site.page.home",
+		Title:    "Admin",
+		Extra:    extra,
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
 // AdminSiteAdd is the route for adding a site
 func (br *BeuboRouter) AdminSiteAdd(w http.ResponseWriter, r *http.Request) {
-	br.Renderer.RenderHTMLPage("Admin - Add Site", "admin.site.add", w, r, nil)
+	pageData := structs.PageData{
+		Template: "admin.site.add",
+		Title:    "Admin - Add Site",
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
 // Handles adding of a site
@@ -120,7 +131,13 @@ func (br *BeuboRouter) AdminSiteEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	br.Renderer.RenderHTMLPage("Admin - Edit Site", "admin.site.edit", w, r, site)
+	pageData := structs.PageData{
+		Template: "admin.site.edit",
+		Title:    "Admin - Edit Site",
+		Extra:    site,
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
 // Handles editing of a site

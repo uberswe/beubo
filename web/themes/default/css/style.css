@@ -123,12 +123,13 @@ a {
 
 .navigation .navigation-title,.navigation .title {
     color: #606c76;
-    position: relative
+    position: relative;
+    font-size: 2.2rem;
+    letter-spacing: .01rem;
 }
 
 .navigation .navigation-link,.navigation .navigation-title,.navigation .title {
     display: inline;
-    font-size: 1.6rem;
     line-height: 5.2rem;
     padding: 0;
     text-decoration: none
@@ -238,4 +239,16 @@ select:focus {
 
 .alert-danger {
     color: #ff101a;
+}
+
+*, *:after, *:before {
+    box-sizing: initial;
+}
+
+.trumbowyg-button-group * {
+    color: #999;
+}
+
+.trumbowyg-modal-button {
+    padding: 0;
 }

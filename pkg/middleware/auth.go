@@ -25,7 +25,5 @@ func (bmw *BeuboMiddleware) Auth(rw http.ResponseWriter, r *http.Request, next h
 		return
 	}
 
-	log.Printf("Auth middleware hit: {user:%d}\n", user.ID)
-
 	next(rw, r)
 }

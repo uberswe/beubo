@@ -16,7 +16,24 @@ func (br *BeuboRouter) SiteAdminPageNew(w http.ResponseWriter, r *http.Request) 
 	extra := map[string]string{
 		"SiteID": siteID,
 	}
-	br.Renderer.RenderHTMLPage("Admin - Add Page", "admin.site.page.add", w, r, extra)
+	pageData := structs.PageData{
+		Template: "admin.site.page.add",
+		Title:    "Admin - Add Page",
+		Stylesheets: []string{
+			"/default/css/normalize.min.css",
+			"/default/css/milligram.min.css",
+			"/default/css/style.min.css",
+			"/default/css/trumbowyg.min.css",
+		},
+		Scripts: []string{
+			"/default/js/jquery-3.3.1.min.js",
+			"/default/js/trumbowyg.min.js",
+			"/default/js/wysiwyg.min.js",
+		},
+		Extra: extra,
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
 func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +95,25 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 		"Title":   page.Title,
 		"Content": page.Content,
 	}
-	br.Renderer.RenderHTMLPage("Admin - Edit Page", "admin.site.page.edit", w, r, extra)
+
+	pageData := structs.PageData{
+		Template: "admin.site.page.edit",
+		Title:    "Admin - Edit Page",
+		Stylesheets: []string{
+			"/default/css/normalize.min.css",
+			"/default/css/milligram.min.css",
+			"/default/css/trumbowyg.min.css",
+			"/default/css/style.min.css",
+		},
+		Scripts: []string{
+			"/default/js/jquery-3.3.1.min.js",
+			"/default/js/trumbowyg.min.js",
+			"/default/js/wysiwyg.min.js",
+		},
+		Extra: extra,
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
 func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Request) {
@@ -122,4 +157,20 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 
 	utility.SetFlash(w, "error", []byte(invalidError))
 	http.Redirect(w, r, path, 302)
+}
+
+func (br *BeuboRouter) AdminSitePageDelete(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	siteID := params["id"]
+	pageID := params["pageId"]
+
+	pageIDInt, err := strconv.Atoi(pageID)
+
+	utility.ErrorHandler(err, false)
+
+	structs.DeletePage(br.DB, pageIDInt)
+
+	utility.SetFlash(w, "message", []byte("Site deleted"))
+
+	http.Redirect(w, r, fmt.Sprintf("/admin/sites/admin/%s", siteID), 302)
 }

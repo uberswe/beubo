@@ -9,7 +9,12 @@ import (
 
 // Login is the default login route
 func (br *BeuboRouter) Login(w http.ResponseWriter, r *http.Request) {
-	br.Renderer.RenderHTMLPage("Login", "login", w, r, nil)
+	pageData := structs.PageData{
+		Template: "login",
+		Title:    "Login",
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
 // LoginPost handles authentication via post request and verifies a username/password via the database
@@ -43,7 +48,12 @@ func (br *BeuboRouter) LoginPost(w http.ResponseWriter, r *http.Request) {
 
 // Register renders the default registration page
 func (br *BeuboRouter) Register(w http.ResponseWriter, r *http.Request) {
-	br.Renderer.RenderHTMLPage("Register", "register", w, r, nil)
+	pageData := structs.PageData{
+		Template: "register",
+		Title:    "Register",
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
 // RegisterPost handles a registration request and inserts the user into the database

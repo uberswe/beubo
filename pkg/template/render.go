@@ -35,7 +35,37 @@ func (btr *BeuboTemplateRenderer) Init() {
 }
 
 // RenderHTMLPage handles rendering of the html template and should be the last function called before returning the response
-func (btr *BeuboTemplateRenderer) RenderHTMLPage(pageTitle string, pageTemplate string, w http.ResponseWriter, r *http.Request, extra interface{}) {
+func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.Request, pageData structs.PageData) {
+
+	// Session flash messages to prompt failed logins etc..
+	errorMessage, err := utility.GetFlash(w, r, "error")
+	utility.ErrorHandler(err, false)
+	warningMessage, err := utility.GetFlash(w, r, "warning")
+	utility.ErrorHandler(err, false)
+	stringMessage, err := utility.GetFlash(w, r, "message")
+	utility.ErrorHandler(err, false)
+
+	data := structs.PageData{
+		Stylesheets: []string{
+			"/default/css/normalize.min.css",
+			"/default/css/milligram.min.css",
+			"/default/css/style.min.css",
+		},
+		Favicon:     "/default/images/favicon.ico",
+		WebsiteName: "Beubo",
+		URL:         "http://localhost:3000",
+		Menu: []structs.MenuItem{
+			{Title: "Home", Path: "/"},
+			{Title: "Register", Path: "/register"},
+			{Title: "Login", Path: "/login"},
+		},
+		Error:   string(errorMessage),
+		Warning: string(warningMessage),
+		Message: string(stringMessage),
+		Year:    strconv.Itoa(time.Now().Year()),
+	}
+
+	data = mergePageData(data, pageData)
 
 	if os.Getenv("ASSETS_DIR") != "" {
 		rootDir = os.Getenv("ASSETS_DIR")
@@ -54,38 +84,9 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(pageTitle string, pageTemplate 
 
 	var foundTemplate *template.Template
 
-	path := fmt.Sprintf("%s.%s", currentTheme, pageTemplate)
+	path := fmt.Sprintf("%s.%s", currentTheme, pageData.Template)
 	if foundTemplate = btr.T.Lookup(path); foundTemplate == nil {
 		log.Printf("Theme file not found %s\n", path)
-		return
-	}
-
-	// Session flash messages to prompt failed logins etc..
-	errorMessage, err := utility.GetFlash(w, r, "error")
-	utility.ErrorHandler(err, false)
-	warningMessage, err := utility.GetFlash(w, r, "warning")
-	utility.ErrorHandler(err, false)
-	stringMessage, err := utility.GetFlash(w, r, "message")
-	utility.ErrorHandler(err, false)
-
-	data := structs.PageData{
-		Title:       pageTitle,
-		WebsiteName: "Beubo",
-		URL:         "http://localhost:3000",
-		Menu: []structs.MenuItem{
-			{Title: "Home", Path: "/"},
-			{Title: "Register", Path: "/register"},
-			{Title: "Login", Path: "/login"},
-		},
-		Error:   string(errorMessage),
-		Warning: string(warningMessage),
-		Message: string(stringMessage),
-		Year:    strconv.Itoa(time.Now().Year()),
-		Extra:   extra,
-	}
-
-	if err != nil {
-		log.Println("Could not serialize plugin message")
 		return
 	}
 
@@ -100,7 +101,6 @@ func findAndParseTemplates(rootDir string, funcMap template.FuncMap) (*template.
 	if err != nil {
 		return nil, err
 	}
-	log.Println("Reading from", cleanRoot)
 	pfx := len(cleanRoot) + 1
 	root := template.New("")
 
@@ -145,4 +145,55 @@ func buildFuncMap() template.FuncMap {
 			return false
 		},
 	}
+}
+
+func mergePageData(a structs.PageData, b structs.PageData) structs.PageData {
+	// TODO this could be simplified by making a function that compares an interface and pics a value but I decided that this is more readable for now
+	if b.Template != "" {
+		a.Template = b.Template
+	}
+
+	if b.Title != "" {
+		a.Title = b.Title
+	}
+
+	if b.Content != "" {
+		a.Content = b.Content
+	}
+
+	if b.WebsiteName != "" {
+		a.WebsiteName = b.WebsiteName
+	}
+
+	if b.Menu != nil {
+		a.Menu = b.Menu
+	}
+
+	if b.Error != "" {
+		a.Error = b.Error
+	}
+
+	if b.Warning != "" {
+		a.Warning = b.Warning
+	}
+
+	if b.Message != "" {
+		a.Message = b.Message
+	}
+
+	if len(b.Scripts) > 0 {
+		a.Scripts = b.Scripts
+	}
+
+	if len(b.Stylesheets) > 0 {
+		a.Stylesheets = b.Stylesheets
+	}
+
+	if b.Favicon != "" {
+		a.Favicon = b.Favicon
+	}
+
+	a.Extra = b.Extra
+
+	return a
 }

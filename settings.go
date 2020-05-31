@@ -9,6 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/markustenghamn/beubo/pkg/routes"
+	"github.com/markustenghamn/beubo/pkg/structs"
 	"github.com/markustenghamn/beubo/pkg/template"
 	"github.com/markustenghamn/beubo/pkg/utility"
 	"github.com/urfave/negroni"
@@ -124,7 +125,7 @@ func startInstallServer() *http.Server {
 
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: n}
 
-	log.Println("listening on:", port)
+	log.Println("HTTP Server listening on:", port)
 	go func() {
 		// returns ErrServerClosed on graceful close
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
@@ -147,6 +148,11 @@ func Install(w http.ResponseWriter, r *http.Request) {
 	beuboTemplateRenderer := template.BeuboTemplateRenderer{
 		ReloadTemplates: true,
 		CurrentTheme:    "install",
+	}
+
+	pageData := structs.PageData{
+		Template: "finished",
+		Title:    "Install",
 	}
 
 	formKey := "form"
@@ -210,7 +216,7 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		err2 := db.Close()
 		utility.ErrorHandler(err2, false)
 		writeEnv("", "", extra[formKey][dbhostKey], extra[formKey][dbnameKey], extra[formKey][dbuserKey], extra[formKey][dbpasswordKey])
-		beuboTemplateRenderer.RenderHTMLPage("Install", "finished", w, r, nil)
+		beuboTemplateRenderer.RenderHTMLPage(w, r, pageData)
 		currentTheme = "default"
 		prepareSeed(extra[formKey][usernameKey], extra[formKey][passwordKey])
 		installed = true
@@ -224,7 +230,12 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		extra[formKey] = failures[string(token)]
 		failures[string(token)] = nil
 	}
-	beuboTemplateRenderer.RenderHTMLPage("Install", "page", w, r, extra)
+	pageData = structs.PageData{
+		Template: "page",
+		Title:    "Install",
+		Extra:    extra,
+	}
+	beuboTemplateRenderer.RenderHTMLPage(w, r, pageData)
 	return
 
 }

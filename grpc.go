@@ -103,12 +103,12 @@ func (s *server) Requests(pluginMessage *pb.PluginMessage, stream pb.BeuboGRPC_R
 }
 
 func grpcInit() {
-	log.Printf("Starting grpc server")
+	log.Printf("Starting gRPC server")
 	lis, err := net.Listen("tcp", grpcPort)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	log.Printf("Listening on %s", grpcPort)
+	log.Printf("gRPC Listening on %s", grpcPort)
 	s := grpc.NewServer()
 	pb.RegisterBeuboGRPCServer(s, &server{})
 	if err := s.Serve(lis); err != nil {

@@ -8,6 +8,10 @@
 
     </main>
 
+    {{range $script := .Scripts }}
+        <script src="{{ $script }}"></script>
+    {{ end }}
+
     </body>
     </html>
 {{ end }}
