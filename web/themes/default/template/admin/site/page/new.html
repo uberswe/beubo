@@ -28,6 +28,12 @@
                 <input type="text" placeholder="" name="titleField" id="titleField">
                 <label for="slugField">Slug</label>
                 <input type="text" placeholder="" name="slugField" id="slugField">
+                <label for="templateField">Template</label>
+                <select name="templateField" id="templateField">
+                    {{ range $templateKey, $templateName := .Templates }}
+                        <option value="{{ $templateKey }}">{{ $templateName }}</option>
+                    {{ end }}
+                </select>
                 <label for="contentField">Content</label>
                 <textarea placeholder="" name="contentField" id="contentField">
 

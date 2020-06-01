@@ -1,0 +1,13 @@
+{{ define "default.page.plain" }}
+    {{ template "default.header" . }}
+
+    {{block "content" .}}
+        <div class="container">
+            <h2>{{.Title}}</h2>
+
+            {{.Content}}
+        </div>
+    {{ end }}
+
+    {{ template "default.footer" . }}
+{{ end }}

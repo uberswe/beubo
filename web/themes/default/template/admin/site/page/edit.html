@@ -31,6 +31,12 @@
                 <p>
                     <a href="{{ .Extra.Slug }}">View Page</a>
                 </p>
+                <label for="templateField">Template</label>
+                <select name="templateField" id="templateField">
+                    {{ range $templateKey, $templateName := .Templates }}
+                        <option value="{{ $templateKey }}"{{ if and ($.Extra) (eq $.Extra.Template $templateKey) }} SELECTED{{end}}>{{ $templateName }}</option>
+                    {{ end }}
+                </select>
                 <label for="contentField">Content</label>
                 <textarea placeholder="" name="contentField" id="contentField">
                     {{ .Extra.Content }}

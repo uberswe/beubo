@@ -55,6 +55,7 @@ func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Reque
 	title := r.FormValue("titleField")
 	slug := r.FormValue("slugField")
 	content := r.FormValue("contentField")
+	template := r.FormValue("templateField")
 
 	if len(title) < 1 {
 		invalidError = "The title is too short"
@@ -63,7 +64,7 @@ func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if structs.CreatePage(br.DB, title, slug, content, int(siteIDInt)) {
+	if structs.CreatePage(br.DB, title, slug, template, content, int(siteIDInt)) {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, fmt.Sprintf("/admin/sites/admin/%s", siteID), 302)
 		return
@@ -89,11 +90,12 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 	page := structs.FetchPage(br.DB, int(pageIDInt))
 
 	extra := map[string]string{
-		"SiteID":  siteID,
-		"PageID":  pageID,
-		"Slug":    page.Slug,
-		"Title":   page.Title,
-		"Content": page.Content,
+		"SiteID":   siteID,
+		"PageID":   pageID,
+		"Slug":     page.Slug,
+		"Title":    page.Title,
+		"Content":  page.Content,
+		"Template": page.Template,
 	}
 
 	pageData := structs.PageData{
@@ -141,6 +143,7 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 	title := r.FormValue("titleField")
 	slug := r.FormValue("slugField")
 	content := r.FormValue("contentField")
+	template := r.FormValue("templateField")
 
 	if len(title) < 1 {
 		invalidError = "The title is too short"
@@ -149,7 +152,7 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if structs.UpdatePage(br.DB, i, title, slug, content, int(pageIDInt)) {
+	if structs.UpdatePage(br.DB, i, title, slug, template, content, int(pageIDInt)) {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, path, 302)
 		return

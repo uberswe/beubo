@@ -126,11 +126,12 @@ func databaseSeed() {
 		content := `<p>This is a default page</p>`
 
 		page := structs.Page{
-			Model:   gorm.Model{},
-			Title:   "Default page",
-			Content: content,
-			Slug:    "/",
-			SiteID:  int(site.ID),
+			Model:    gorm.Model{},
+			Title:    "Default page",
+			Content:  content,
+			Slug:     "/",
+			Template: "page",
+			SiteID:   int(site.ID),
 		}
 
 		if DB.NewRecord(page) {

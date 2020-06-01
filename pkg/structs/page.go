@@ -23,6 +23,7 @@ type Page struct {
 // using go html templates
 type PageData struct {
 	Template    string
+	Templates   map[string]string
 	Title       string
 	Content     template.HTML
 	WebsiteName string
@@ -46,12 +47,13 @@ type MenuItem struct {
 }
 
 // CreateUser is a method which creates a user using gorm
-func CreatePage(db *gorm.DB, title string, slug string, content string, siteID int) bool {
+func CreatePage(db *gorm.DB, title string, slug string, template string, content string, siteID int) bool {
 	page := Page{
-		Title:   title,
-		Content: content,
-		Slug:    slug,
-		SiteID:  siteID,
+		Title:    title,
+		Content:  content,
+		Slug:     slug,
+		Template: template,
+		SiteID:   siteID,
 	}
 
 	if db.NewRecord(page) { // => returns `true` as primary key is blank
@@ -81,12 +83,13 @@ func FetchPageBySiteIDAndSlug(db *gorm.DB, SiteID int, slug string) Page {
 }
 
 // CreateUser is a method which creates a user using gorm
-func UpdatePage(db *gorm.DB, id int, title string, slug string, content string, siteID int) bool {
+func UpdatePage(db *gorm.DB, id int, title string, slug string, template string, content string, siteID int) bool {
 	page := FetchPage(db, id)
 
 	page.Title = title
 	page.Slug = slug
 	page.Content = content
+	page.Template = template
 	page.SiteID = siteID
 
 	if err := db.Save(&page).Error; err != nil {
