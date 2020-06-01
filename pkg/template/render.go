@@ -46,7 +46,6 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	utility.ErrorHandler(err, false)
 
 	data := structs.PageData{
-		Templates: btr.GetPageTemplates(),
 		Stylesheets: []string{
 			"/default/css/normalize.min.css",
 			"/default/css/milligram.min.css",

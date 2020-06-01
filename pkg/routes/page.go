@@ -17,8 +17,9 @@ func (br *BeuboRouter) SiteAdminPageNew(w http.ResponseWriter, r *http.Request) 
 		"SiteID": siteID,
 	}
 	pageData := structs.PageData{
-		Template: "admin.site.page.add",
-		Title:    "Admin - Add Page",
+		Template:  "admin.site.page.add",
+		Templates: br.Renderer.GetPageTemplates(),
+		Title:     "Admin - Add Page",
 		Stylesheets: []string{
 			"/default/css/normalize.min.css",
 			"/default/css/milligram.min.css",
@@ -99,8 +100,9 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 	}
 
 	pageData := structs.PageData{
-		Template: "admin.site.page.edit",
-		Title:    "Admin - Edit Page",
+		Template:  "admin.site.page.edit",
+		Templates: br.Renderer.GetPageTemplates(),
+		Title:     "Admin - Edit Page",
 		Stylesheets: []string{
 			"/default/css/normalize.min.css",
 			"/default/css/milligram.min.css",
