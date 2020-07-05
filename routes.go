@@ -6,7 +6,6 @@ import (
 	"github.com/goincremental/negroni-sessions/cookiestore"
 	"github.com/gorilla/mux"
 	"github.com/lpar/gzipped"
-	beubo "github.com/markustenghamn/beubo/grpc"
 	"github.com/markustenghamn/beubo/pkg/middleware"
 	"github.com/markustenghamn/beubo/pkg/routes"
 	"github.com/markustenghamn/beubo/pkg/template"
@@ -19,8 +18,6 @@ import (
 
 var themes []string
 var fileServers = map[string]http.Handler{}
-var requestChannel = make(chan beubo.Request)
-var responseChannel = make(chan beubo.Response)
 
 // routesInit initializes the routes and starts a web server that listens on the specified port
 func routesInit() {

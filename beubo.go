@@ -16,7 +16,6 @@ func Run() {
 	settingsInit()
 	databaseInit()
 	databaseSeed()
-	go grpcInit() // grpc runs it's own server and is blocking
 	routesInit()
 }
 
