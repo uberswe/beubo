@@ -1,0 +1,3 @@
+[submodule "web/themes/default"]
+	path = web/themes/default
+	url = git@github.com:markustenghamn/beubo-default.git
