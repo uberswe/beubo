@@ -6,7 +6,7 @@ import (
 
 func (btr *BeuboTemplateRenderer) GetPageTemplates() map[string]string {
 	pageTemplates := map[string]string{
-		"page": "Default page",
+		"page": "Default",
 	}
 	for _, t := range btr.T.Templates() {
 		// Ignore paths and only look at names containing .page. and does not contain .admin.

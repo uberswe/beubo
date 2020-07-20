@@ -88,15 +88,26 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	siteIDInt, err := strconv.ParseInt(siteID, 10, 64)
+	if err != nil {
+		invalidError := "Invalid site id"
+		utility.SetFlash(w, "error", []byte(invalidError))
+		http.Redirect(w, r, "/admin/sites", 302)
+		return
+	}
+
 	page := structs.FetchPage(br.DB, int(pageIDInt))
 
+	site := structs.FetchSite(br.DB, int(siteIDInt))
+
 	extra := map[string]string{
-		"SiteID":   siteID,
-		"PageID":   pageID,
-		"Slug":     page.Slug,
-		"Title":    page.Title,
-		"Content":  page.Content,
-		"Template": page.Template,
+		"SiteID":     siteID,
+		"PageID":     pageID,
+		"Slug":       page.Slug,
+		"Title":      page.Title,
+		"Content":    page.Content,
+		"Template":   page.Template,
+		"SiteDomain": site.Domain,
 	}
 
 	pageData := structs.PageData{

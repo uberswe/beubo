@@ -148,7 +148,7 @@ func buildFuncMap() template.FuncMap {
 }
 
 func mergePageData(a structs.PageData, b structs.PageData) structs.PageData {
-	// TODO this could be simplified by making a function that compares an interface and pics a value but I decided that this is more readable for now
+	// TODO this could be simplified by making a function that compares an interface and picks a value but I decided that this is more readable for now
 	if b.Template != "" {
 		a.Template = b.Template
 	}
@@ -193,6 +193,7 @@ func mergePageData(a structs.PageData, b structs.PageData) structs.PageData {
 		a.Favicon = b.Favicon
 	}
 
+	a.Templates = b.Templates
 	a.Extra = b.Extra
 
 	return a
