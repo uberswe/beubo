@@ -26,6 +26,7 @@ func routesInit() {
 	beuboTemplateRenderer := template.BeuboTemplateRenderer{
 		ReloadTemplates: reloadTemplates,
 		CurrentTheme:    currentTheme,
+		ThemeDir:        rootDir,
 	}
 	beuboTemplateRenderer.Init()
 
@@ -86,8 +87,8 @@ func routesInit() {
 	r.HandleFunc("/api", beuboRouter.APIHandler)
 
 	muxer := http.NewServeMux()
-	muxer.Handle("/", r)
-	muxer.Handle("/admin/", negroni.New(
+	muxer.Handle("/", negroni.New(
+		negroni.HandlerFunc(beuboMiddleware.Site),
 		negroni.HandlerFunc(beuboMiddleware.Auth),
 		negroni.Wrap(r),
 	))

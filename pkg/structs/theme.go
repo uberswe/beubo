@@ -8,3 +8,19 @@ type Theme struct {
 	Title string `gorm:"size:255;unique_index"`
 	Slug  string `gorm:"size:255;unique_index"`
 }
+
+func FetchTheme(db *gorm.DB, id int) Theme {
+	theme := Theme{}
+
+	db.First(&theme, id)
+
+	return theme
+}
+
+func FetchThemeBySlug(db *gorm.DB, slug string) Theme {
+	theme := Theme{}
+
+	db.Where("slug = ?", slug).First(&theme)
+
+	return theme
+}

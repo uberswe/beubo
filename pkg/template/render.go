@@ -24,6 +24,7 @@ type BeuboTemplateRenderer struct {
 	T               *template.Template
 	ReloadTemplates bool
 	CurrentTheme    string
+	ThemeDir        string
 }
 
 func (btr *BeuboTemplateRenderer) Init() {
@@ -45,15 +46,24 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	stringMessage, err := utility.GetFlash(w, r, "message")
 	utility.ErrorHandler(err, false)
 
+	// Get the site from context
+	site := r.Context().Value("site")
+	if site != nil {
+		btr.CurrentTheme = site.(structs.Site).Theme.Slug
+	}
+
 	data := structs.PageData{
+		// TODO make the stylesheets dynamic
 		Stylesheets: []string{
 			"/default/css/normalize.min.css",
 			"/default/css/milligram.min.css",
 			"/default/css/style.min.css",
 		},
+		// TODO make the favicon dynamic
 		Favicon:     "/default/images/favicon.ico",
 		WebsiteName: "Beubo",
 		URL:         "http://localhost:3000",
+		// TODO make the menu dynamic
 		Menu: []structs.MenuItem{
 			{Title: "Home", Path: "/"},
 			{Title: "Register", Path: "/register"},
@@ -77,6 +87,8 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		btr.T, err = findAndParseTemplates(rootDir, funcMap)
 		utility.ErrorHandler(err, false)
 
+		// TODO load the site theme if specified
+		// Default theme
 		if os.Getenv("THEME") != "" {
 			btr.CurrentTheme = os.Getenv("THEME")
 		}
@@ -193,6 +205,7 @@ func mergePageData(a structs.PageData, b structs.PageData) structs.PageData {
 		a.Favicon = b.Favicon
 	}
 
+	a.Themes = b.Themes
 	a.Templates = b.Templates
 	a.Extra = b.Extra
 

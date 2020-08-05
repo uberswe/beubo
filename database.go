@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/markustenghamn/beubo/pkg/utility"
+	"io/ioutil"
 	"log"
 
 	// Gorm recommends a blank import to support underlying mysql
@@ -69,7 +70,9 @@ func databaseInit() {
 		&structs.Page{},
 		&structs.Theme{},
 		&structs.Session{},
-		&structs.Site{})
+		&structs.Site{},
+		&structs.Tag{},
+		&structs.Comment{})
 }
 
 func prepareSeed(email string, password string) {
@@ -79,6 +82,24 @@ func prepareSeed(email string, password string) {
 }
 
 func databaseSeed() {
+
+	theme := structs.Theme{}
+	// Add initial themes
+	files, err := ioutil.ReadDir(rootDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		// Ignore the install directory, only used for installation
+		if file.IsDir() && file.Name() != "install" {
+			theme = structs.Theme{Slug: file.Name(), Title: file.Name()}
+			if DB.NewRecord(theme) { // => returns `true` as primary key is blank
+				DB.Create(&theme)
+			}
+		}
+	}
+
+	// Add the specified default test user if the environment is also not set to production
 	if environment != "production" && testuser != "" && testpass != "" {
 		var err error
 
@@ -94,6 +115,7 @@ func databaseSeed() {
 		}
 	}
 
+	// If seeding is enabled we perform the seed with default info
 	if shouldSeed {
 		log.Println("Seeding database")
 		var err error
@@ -112,9 +134,10 @@ func databaseSeed() {
 		// Create a site
 
 		site := structs.Site{
-			Title:     "Default",
-			Domain:    "localhost:3000",
-			HandleSsl: false,
+			Title:  "Default",
+			Domain: "localhost:3000",
+			Theme:  theme,
+			Type:   1,
 		}
 
 		if DB.NewRecord(site) {

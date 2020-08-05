@@ -16,14 +16,17 @@ type Page struct {
 	Slug        string `gorm:"size:255;unique_index:idx_slug_site_id"`
 	Template    string `gorm:"size:255"`
 	Site        Site
-	SiteID      int `gorm:"unique_index:idx_slug_site_id"`
+	SiteID      int   `gorm:"unique_index:idx_slug_site_id"`
+	Tags        []Tag `gorm:"many2many:page_tags;"`
 }
 
 // PageData is a general structure that holds all data that can be displayed on a page
 // using go html templates
 type PageData struct {
+	Theme       string
 	Template    string
 	Templates   map[string]string
+	Themes      map[string]string
 	Title       string
 	Content     template.HTML
 	WebsiteName string
@@ -37,6 +40,22 @@ type PageData struct {
 	Scripts     []string
 	Favicon     string
 	Extra       interface{}
+}
+
+type Tag struct {
+	gorm.Model
+	Name string
+}
+
+type Comment struct {
+	gorm.Model
+	User    User
+	UserID  int
+	Email   string
+	Website string
+	Text    string
+	Page    Page
+	PageID  int
 }
 
 // MenuItem is one item that can be part of a nav in the frontend

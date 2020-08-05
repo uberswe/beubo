@@ -31,7 +31,7 @@ var (
 	testuser         = ""
 	testpass         = ""
 
-	rootDir         = "./web/"
+	rootDir         = "./web/themes/"
 	currentTheme    = "default"
 	installed       = false // TODO handle this in a middleware or something
 	reloadTemplates = false

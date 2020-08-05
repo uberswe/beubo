@@ -54,6 +54,7 @@ func (br *BeuboRouter) AdminSiteAdd(w http.ResponseWriter, r *http.Request) {
 	pageData := structs.PageData{
 		Template: "admin.site.add",
 		Title:    "Admin - Add Site",
+		Themes:   br.Renderer.GetThemes(),
 	}
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)
@@ -62,13 +63,35 @@ func (br *BeuboRouter) AdminSiteAdd(w http.ResponseWriter, r *http.Request) {
 // Handles adding of a site
 func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) {
 	// TODO should authentication be checked here, maybe with a middleware?
+	path := "/admin/sites/add"
 
 	successMessage := "Site created"
 	invalidError := "an error occured and the site could not be created."
 
+	themeID := 0
 	title := r.FormValue("titleField")
 	domain := r.FormValue("domainField")
-	ssl := r.FormValue("configureSsl")
+	// typeField
+	// 1 - Beubo hosted site
+	// 2 - HTML files from directory
+	// 3 - redirect to a different domain
+	siteType := r.FormValue("typeField")
+
+	typeID, err := strconv.Atoi(siteType)
+
+	utility.ErrorHandler(err, false)
+	// Theme is only relevant for Beubo hosted sites
+	if siteType == "1" {
+		theme := r.FormValue("themeField")
+		themeStruct := structs.FetchThemeBySlug(br.DB, theme)
+		if themeStruct.ID == 0 {
+			invalidError = "The theme is invalid"
+			utility.SetFlash(w, "error", []byte(invalidError))
+			http.Redirect(w, r, path, 302)
+			return
+		}
+		themeID = int(themeStruct.ID)
+	}
 
 	domain = strings.ToLower(domain)
 	domain = utility.TrimWhitespace(domain)
@@ -76,24 +99,20 @@ func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) 
 	if len(title) < 1 {
 		invalidError = "The title is too short"
 		utility.SetFlash(w, "error", []byte(invalidError))
-		http.Redirect(w, r, "/admin/sites/add", 302)
+		http.Redirect(w, r, path, 302)
 		return
 	}
 	if len(domain) < 1 {
 		invalidError = "The domain is too short"
 		utility.SetFlash(w, "error", []byte(invalidError))
-		http.Redirect(w, r, "/admin/sites/add", 302)
+		http.Redirect(w, r, path, 302)
 		return
 	}
 
-	sslBool := false
-	if ssl == "on" {
-		sslBool = true
-	}
-
-	if structs.CreateSite(br.DB, title, domain, sslBool) {
+	if structs.CreateSite(br.DB, title, domain, typeID, themeID) {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, "/admin/", 302)
+		return
 	}
 
 	utility.SetFlash(w, "error", []byte(invalidError))
@@ -135,6 +154,7 @@ func (br *BeuboRouter) AdminSiteEdit(w http.ResponseWriter, r *http.Request) {
 		Template: "admin.site.edit",
 		Title:    "Admin - Edit Site",
 		Extra:    site,
+		Themes:   br.Renderer.GetThemes(),
 	}
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)
@@ -145,7 +165,7 @@ func (br *BeuboRouter) AdminSiteEditPost(w http.ResponseWriter, r *http.Request)
 	params := mux.Vars(r)
 	id := params["id"]
 
-	path := fmt.Sprintf("/admin/sites/%s", id)
+	path := fmt.Sprintf("/admin/sites/edit/%s", id)
 
 	i, err := strconv.Atoi(id)
 
@@ -154,9 +174,30 @@ func (br *BeuboRouter) AdminSiteEditPost(w http.ResponseWriter, r *http.Request)
 	successMessage := "Site updated"
 	invalidError := "an error occured and the site could not be updated."
 
+	themeID := 0
 	title := r.FormValue("titleField")
 	domain := r.FormValue("domainField")
-	ssl := r.FormValue("configureSsl")
+	// typeField
+	// 1 - Beubo hosted site
+	// 2 - HTML files from directory
+	// 3 - redirect to a different domain
+	siteType := r.FormValue("typeField")
+
+	typeID, err := strconv.Atoi(siteType)
+
+	utility.ErrorHandler(err, false)
+	// Theme is only relevant for Beubo hosted sites
+	if siteType == "1" {
+		theme := r.FormValue("themeField")
+		themeStruct := structs.FetchThemeBySlug(br.DB, theme)
+		if themeStruct.ID == 0 {
+			invalidError = "The theme is invalid"
+			utility.SetFlash(w, "error", []byte(invalidError))
+			http.Redirect(w, r, path, 302)
+			return
+		}
+		themeID = int(themeStruct.ID)
+	}
 
 	domain = strings.ToLower(domain)
 	domain = utility.TrimWhitespace(domain)
@@ -174,14 +215,10 @@ func (br *BeuboRouter) AdminSiteEditPost(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	sslBool := false
-	if ssl == "on" {
-		sslBool = true
-	}
-
-	if structs.UpdateSite(br.DB, i, title, domain, sslBool) {
+	if structs.UpdateSite(br.DB, i, title, domain, typeID, themeID) {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, path, 302)
+		return
 	}
 
 	utility.SetFlash(w, "error", []byte(invalidError))
