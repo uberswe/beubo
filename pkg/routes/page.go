@@ -114,18 +114,7 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 		Template:  "admin.site.page.edit",
 		Templates: br.Renderer.GetPageTemplates(),
 		Title:     "Admin - Edit Page",
-		Stylesheets: []string{
-			"/default/css/normalize.min.css",
-			"/default/css/milligram.min.css",
-			"/default/css/trumbowyg.min.css",
-			"/default/css/style.min.css",
-		},
-		Scripts: []string{
-			"/default/js/jquery-3.3.1.min.js",
-			"/default/js/trumbowyg.min.js",
-			"/default/js/wysiwyg.min.js",
-		},
-		Extra: extra,
+		Extra:     extra,
 	}
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)

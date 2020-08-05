@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -38,6 +39,10 @@ func (btr *BeuboTemplateRenderer) Init() {
 // RenderHTMLPage handles rendering of the html template and should be the last function called before returning the response
 func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.Request, pageData structs.PageData) {
 
+	if os.Getenv("ASSETS_DIR") != "" {
+		rootDir = os.Getenv("ASSETS_DIR")
+	}
+
 	// Session flash messages to prompt failed logins etc..
 	errorMessage, err := utility.GetFlash(w, r, "error")
 	utility.ErrorHandler(err, false)
@@ -46,29 +51,87 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	stringMessage, err := utility.GetFlash(w, r, "message")
 	utility.ErrorHandler(err, false)
 
+	siteName := "Beubo"
+
 	// Get the site from context
 	site := r.Context().Value("site")
+	user := r.Context().Value("user")
 	if site != nil {
 		btr.CurrentTheme = site.(structs.Site).Theme.Slug
+		siteName = site.(structs.Site).Title
+	} else if os.Getenv("THEME") != "" {
+		// Default theme
+		btr.CurrentTheme = os.Getenv("THEME")
+	} else {
+		// Default theme
+		btr.CurrentTheme = "default"
+	}
+
+	themePath := path.Join(rootDir, "/themes/")
+
+	var stylesheets []string
+
+	err = filepath.Walk(path.Join(themePath, btr.CurrentTheme, "/css/"), func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		p = strings.TrimLeft(p, themePath)
+		li := strings.LastIndex(p, "/")
+		if strings.HasSuffix(p, ".css") && strings.Contains(r.URL.Path, strings.Replace(p[:li], path.Join(btr.CurrentTheme, "/css/"), "", 1)) {
+			stylesheets = append(stylesheets, "/"+p)
+		}
+		return nil
+	})
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	var sToDelete []int
+	for si, s := range stylesheets {
+		if !strings.Contains(s, ".min.css") {
+			for si2, s2 := range stylesheets {
+				if si != si2 && strings.TrimSuffix(s, ".css") == strings.TrimSuffix(s2, ".min.css") {
+					sToDelete = append(sToDelete, si)
+					break
+				}
+			}
+		}
+	}
+
+	removed := 0
+	for _, si := range sToDelete {
+		if len(stylesheets) > (si - removed) {
+			stylesheets = append(stylesheets[:(si-removed)], stylesheets[(si-removed+1):]...)
+		} else {
+			stylesheets = stylesheets[:(si - removed)]
+		}
+		removed++
+	}
+
+	menu := []structs.MenuItem{
+		{Title: "Home", Path: "/"},
+		{Title: "Login", Path: "/login"},
+		{Title: "Register", Path: "/register"},
+	}
+
+	if user != nil && user.(structs.User).ID > 0 {
+		menu = []structs.MenuItem{
+			{Title: "Home", Path: "/"},
+			{Title: "Admin", Path: "/admin"},
+			{Title: "Logout", Path: "/logout"},
+		}
 	}
 
 	data := structs.PageData{
-		// TODO make the stylesheets dynamic
-		Stylesheets: []string{
-			"/default/css/normalize.min.css",
-			"/default/css/milligram.min.css",
-			"/default/css/style.min.css",
-		},
+		Stylesheets: stylesheets,
 		// TODO make the favicon dynamic
 		Favicon:     "/default/images/favicon.ico",
-		WebsiteName: "Beubo",
+		WebsiteName: siteName,
 		URL:         "http://localhost:3000",
 		// TODO make the menu dynamic
-		Menu: []structs.MenuItem{
-			{Title: "Home", Path: "/"},
-			{Title: "Register", Path: "/register"},
-			{Title: "Login", Path: "/login"},
-		},
+		Menu:    menu,
 		Error:   string(errorMessage),
 		Warning: string(warningMessage),
 		Message: string(stringMessage),
@@ -77,21 +140,12 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 	data = mergePageData(data, pageData)
 
-	if os.Getenv("ASSETS_DIR") != "" {
-		rootDir = os.Getenv("ASSETS_DIR")
-	}
 	if btr.ReloadTemplates {
 		log.Println("Parsing and loading templates...")
 		funcMap := buildFuncMap()
 		var err error
 		btr.T, err = findAndParseTemplates(rootDir, funcMap)
 		utility.ErrorHandler(err, false)
-
-		// TODO load the site theme if specified
-		// Default theme
-		if os.Getenv("THEME") != "" {
-			btr.CurrentTheme = os.Getenv("THEME")
-		}
 	}
 
 	var foundTemplate *template.Template
