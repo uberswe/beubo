@@ -71,7 +71,7 @@ func routesInit() {
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEdit).Methods("GET")
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEditPost).Methods("POST")
 
-	siteAdmin := admin.PathPrefix("/sites/admin/{id:[0-9]+}").Subrouter()
+	siteAdmin := admin.PathPrefix("/sites/a/{id:[0-9]+}").Subrouter()
 
 	siteAdmin.HandleFunc("/", beuboRouter.SiteAdmin)
 
@@ -106,7 +106,8 @@ func routesInit() {
 func registerStaticFiles(r *mux.Router) *mux.Router {
 	var err error
 
-	files, err := ioutil.ReadDir("web/themes/")
+	themedir := "themes/"
+	files, err := ioutil.ReadDir(themedir)
 	utility.ErrorHandler(err, false)
 	for _, f := range files {
 		if !f.IsDir() {
@@ -114,10 +115,10 @@ func registerStaticFiles(r *mux.Router) *mux.Router {
 		}
 		themes = append(themes, f.Name())
 		// Register file paths for themes
-		fileServers[f.Name()+"_css"] = gzipped.FileServer(http.Dir("web/themes/" + f.Name() + "/css/"))
-		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir("web/themes/" + f.Name() + "/js/"))
-		fileServers[f.Name()+"_images"] = http.FileServer(http.Dir("web/themes/" + f.Name() + "/images/"))
-		fileServers[f.Name()+"_fonts"] = http.FileServer(http.Dir("web/themes/" + f.Name() + "/fonts/"))
+		fileServers[f.Name()+"_css"] = gzipped.FileServer(http.Dir(themedir + f.Name() + "/css/"))
+		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir(themedir + f.Name() + "/js/"))
+		fileServers[f.Name()+"_images"] = http.FileServer(http.Dir(themedir + f.Name() + "/images/"))
+		fileServers[f.Name()+"_fonts"] = http.FileServer(http.Dir(themedir + f.Name() + "/fonts/"))
 
 		r.PathPrefix("/" + f.Name() + "/css/").Handler(http.StripPrefix("/"+f.Name()+"/css/", fileServers[f.Name()+"_css"]))
 		r.PathPrefix("/" + f.Name() + "/js/").Handler(http.StripPrefix("/"+f.Name()+"/js/", fileServers[f.Name()+"_js"]))

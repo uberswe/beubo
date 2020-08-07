@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -18,7 +17,7 @@ import (
 
 var (
 	currentTheme = "default"
-	rootDir      = "./web/"
+	rootDir      = "./"
 )
 
 type BeuboTemplateRenderer struct {
@@ -67,49 +66,6 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		btr.CurrentTheme = "default"
 	}
 
-	themePath := path.Join(rootDir, "/themes/")
-
-	var stylesheets []string
-
-	err = filepath.Walk(path.Join(themePath, btr.CurrentTheme, "/css/"), func(p string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		p = strings.TrimLeft(p, themePath)
-		li := strings.LastIndex(p, "/")
-		if strings.HasSuffix(p, ".css") && strings.Contains(r.URL.Path, strings.Replace(p[:li], path.Join(btr.CurrentTheme, "/css/"), "", 1)) {
-			stylesheets = append(stylesheets, "/"+p)
-		}
-		return nil
-	})
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	var sToDelete []int
-	for si, s := range stylesheets {
-		if !strings.Contains(s, ".min.css") {
-			for si2, s2 := range stylesheets {
-				if si != si2 && strings.TrimSuffix(s, ".css") == strings.TrimSuffix(s2, ".min.css") {
-					sToDelete = append(sToDelete, si)
-					break
-				}
-			}
-		}
-	}
-
-	removed := 0
-	for _, si := range sToDelete {
-		if len(stylesheets) > (si - removed) {
-			stylesheets = append(stylesheets[:(si-removed)], stylesheets[(si-removed+1):]...)
-		} else {
-			stylesheets = stylesheets[:(si - removed)]
-		}
-		removed++
-	}
-
 	menu := []structs.MenuItem{
 		{Title: "Home", Path: "/"},
 		{Title: "Login", Path: "/login"},
@@ -124,10 +80,25 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		}
 	}
 
+	// TODO in the future we should make some way for the theme to define the stylesheets
+	scripts := []string{
+		"/default/js/main.min.js",
+	}
+
+	stylesheets := []string{
+		"/default/css/main.min.css",
+	}
+
+	if strings.HasPrefix(r.URL.Path, "/admin") {
+		scripts = append(scripts, "/default/js/admin.js")
+		stylesheets = append(stylesheets, "/default/css/admin.css")
+	}
+
 	data := structs.PageData{
 		Stylesheets: stylesheets,
 		// TODO make the favicon dynamic
 		Favicon:     "/default/images/favicon.ico",
+		Scripts:     scripts,
 		WebsiteName: siteName,
 		URL:         "http://localhost:3000",
 		// TODO make the menu dynamic

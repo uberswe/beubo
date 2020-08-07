@@ -20,18 +20,7 @@ func (br *BeuboRouter) SiteAdminPageNew(w http.ResponseWriter, r *http.Request) 
 		Template:  "admin.site.page.add",
 		Templates: br.Renderer.GetPageTemplates(),
 		Title:     "Admin - Add Page",
-		Stylesheets: []string{
-			"/default/css/normalize.min.css",
-			"/default/css/milligram.min.css",
-			"/default/css/style.min.css",
-			"/default/css/trumbowyg.min.css",
-		},
-		Scripts: []string{
-			"/default/js/jquery-3.3.1.min.js",
-			"/default/js/trumbowyg.min.js",
-			"/default/js/wysiwyg.min.js",
-		},
-		Extra: extra,
+		Extra:     extra,
 	}
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)
@@ -61,18 +50,18 @@ func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Reque
 	if len(title) < 1 {
 		invalidError = "The title is too short"
 		utility.SetFlash(w, "error", []byte(invalidError))
-		http.Redirect(w, r, fmt.Sprintf("/admin/sites/admin/%s/page/new", siteID), 302)
+		http.Redirect(w, r, fmt.Sprintf("/admin/sites/a/%s/page/new", siteID), 302)
 		return
 	}
 
 	if structs.CreatePage(br.DB, title, slug, template, content, int(siteIDInt)) {
 		utility.SetFlash(w, "message", []byte(successMessage))
-		http.Redirect(w, r, fmt.Sprintf("/admin/sites/admin/%s", siteID), 302)
+		http.Redirect(w, r, fmt.Sprintf("/admin/sites/a/%s", siteID), 302)
 		return
 	}
 
 	utility.SetFlash(w, "error", []byte(invalidError))
-	http.Redirect(w, r, fmt.Sprintf("/admin/sites/admin/%s/page/new", siteID), 302)
+	http.Redirect(w, r, fmt.Sprintf("/admin/sites/a/%s/page/new", siteID), 302)
 }
 
 func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +114,7 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 	siteID := params["id"]
 	pageID := params["pageId"]
 
-	path := fmt.Sprintf("/admin/sites/admin/%s", siteID)
+	path := fmt.Sprintf("/admin/sites/a/%s", siteID)
 
 	i, err := strconv.Atoi(siteID)
 
@@ -177,5 +166,5 @@ func (br *BeuboRouter) AdminSitePageDelete(w http.ResponseWriter, r *http.Reques
 
 	utility.SetFlash(w, "message", []byte("Site deleted"))
 
-	http.Redirect(w, r, fmt.Sprintf("/admin/sites/admin/%s", siteID), 302)
+	http.Redirect(w, r, fmt.Sprintf("/admin/sites/a/%s", siteID), 302)
 }

@@ -1,0 +1,26 @@
+{{ define "default.header" }}
+<!DOCTYPE html>
+<html lang="en">
+{{ template "default.head" . }}
+<body>
+
+<main class="wrapper">
+
+    <nav class="navigation">
+        <section class="container">
+
+            <a class="navigation-title" href="/">
+                <!-- TODO insert logo? -->
+                <h1 class="title">{{.WebsiteName}}</h1>
+            </a>
+
+            <ul class="navigation-list float-right">
+                {{range $menuItem := .Menu }}
+                    <li class="navigation-item">
+                        <a class="navigation-link" href="{{ $menuItem.Path }}">{{ $menuItem.Title }}</a>
+                    </li>
+                {{ end }}
+            </ul>
+        </section>
+    </nav>
+    {{ end }}
