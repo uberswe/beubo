@@ -4,3 +4,6 @@
 [submodule "plugins/beubo_grpc"]
 	path = plugins/beubo_grpc
 	url = git@github.com:markustenghamn/beubo_grpc.git
+[submodule "themes/install"]
+	path = themes/install
+	url = git@github.com:markustenghamn/beubo-install.git
