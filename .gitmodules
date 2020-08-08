@@ -1,3 +1,6 @@
 [submodule "themes/default"]
 	path = themes/default
 	url = git@github.com:markustenghamn/beubo-default.git
+[submodule "plugins/beubo_grpc"]
+	path = plugins/beubo_grpc
+	url = git@github.com:markustenghamn/beubo_grpc.git
