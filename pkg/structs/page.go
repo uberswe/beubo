@@ -63,10 +63,10 @@ type Comment struct {
 }
 
 // MenuItem is one item that can be part of a nav in the frontend
-// TODO might be too specific consider removing/redoing this
 type MenuItem struct {
-	Title string
-	Path  string
+	Title    string
+	Path     string
+	SubMenus []MenuItem
 }
 
 // CreateUser is a method which creates a user using gorm
