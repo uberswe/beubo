@@ -28,6 +28,8 @@
                 <input type="text" placeholder="" name="titleField" id="titleField" value="{{ .Extra.Title }}">
                 <label for="slugField">Slug</label>
                 <input type="text" placeholder="" name="slugField" id="slugField" value="{{ .Extra.Slug }}">
+                <label for="tagField">Tags</label>
+                <input type="text" name="tagField" id="tagField" value="{{ .Extra.Tags }}">
                 <p>
                     <a href="https://{{.Extra.SiteDomain}}{{ .Extra.Slug }}">https://{{.Extra.SiteDomain}}{{ .Extra.Slug }}</a>
                 </p>
