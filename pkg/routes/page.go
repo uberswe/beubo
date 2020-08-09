@@ -31,7 +31,7 @@ func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Reque
 	params := mux.Vars(r)
 	siteID := params["id"]
 
-	successMessage := "Site created"
+	successMessage := "Page created"
 	invalidError := "an error occured and the site could not be created."
 
 	siteIDInt, err := strconv.ParseInt(siteID, 10, 64)

@@ -22,14 +22,14 @@ func GetFlash(w http.ResponseWriter, r *http.Request, name string) ([]byte, erro
 		return nil, err
 	}
 	// Deletes the cookie
-	dc := &http.Cookie{Name: name, MaxAge: -1, Expires: time.Unix(1, 0)}
+	dc := &http.Cookie{Path: "/", Name: name, MaxAge: -1, Expires: time.Now().Add(-100 * time.Hour)}
 	http.SetCookie(w, dc)
 	return value, nil
 }
 
 // SetFlash sets a cookie which expires after the next page load
 func SetFlash(w http.ResponseWriter, name string, value []byte) {
-	c := &http.Cookie{Name: name, Value: Encode(value)}
+	c := &http.Cookie{Path: "/", Name: name, Value: Encode(value)}
 	http.SetCookie(w, c)
 }
 
