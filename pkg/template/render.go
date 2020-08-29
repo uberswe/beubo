@@ -72,6 +72,13 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		{Title: "Register", Path: "/register"},
 	}
 
+	sidebarMenu := []structs.MenuItem{
+		{Title: "Sites", Path: "/admin/"},
+		{Title: "Settings", Path: "/admin/settings"},
+		{Title: "Users", Path: "/admin/users"},
+		{Title: "Plugins", Path: "/admin/plugins"},
+	}
+
 	if user != nil && user.(structs.User).ID > 0 {
 		menu = []structs.MenuItem{
 			{Title: "Home", Path: "/"},
@@ -102,11 +109,12 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		WebsiteName: siteName,
 		URL:         "http://localhost:3000",
 		// TODO make the menu dynamic
-		Menu:    menu,
-		Error:   string(errorMessage),
-		Warning: string(warningMessage),
-		Message: string(stringMessage),
-		Year:    strconv.Itoa(time.Now().Year()),
+		Menu:        menu,
+		SidebarMenu: sidebarMenu,
+		Error:       string(errorMessage),
+		Warning:     string(warningMessage),
+		Message:     string(stringMessage),
+		Year:        strconv.Itoa(time.Now().Year()),
 	}
 
 	data = mergePageData(data, pageData)

@@ -63,6 +63,10 @@ func routesInit() {
 	admin := r.PathPrefix("/admin").Subrouter()
 	admin.HandleFunc("/", beuboRouter.Admin)
 
+	admin.HandleFunc("/settings", beuboRouter.Settings)
+	admin.HandleFunc("/users", beuboRouter.Users)
+	admin.HandleFunc("/plugins", beuboRouter.Plugins)
+
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAdd).Methods("GET")
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAddPost).Methods("POST")
 

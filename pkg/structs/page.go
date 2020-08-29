@@ -32,6 +32,7 @@ type PageData struct {
 	WebsiteName string
 	URL         string
 	Menu        []MenuItem
+	SidebarMenu []MenuItem
 	Error       string
 	Warning     string
 	Message     string
