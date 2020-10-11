@@ -3,7 +3,9 @@ package structs
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"github.com/markustenghamn/beubo/pkg/structs/page"
 	"html/template"
+	"log"
 )
 
 // Page represents the content of a page, I wanted to go with the concept of having everything be a post even if it's a page, contact form or product
@@ -28,11 +30,8 @@ type PageData struct {
 	Templates   map[string]string
 	Themes      map[string]string
 	Title       string
-	Content     template.HTML
 	WebsiteName string
 	URL         string
-	Menu        []MenuItem
-	SidebarMenu []MenuItem
 	Error       string
 	Warning     string
 	Message     string
@@ -41,6 +40,7 @@ type PageData struct {
 	Scripts     []string
 	Favicon     string
 	Extra       interface{}
+	Components  []page.Component
 }
 
 type Tag struct {
@@ -72,7 +72,7 @@ type MenuItem struct {
 
 // CreateUser is a method which creates a user using gorm
 func CreatePage(db *gorm.DB, title string, slug string, tags []Tag, template string, content string, siteID int) bool {
-	page := Page{
+	pageData := Page{
 		Title:    title,
 		Content:  content,
 		Slug:     slug,
@@ -81,9 +81,9 @@ func CreatePage(db *gorm.DB, title string, slug string, tags []Tag, template str
 		Tags:     tags,
 	}
 
-	if db.NewRecord(page) { // => returns `true` as primary key is blank
-		if err := db.Create(&page).Error; err != nil {
-			fmt.Println("Could not create page")
+	if db.NewRecord(pageData) { // => returns `true` as primary key is blank
+		if err := db.Create(&pageData).Error; err != nil {
+			fmt.Println("Could not create pageData")
 			return false
 		}
 		return true
@@ -92,35 +92,35 @@ func CreatePage(db *gorm.DB, title string, slug string, tags []Tag, template str
 }
 
 func FetchPage(db *gorm.DB, id int) Page {
-	page := Page{}
+	pageData := Page{}
 
-	db.Preload("Tags").First(&page, id)
+	db.Preload("Tags").First(&pageData, id)
 
-	return page
+	return pageData
 }
 
 func FetchPageBySiteIDAndSlug(db *gorm.DB, SiteID int, slug string) Page {
-	page := Page{}
+	pageData := Page{}
 
-	db.Where("slug = ? AND site_id = ?", slug, SiteID).First(&page)
+	db.Where("slug = ? AND site_id = ?", slug, SiteID).First(&pageData)
 
-	return page
+	return pageData
 }
 
 // CreateUser is a method which creates a user using gorm
 func UpdatePage(db *gorm.DB, id int, title string, slug string, tags []Tag, template string, content string, siteID int) bool {
-	page := FetchPage(db, id)
+	pageData := FetchPage(db, id)
 
-	db.Model(&page).Association("Tags").Clear()
+	db.Model(&pageData).Association("Tags").Clear()
 
-	page.Title = title
-	page.Slug = slug
-	page.Content = content
-	page.Template = template
-	page.SiteID = siteID
-	page.Tags = tags
+	pageData.Title = title
+	pageData.Slug = slug
+	pageData.Content = content
+	pageData.Template = template
+	pageData.SiteID = siteID
+	pageData.Tags = tags
 
-	if err := db.Save(&page).Error; err != nil {
+	if err := db.Save(&pageData).Error; err != nil {
 		fmt.Println("Could not create site")
 		return false
 	}
@@ -128,9 +128,22 @@ func UpdatePage(db *gorm.DB, id int, title string, slug string, tags []Tag, temp
 }
 
 func DeletePage(db *gorm.DB, id int) Page {
-	page := FetchPage(db, id)
+	pageData := FetchPage(db, id)
 
-	db.Delete(page)
+	db.Delete(pageData)
 
-	return page
+	return pageData
+}
+
+func (pd PageData) Content(section string) template.HTML {
+	result := ""
+	log.Println("Content called:", section)
+	for _, component := range pd.Components {
+		result += component.Render()
+	}
+	return template.HTML(result)
+}
+
+func (pd PageData) Menu(section string) template.HTML {
+	return template.HTML(section)
 }

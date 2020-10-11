@@ -13,6 +13,10 @@ import (
 // Analytics does not need Beubo to wait as it doesn't affect the flow
 // An ecommerce plugin would need Beubo to wait since it affects what is displayed on the page
 
+var (
+	plugins = map[string]map[string]string{}
+)
+
 func loadPlugins() {
 	// The plugins (the *.so files) must be in a 'plugins' sub-directory
 	allPlugins, err := filepath.Glob("plugins/*.so")
@@ -38,7 +42,10 @@ func loadPlugins() {
 		}
 
 		pluginData := registerFunc()
+
 		log.Println("Loading plugins")
 		log.Println(filename, pluginData)
+
+		plugins[filename] = pluginData
 	}
 }

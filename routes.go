@@ -33,6 +33,7 @@ func routesInit() {
 	beuboRouter := &routes.BeuboRouter{
 		DB:       DB,
 		Renderer: &beuboTemplateRenderer,
+		Plugins:  &plugins,
 	}
 
 	beuboMiddleware := &middleware.BeuboMiddleware{DB: DB}
@@ -65,7 +66,7 @@ func routesInit() {
 
 	admin.HandleFunc("/settings", beuboRouter.Settings)
 	admin.HandleFunc("/users", beuboRouter.Users)
-	admin.HandleFunc("/plugins", beuboRouter.Plugins)
+	admin.HandleFunc("/plugins", beuboRouter.GetPlugins)
 
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAdd).Methods("GET")
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAddPost).Methods("POST")

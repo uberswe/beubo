@@ -2,6 +2,8 @@ package routes
 
 import (
 	"github.com/markustenghamn/beubo/pkg/structs"
+	beuboPage "github.com/markustenghamn/beubo/pkg/structs/page"
+	"github.com/markustenghamn/beubo/pkg/structs/page/component"
 	"html/template"
 	"net/http"
 )
@@ -30,7 +32,13 @@ func (br *BeuboRouter) PageHandler(w http.ResponseWriter, r *http.Request) {
 			pageData := structs.PageData{
 				Template: "page",
 				Title:    page.Title,
-				Content:  template.HTML(page.Content),
+				Components: []beuboPage.Component{component.Text{
+					Content:  template.HTML(page.Content),
+					Theme:    "",
+					Template: "",
+					Class:    "",
+					Renderer: *br.Renderer,
+				}},
 			}
 
 			br.Renderer.RenderHTMLPage(w, r, pageData)

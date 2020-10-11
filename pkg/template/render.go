@@ -29,9 +29,8 @@ type BeuboTemplateRenderer struct {
 
 func (btr *BeuboTemplateRenderer) Init() {
 	log.Println("Parsing and loading templates...")
-	funcMap := buildFuncMap()
 	var err error
-	btr.T, err = findAndParseTemplates(rootDir, funcMap)
+	btr.T, err = findAndParseTemplates(rootDir)
 	utility.ErrorHandler(err, false)
 }
 
@@ -54,7 +53,7 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 	// Get the site from context
 	site := r.Context().Value("site")
-	user := r.Context().Value("user")
+	//user := r.Context().Value("user")
 	if site != nil {
 		btr.CurrentTheme = site.(structs.Site).Theme.Slug
 		siteName = site.(structs.Site).Title
@@ -66,26 +65,26 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		btr.CurrentTheme = "default"
 	}
 
-	menu := []structs.MenuItem{
-		{Title: "Home", Path: "/"},
-		{Title: "Login", Path: "/login"},
-		{Title: "Register", Path: "/register"},
-	}
+	//menu := []structs.MenuItem{
+	//	{Title: "Home", Path: "/"},
+	//	{Title: "Login", Path: "/login"},
+	//	{Title: "Register", Path: "/register"},
+	//}
+	//
+	//sidebarMenu := []structs.MenuItem{
+	//	{Title: "Sites", Path: "/admin/"},
+	//	{Title: "Settings", Path: "/admin/settings"},
+	//	{Title: "Users", Path: "/admin/users"},
+	//	{Title: "Plugins", Path: "/admin/plugins"},
+	//}
 
-	sidebarMenu := []structs.MenuItem{
-		{Title: "Sites", Path: "/admin/"},
-		{Title: "Settings", Path: "/admin/settings"},
-		{Title: "Users", Path: "/admin/users"},
-		{Title: "Plugins", Path: "/admin/plugins"},
-	}
-
-	if user != nil && user.(structs.User).ID > 0 {
-		menu = []structs.MenuItem{
-			{Title: "Home", Path: "/"},
-			{Title: "Admin", Path: "/admin"},
-			{Title: "Logout", Path: "/logout"},
-		}
-	}
+	//if user != nil && user.(structs.User).ID > 0 {
+	//	menu = []structs.MenuItem{
+	//		{Title: "Home", Path: "/"},
+	//		{Title: "Admin", Path: "/admin"},
+	//		{Title: "Logout", Path: "/logout"},
+	//	}
+	//}
 
 	// TODO in the future we should make some way for the theme to define the stylesheets
 	scripts := []string{
@@ -108,9 +107,6 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		Scripts:     scripts,
 		WebsiteName: siteName,
 		URL:         "http://localhost:3000",
-		// TODO make the menu dynamic
-		Menu:        menu,
-		SidebarMenu: sidebarMenu,
 		Error:       string(errorMessage),
 		Warning:     string(warningMessage),
 		Message:     string(stringMessage),
@@ -121,9 +117,8 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 	if btr.ReloadTemplates {
 		log.Println("Parsing and loading templates...")
-		funcMap := buildFuncMap()
 		var err error
-		btr.T, err = findAndParseTemplates(rootDir, funcMap)
+		btr.T, err = findAndParseTemplates(rootDir)
 		utility.ErrorHandler(err, false)
 	}
 
@@ -141,7 +136,7 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 // findAndParseTemplates finds all the templates in the rootDir and makes a template map
 // This method was found here https://stackoverflow.com/a/50581032/1260548
-func findAndParseTemplates(rootDir string, funcMap template.FuncMap) (*template.Template, error) {
+func findAndParseTemplates(rootDir string) (*template.Template, error) {
 	cleanRoot, err := filepath.Abs(rootDir)
 	if err != nil {
 		return nil, err
@@ -161,7 +156,7 @@ func findAndParseTemplates(rootDir string, funcMap template.FuncMap) (*template.
 			}
 
 			name := path[pfx:]
-			t := root.New(name).Funcs(funcMap)
+			t := root.New(name)
 			t, e2 = t.Parse(string(b))
 			if e2 != nil {
 				return e2
@@ -174,24 +169,6 @@ func findAndParseTemplates(rootDir string, funcMap template.FuncMap) (*template.
 	return root, err
 }
 
-// TODO we could build function maps for some areas of the template? but why?
-func buildFuncMap() template.FuncMap {
-	return template.FuncMap{
-		"bContent": func(feature string) bool {
-			return false
-		},
-		"bHead": func(feature string) bool {
-			return false
-		},
-		"bHeader": func(feature string) bool {
-			return false
-		},
-		"bFooter": func(feature string) bool {
-			return false
-		},
-	}
-}
-
 func mergePageData(a structs.PageData, b structs.PageData) structs.PageData {
 	// TODO this could be simplified by making a function that compares an interface and picks a value but I decided that this is more readable for now
 	if b.Template != "" {
@@ -202,16 +179,8 @@ func mergePageData(a structs.PageData, b structs.PageData) structs.PageData {
 		a.Title = b.Title
 	}
 
-	if b.Content != "" {
-		a.Content = b.Content
-	}
-
 	if b.WebsiteName != "" {
 		a.WebsiteName = b.WebsiteName
-	}
-
-	if b.Menu != nil {
-		a.Menu = b.Menu
 	}
 
 	if b.Error != "" {
@@ -238,6 +207,7 @@ func mergePageData(a structs.PageData, b structs.PageData) structs.PageData {
 		a.Favicon = b.Favicon
 	}
 
+	a.Components = b.Components
 	a.Themes = b.Themes
 	a.Templates = b.Templates
 	a.Extra = b.Extra

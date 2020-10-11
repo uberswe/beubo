@@ -44,19 +44,41 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
+	var users []structs.User
+
+	extra := make(map[string]map[string]map[string]string)
+	extra["users"] = make(map[string]map[string]string)
+
+	if err := br.DB.Find(&users).Error; err != nil {
+		utility.ErrorHandler(err, false)
+	}
+
+	for _, user := range users {
+		uid := fmt.Sprintf("%d", user.ID)
+		extra["users"][uid] = make(map[string]string)
+		extra["users"][uid]["id"] = uid
+		extra["users"][uid]["email"] = user.Email
+	}
+
 	pageData := structs.PageData{
 		Template: "admin.users",
 		Title:    "Users",
+		Extra:    extra,
 	}
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 
 }
 
-func (br *BeuboRouter) Plugins(w http.ResponseWriter, r *http.Request) {
+func (br *BeuboRouter) GetPlugins(w http.ResponseWriter, r *http.Request) {
+
+	extra := make(map[string]map[string]map[string]string)
+	extra["plugins"] = *br.Plugins
+
 	pageData := structs.PageData{
 		Template: "admin.plugins",
 		Title:    "Plugins",
+		Extra:    extra,
 	}
-	br.Renderer.RenderHTMLPage(w, r, pageData)
 
+	br.Renderer.RenderHTMLPage(w, r, pageData)
 }

@@ -8,4 +8,5 @@ import (
 type BeuboRouter struct {
 	DB       *gorm.DB
 	Renderer *template.BeuboTemplateRenderer
+	Plugins  *map[string]map[string]string
 }

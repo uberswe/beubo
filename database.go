@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	seedEmail    = ""
-	seedPassword = ""
+	seedEmail    = "seed@beubo.com"
+	seedPassword = "Beubo1234!"
 	// TODO change this to a config
 	shouldSeed = true
 	// DB is used to perform database queries globally. In the future this should probably
