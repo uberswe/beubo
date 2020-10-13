@@ -3,6 +3,8 @@ package template
 import (
 	"fmt"
 	"github.com/markustenghamn/beubo/pkg/structs"
+	"github.com/markustenghamn/beubo/pkg/structs/page"
+	"github.com/markustenghamn/beubo/pkg/structs/page/menu"
 	"github.com/markustenghamn/beubo/pkg/utility"
 	"html/template"
 	"io/ioutil"
@@ -53,38 +55,48 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 	// Get the site from context
 	site := r.Context().Value("site")
-	//user := r.Context().Value("user")
+	user := r.Context().Value("user")
 	if site != nil {
 		btr.CurrentTheme = site.(structs.Site).Theme.Slug
 		siteName = site.(structs.Site).Title
 	} else if os.Getenv("THEME") != "" {
-		// Default theme
 		btr.CurrentTheme = os.Getenv("THEME")
 	} else {
 		// Default theme
 		btr.CurrentTheme = "default"
 	}
 
-	//menu := []structs.MenuItem{
-	//	{Title: "Home", Path: "/"},
-	//	{Title: "Login", Path: "/login"},
-	//	{Title: "Register", Path: "/register"},
-	//}
-	//
-	//sidebarMenu := []structs.MenuItem{
-	//	{Title: "Sites", Path: "/admin/"},
-	//	{Title: "Settings", Path: "/admin/settings"},
-	//	{Title: "Users", Path: "/admin/users"},
-	//	{Title: "Plugins", Path: "/admin/plugins"},
-	//}
+	menus := []page.Menu{menu.DefaultMenu{
+		Items: []page.MenuItem{
+			{Text: "Home", Uri: "/"},
+			{Text: "Login", Uri: "/login"},
+			{Text: "Register", Uri: "/register"},
+		},
+		Identifier: "header",
+		T:          btr.T,
+	}}
 
-	//if user != nil && user.(structs.User).ID > 0 {
-	//	menu = []structs.MenuItem{
-	//		{Title: "Home", Path: "/"},
-	//		{Title: "Admin", Path: "/admin"},
-	//		{Title: "Logout", Path: "/logout"},
-	//	}
-	//}
+	if user != nil && user.(structs.User).ID > 0 {
+		menus = []page.Menu{menu.DefaultMenu{
+			Items: []page.MenuItem{
+				{Text: "Home", Uri: "/"},
+				{Text: "Admin", Uri: "/admin"},
+				{Text: "Logout", Uri: "/logout"},
+			},
+			Identifier: "header",
+			T:          btr.T,
+		}, menu.DefaultMenu{
+			Items: []page.MenuItem{
+				{Text: "Sites", Uri: "/admin/"},
+				{Text: "Settings", Uri: "/admin/settings"},
+				{Text: "Users", Uri: "/admin/users"},
+				{Text: "Plugins", Uri: "/admin/plugins"},
+			},
+			Identifier: "sidebar",
+			Template:   "menu.sidebar",
+			T:          btr.T,
+		}}
+	}
 
 	// TODO in the future we should make some way for the theme to define the stylesheets
 	scripts := []string{
@@ -111,6 +123,7 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		Warning:     string(warningMessage),
 		Message:     string(stringMessage),
 		Year:        strconv.Itoa(time.Now().Year()),
+		Menus:       menus,
 	}
 
 	data = mergePageData(data, pageData)

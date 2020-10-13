@@ -3,7 +3,6 @@ package component
 import (
 	"bytes"
 	"fmt"
-	beuboTemplate "github.com/markustenghamn/beubo/pkg/template"
 	"html/template"
 	"log"
 )
@@ -13,7 +12,7 @@ type Text struct {
 	Theme    string
 	Template string
 	Class    string
-	Renderer beuboTemplate.BeuboTemplateRenderer
+	T        *template.Template
 }
 
 func (t Text) Render() string {
@@ -27,7 +26,7 @@ func (t Text) Render() string {
 	}
 	path := fmt.Sprintf("%s.%s", theme, tmpl)
 	var foundTemplate *template.Template
-	if foundTemplate = t.Renderer.T.Lookup(path); foundTemplate == nil {
+	if foundTemplate = t.T.Lookup(path); foundTemplate == nil {
 		log.Printf("Component file not found %s\n", path)
 		return ""
 	}

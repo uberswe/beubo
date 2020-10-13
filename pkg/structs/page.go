@@ -41,6 +41,7 @@ type PageData struct {
 	Favicon     string
 	Extra       interface{}
 	Components  []page.Component
+	Menus       []page.Menu
 }
 
 type Tag struct {
@@ -61,13 +62,6 @@ type Comment struct {
 	Text    string
 	Page    Page
 	PageID  int
-}
-
-// MenuItem is one item that can be part of a nav in the frontend
-type MenuItem struct {
-	Title    string
-	Path     string
-	SubMenus []MenuItem
 }
 
 // CreateUser is a method which creates a user using gorm
@@ -145,5 +139,12 @@ func (pd PageData) Content(section string) template.HTML {
 }
 
 func (pd PageData) Menu(section string) template.HTML {
-	return template.HTML(section)
+	result := ""
+	for _, menu := range pd.Menus {
+		if menu.GetIdentifier() == section {
+			log.Println("Menu called:", section)
+			return template.HTML(menu.Render())
+		}
+	}
+	return template.HTML(result)
 }

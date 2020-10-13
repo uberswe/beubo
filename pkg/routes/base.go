@@ -37,7 +37,7 @@ func (br *BeuboRouter) PageHandler(w http.ResponseWriter, r *http.Request) {
 					Theme:    "",
 					Template: "",
 					Class:    "",
-					Renderer: *br.Renderer,
+					T:        br.Renderer.T,
 				}},
 			}
 
