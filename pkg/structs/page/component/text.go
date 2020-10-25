@@ -8,11 +8,16 @@ import (
 )
 
 type Text struct {
+	Section  string
 	Content  template.HTML
 	Theme    string
 	Template string
 	Class    string
 	T        *template.Template
+}
+
+func (t Text) GetSection() string {
+	return t.Section
 }
 
 func (t Text) Render() string {

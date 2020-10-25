@@ -5,7 +5,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/markustenghamn/beubo/pkg/structs/page"
 	"html/template"
-	"log"
 )
 
 // Page represents the content of a page, I wanted to go with the concept of having everything be a post even if it's a page, contact form or product
@@ -131,9 +130,10 @@ func DeletePage(db *gorm.DB, id int) Page {
 
 func (pd PageData) Content(section string) template.HTML {
 	result := ""
-	log.Println("Content called:", section)
 	for _, component := range pd.Components {
-		result += component.Render()
+		if component.GetSection() == section {
+			result += component.Render()
+		}
 	}
 	return template.HTML(result)
 }
@@ -142,7 +142,6 @@ func (pd PageData) Menu(section string) template.HTML {
 	result := ""
 	for _, menu := range pd.Menus {
 		if menu.GetIdentifier() == section {
-			log.Println("Menu called:", section)
 			return template.HTML(menu.Render())
 		}
 	}

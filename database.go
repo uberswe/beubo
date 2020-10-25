@@ -145,8 +145,10 @@ func databaseSeed() {
 		}
 
 		// Create a page
-
-		content := `<p>This is a default page</p>`
+		content := `<p>Welcome to Beubo! Beubo is a free, simple, and minimal CMS with unlimited extensibility using plugins. This is the default page and can be changed in the admin area for this site.</p>`
+		content += `<p>Beubo is open source and the project can be found on <a href="https://github.com/markustenghamn/beubo">Github</a>. If you find any problems or have an idea on how Beubo can be improved, please feel free to <a href="https://github.com/markustenghamn/beubo/issues">open an issue here</a>.</p>`
+		content += `<p>Feel free to <a href="https://github.com/markustenghamn/beubo/pulls">open a pull request</a> if you would like to contribute your own changes.</p>`
+		content += `<p>For more information on how to use, customize and extend Beubo please see the <a href="https://github.com/markustenghamn/beubo/wiki">wiki</a></p>`
 
 		page := structs.Page{
 			Model:    gorm.Model{},

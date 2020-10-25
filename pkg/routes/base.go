@@ -22,21 +22,20 @@ func (br *BeuboRouter) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 // PageHandler checks if a page exists for the give slug
 func (br *BeuboRouter) PageHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO check if url matches a slug
 	site := structs.FetchSiteByHost(br.DB, r.Host)
 	if site.ID != 0 {
 		page := structs.FetchPageBySiteIDAndSlug(br.DB, int(site.ID), r.URL.Path)
-		// TODO add ability to select a page template
-		// TODO how does the page know what content to render?
 		if page.ID != 0 {
 			pageData := structs.PageData{
 				Template: "page",
 				Title:    page.Title,
+				// TODO Components should be defined on the page edit page and defined in the db
 				Components: []beuboPage.Component{component.Text{
 					Content:  template.HTML(page.Content),
 					Theme:    "",
 					Template: "",
 					Class:    "",
+					Section:  "main",
 					T:        br.Renderer.T,
 				}},
 			}
