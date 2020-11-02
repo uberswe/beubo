@@ -1,10 +1,8 @@
 package component
 
 import (
-	"bytes"
-	"fmt"
+	"github.com/markustenghamn/beubo/pkg/structs/page"
 	"html/template"
-	"log"
 )
 
 type Text struct {
@@ -20,26 +18,18 @@ func (t Text) GetSection() string {
 	return t.Section
 }
 
+func (t Text) GetTemplateName() string {
+	return returnTIfNotEmpty(t.Template, "component.text")
+}
+
+func (t Text) GetTheme() string {
+	return returnTIfNotEmpty(t.Template, "default")
+}
+
+func (t Text) GetTemplate() *template.Template {
+	return t.T
+}
+
 func (t Text) Render() string {
-	tmpl := "component.text"
-	if t.Template != "" {
-		tmpl = t.Template
-	}
-	theme := "default"
-	if t.Theme != "" {
-		theme = t.Theme
-	}
-	path := fmt.Sprintf("%s.%s", theme, tmpl)
-	var foundTemplate *template.Template
-	if foundTemplate = t.T.Lookup(path); foundTemplate == nil {
-		log.Printf("Component file not found %s\n", path)
-		return ""
-	}
-	buf := &bytes.Buffer{}
-	err := foundTemplate.Execute(buf, t)
-	if err != nil {
-		log.Printf("Component file error executing template %s\n", path)
-		return ""
-	}
-	return buf.String()
+	return page.RenderCompnent(t)
 }

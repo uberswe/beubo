@@ -3,6 +3,8 @@ package routes
 import (
 	"fmt"
 	"github.com/markustenghamn/beubo/pkg/structs"
+	"github.com/markustenghamn/beubo/pkg/structs/page"
+	"github.com/markustenghamn/beubo/pkg/structs/page/component"
 	"github.com/markustenghamn/beubo/pkg/utility"
 	"net/http"
 )
@@ -18,18 +20,46 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 		utility.ErrorHandler(err, false)
 	}
 
+	var rows []component.Row
 	for _, site := range sites {
 		sid := fmt.Sprintf("%d", site.ID)
-		extra["sites"][sid] = make(map[string]string)
-		extra["sites"][sid]["id"] = sid
-		extra["sites"][sid]["title"] = site.Title
-		extra["sites"][sid]["domain"] = site.Domain
+		rows = append(rows, component.Row{
+			Columns: []component.Column{
+				{Name: "ID", Value: sid},
+				{Name: "Site", Value: site.Title},
+				{Name: "Domain", Value: site.Domain},
+				{Name: ""},
+				{Name: ""},
+				{Name: ""},
+				{Name: ""},
+			},
+		})
+	}
+
+	table := component.Table{
+		Section: "main",
+		Header: []component.Column{
+			{Name: "ID"},
+			{Name: "Site"},
+			{Name: "Domain"},
+			{Name: ""},
+			{Name: ""},
+			{Name: ""},
+			{Name: ""},
+		},
+		Rows:             rows,
+		PageNumber:       1,
+		PageDisplayCount: 10,
+		T:                br.Renderer.T,
 	}
 
 	pageData := structs.PageData{
 		Template: "admin.sites",
 		Title:    "Admin",
 		Extra:    extra,
+		Components: []page.Component{
+			table,
+		},
 	}
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)

@@ -1,11 +1,8 @@
 package component
 
 import (
-	"bytes"
-	"fmt"
 	"github.com/markustenghamn/beubo/pkg/structs/page"
 	"html/template"
-	"log"
 )
 
 type Table struct {
@@ -29,34 +26,26 @@ type Row struct {
 
 type Column struct {
 	Name  string
-	Field page.Field
+	Field page.Component
 	Value string
 }
 
-func (t Table) Render() string {
-	tmpl := "component.table"
-	if t.Template != "" {
-		tmpl = t.Template
-	}
-	theme := "default"
-	if t.Theme != "" {
-		theme = t.Theme
-	}
-	path := fmt.Sprintf("%s.%s", theme, tmpl)
-	var foundTemplate *template.Template
-	if foundTemplate = t.T.Lookup(path); foundTemplate == nil {
-		log.Printf("Component file not found %s\n", path)
-		return ""
-	}
-	buf := &bytes.Buffer{}
-	err := foundTemplate.Execute(buf, t)
-	if err != nil {
-		log.Printf("Component file error executing template %s\n", path)
-		return ""
-	}
-	return buf.String()
+func (t Table) GetTemplateName() string {
+	return returnTIfNotEmpty(t.Template, "component.template")
 }
 
-func (c Column) RenderField(value string, field page.Field) {
+func (t Table) GetTheme() string {
+	return returnTIfNotEmpty(t.Template, "default")
+}
 
+func (t Table) GetTemplate() *template.Template {
+	return t.T
+}
+
+func (t Table) Render() string {
+	return page.RenderCompnent(t)
+}
+
+func (t Table) RenderColumn(c Column) string {
+	return page.RenderCompnent(c.Field)
 }

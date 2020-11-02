@@ -36,7 +36,6 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 		pagesRes[pid]["id"] = pid
 		pagesRes[pid]["title"] = page.Title
 		pagesRes[pid]["slug"] = page.Slug
-
 	}
 	extra["pagesRes"] = pagesRes
 
