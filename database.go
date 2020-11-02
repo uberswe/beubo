@@ -72,7 +72,8 @@ func databaseInit() {
 		&structs.Session{},
 		&structs.Site{},
 		&structs.Tag{},
-		&structs.Comment{})
+		&structs.Comment{},
+		&structs.Setting{})
 }
 
 func prepareSeed(email string, password string) {

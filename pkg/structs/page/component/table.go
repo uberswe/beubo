@@ -31,7 +31,7 @@ type Column struct {
 }
 
 func (t Table) GetTemplateName() string {
-	return returnTIfNotEmpty(t.Template, "component.template")
+	return returnTIfNotEmpty(t.Template, "component.table")
 }
 
 func (t Table) GetTheme() string {
@@ -48,4 +48,11 @@ func (t Table) Render() string {
 
 func (t Table) RenderColumn(c Column) string {
 	return page.RenderCompnent(c.Field)
+}
+
+func (c Column) RenderField(value string, field page.Component) string {
+	if field != nil && field.Render() != "" {
+		return field.Render()
+	}
+	return value
 }
