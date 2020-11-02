@@ -11,9 +11,12 @@ import (
 	"github.com/markustenghamn/beubo/pkg/template"
 	"github.com/markustenghamn/beubo/pkg/utility"
 	"github.com/urfave/negroni"
+	"golang.org/x/time/rate"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sync"
+	"time"
 )
 
 var themes []string
@@ -37,6 +40,15 @@ func routesInit() {
 	}
 
 	beuboMiddleware := &middleware.BeuboMiddleware{DB: DB}
+
+	// TODO make the burst and time configurable
+	throttleMiddleware := middleware.Throttle{
+		IPs:     make(map[string]middleware.ThrottleClient),
+		Rate:    rate.Every(time.Minute),
+		Burst:   300,
+		Mu:      &sync.RWMutex{},
+		Cleanup: time.Duration(24) * time.Hour,
+	}
 
 	utility.ErrorHandler(err, true)
 
@@ -76,6 +88,7 @@ func routesInit() {
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEdit).Methods("GET")
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEditPost).Methods("POST")
 
+	// TODO I don't like this /sites/a/ structure of the routes, consider changing it
 	siteAdmin := admin.PathPrefix("/sites/a/{id:[0-9]+}").Subrouter()
 
 	siteAdmin.HandleFunc("/", beuboRouter.SiteAdmin)
@@ -95,6 +108,7 @@ func routesInit() {
 	muxer.Handle("/", negroni.New(
 		negroni.HandlerFunc(beuboMiddleware.Site),
 		negroni.HandlerFunc(beuboMiddleware.Auth),
+		negroni.HandlerFunc(throttleMiddleware.Throttle),
 		negroni.Wrap(r),
 	))
 
