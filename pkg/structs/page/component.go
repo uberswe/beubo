@@ -17,6 +17,16 @@ type Component interface {
 	GetTemplate() *template.Template
 }
 
+type ComponentDefinition struct {
+	Struct     Component
+	Parameters map[string]ComponentParameterDefinition
+}
+
+type ComponentParameterDefinition struct {
+	StaticValue string
+	StructField string
+}
+
 func RenderCompnent(c Component) string {
 	path := fmt.Sprintf("%s.%s", c.GetTheme(), c.GetTemplateName())
 	var foundTemplate *template.Template
