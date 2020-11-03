@@ -50,9 +50,9 @@ func (t Table) RenderColumn(c Column) string {
 	return page.RenderCompnent(c.Field)
 }
 
-func (c Column) RenderField(value string, field page.Component) string {
+func (c Column) RenderField(value string, field page.Component) template.HTML {
 	if field != nil && field.Render() != "" {
-		return field.Render()
+		return template.HTML(field.Render())
 	}
-	return value
+	return template.HTML(value)
 }

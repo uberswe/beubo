@@ -6,6 +6,7 @@ import (
 	"github.com/markustenghamn/beubo/pkg/structs/page"
 	"github.com/markustenghamn/beubo/pkg/structs/page/component"
 	"github.com/markustenghamn/beubo/pkg/utility"
+	"html/template"
 	"net/http"
 )
 
@@ -25,8 +26,19 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 				{Name: "ID", Value: sid},
 				{Name: "Site", Value: site.Title},
 				{Name: "Domain", Value: site.Domain},
-				{Name: ""},
-				{Name: ""},
+				{Name: "", Field: component.Button{
+					// TODO fix schema here
+					Link:    template.URL(fmt.Sprintf("%s://%s/", "http", site.Domain)),
+					Class:   "btn btn-primary",
+					Content: "View",
+					T:       br.Renderer.T,
+				}},
+				{Name: "", Field: component.Button{
+					Link:    template.URL(fmt.Sprintf("/admin/sites/a/%s", sid)),
+					Class:   "btn btn-primary",
+					Content: "Manage",
+					T:       br.Renderer.T,
+				}},
 				{Name: ""},
 				{Name: ""},
 			},

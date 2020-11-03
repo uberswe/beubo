@@ -15,6 +15,7 @@ func (br *BeuboRouter) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 		Title:    "404 Not Found",
 	}
 
+	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusNotFound)
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)

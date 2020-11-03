@@ -10,6 +10,7 @@ type Button struct {
 	Template string
 	Class    string
 	Content  string
+	Link     template.URL
 	T        *template.Template
 }
 
