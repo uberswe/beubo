@@ -12,57 +12,60 @@ import (
 
 // Admin is the default admin route and template
 func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
-	table, err := component.MakeTable(br.DB, []structs.Site{}, []component.ColumnDefinition{
-		{Name: "ID", ValueFromStructField: "ID"},
-		{Name: "Site", ValueFromStructField: "Title"},
-		{Name: "Domain", ValueFromStructField: "Domain"},
-		{Name: "", ComponentDefinition: &page.ComponentDefinition{
-			Parameters: map[string]page.ComponentParameterDefinition{
-				"Link": page.ComponentParameterDefinition{
-					StaticValue: "",
-					StructField: "",
-					// TODO maybe a computed field is needed?
-				},
-			},
-			// TODO fix schema here
-			//Link:    template.URL(fmt.Sprintf("%s://%s/", "http", site.Domain)),
-			//Class:   "button-primary",
-			//Content: "View",
-			//T:       br.Renderer.T,
-		}},
-		//{Name: "", Field: component.Button{
-		//	Link:    template.URL(fmt.Sprintf("/admin/sites/a/%s", sid)),
-		//	Class:   "button-primary",
-		//	Content: "Manage",
-		//	T:       br.Renderer.T,
-		//}},
-		//{Name: "", Field: component.Button{
-		//	Link:    template.URL(fmt.Sprintf("/admin/sites/edit/%s", sid)),
-		//	Class:   "button-primary",
-		//	Content: "Edit",
-		//	T:       br.Renderer.T,
-		//}},
-		//{Name: "", Field: component.Button{
-		//	Link:    template.URL(fmt.Sprintf("/admin/sites/delete/%s", sid)),
-		//	Class:   "button-clear",
-		//	Content: "Delete",
-		//	T:       br.Renderer.T,
-		//}}
-	}, 10, 0, "main", "", "", br.Renderer.T)
+	var sites []structs.Site
 
-	utility.ErrorHandler(err, false)
+	if err := br.DB.Find(&sites).Error; err != nil {
+		utility.ErrorHandler(err, false)
+	}
+
+	var rows []component.Row
+	for _, site := range sites {
+		sid := fmt.Sprintf("%d", site.ID)
+		rows = append(rows, component.Row{
+			Columns: []component.Column{
+				{Name: "ID", Value: sid},
+				{Name: "Site", Value: site.Title},
+				{Name: "Domain", Value: site.Domain},
+				{Name: "", Field: component.Button{
+					// TODO fix schema here
+					Link:    template.URL(fmt.Sprintf("%s://%s/", "http", site.Domain)),
+					Class:   "btn btn-primary",
+					Content: "View",
+					T:       br.Renderer.T,
+				}},
+				{Name: "", Field: component.Button{
+					Link:    template.URL(fmt.Sprintf("/admin/sites/a/%s", sid)),
+					Class:   "btn btn-primary",
+					Content: "Manage",
+					T:       br.Renderer.T,
+				}},
+				{Name: ""},
+				{Name: ""},
+			},
+		})
+	}
+
+	table := component.Table{
+		Section: "main",
+		Header: []component.Column{
+			{Name: "ID"},
+			{Name: "Site"},
+			{Name: "Domain"},
+			{Name: ""},
+			{Name: ""},
+			{Name: ""},
+			{Name: ""},
+		},
+		Rows:             rows,
+		PageNumber:       1,
+		PageDisplayCount: 10,
+		T:                br.Renderer.T,
+	}
 
 	pageData := structs.PageData{
 		Template: "admin.page",
 		Title:    "Admin - Sites",
 		Components: []page.Component{
-			component.Button{
-				Section: "main",
-				Link:    template.URL("/admin/sites/add"),
-				Class:   "button-primary",
-				Content: "Add",
-				T:       br.Renderer.T,
-			},
 			table,
 		},
 	}
