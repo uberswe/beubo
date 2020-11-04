@@ -23,8 +23,9 @@ type ComponentDefinition struct {
 }
 
 type ComponentParameterDefinition struct {
-	StaticValue string
-	StructField string
+	StaticValue   string
+	StructField   string
+	ComputedField func(value string) string
 }
 
 func RenderCompnent(c Component) string {

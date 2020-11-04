@@ -2,11 +2,15 @@ package component
 
 import (
 	"fmt"
+	pluralize "github.com/gertd/go-pluralize"
 	"github.com/jinzhu/gorm"
 	"github.com/markustenghamn/beubo/pkg/structs/page"
 	"github.com/markustenghamn/beubo/pkg/utility"
 	"html/template"
+	"log"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 type Table struct {
@@ -69,36 +73,50 @@ type ColumnDefinition struct {
 }
 
 func MakeTable(db *gorm.DB, m interface{}, cd []ColumnDefinition, numRows int, page int, section string, theme string, template string, t *template.Template) (Table, error) {
+	mType := reflect.TypeOf(m)
+	results := reflect.New(reflect.SliceOf(mType)).Interface()
 	table := Table{}
-	if err := db.Limit(numRows).Offset(page).Find(&m).Error; err != nil {
+	var rows []Row
+	if err := db.Model(m).Limit(numRows).Offset(page).Find(results).Error; err != nil {
 		utility.ErrorHandler(err, false)
 		return table, err
 	}
-
-	var rows []Row
-	for _, model := range m {
-		var columns []Column
-		for _, definition := range cd {
-			column := Column{}
-			if definition.StaticValue != "" {
-				column.Value = definition.StaticValue
-			} else if definition.ComponentDefinition != nil {
-				cModel := definition.ComponentDefinition.Struct
-				for name, field := range definition.ComponentDefinition.Parameters {
-					setValue := reflectModelParameterValue(model, field)
-					cModel = setModelParameterValue(cModel, name, setValue)
+	switch reflect.TypeOf(results).Elem().Kind() {
+	case reflect.Slice:
+		s := reflect.ValueOf(results).Elem()
+		for i := 0; i < s.Len(); i++ {
+			model := s.Index(i)
+			var columns []Column
+			for _, definition := range cd {
+				column := Column{}
+				if definition.StaticValue != "" {
+					column.Value = definition.StaticValue
+				} else if definition.ComponentDefinition != nil {
+					cModel := definition.ComponentDefinition.Struct
+					for name, field := range definition.ComponentDefinition.Parameters {
+						setValue := ""
+						if field.StaticValue != "" {
+							setValue = field.StaticValue
+						} else {
+							setValue = reflectModelParameterValue(model, field.StructField)
+						}
+						if field.ComputedField != nil {
+							setValue = field.ComputedField(setValue)
+						}
+						cModel = setModelParameterValue(cModel, name, setValue)
+					}
+					column.Field = cModel
+				} else if definition.ValueFromStructField != "" {
+					column.Value = reflectModelParameterValue(model, definition.ValueFromStructField)
+				} else {
+					column.Value = ""
 				}
-				column.Field = cModel
-			} else if definition.ValueFromStructField != "" {
-				column.Value = reflectModelParameterValue(model, definition.ValueFromStructField)
-			} else {
-				column.Value = ""
+				columns = append(columns, column)
 			}
-			columns = append(columns, column)
+			rows = append(rows, Row{
+				Columns: columns,
+			})
 		}
-		rows = append(rows, Row{
-			Columns: columns,
-		})
 	}
 
 	var header []Column
@@ -118,9 +136,52 @@ func MakeTable(db *gorm.DB, m interface{}, cd []ColumnDefinition, numRows int, p
 }
 
 func reflectModelParameterValue(model interface{}, parameterName string) string {
+	log.Printf("%v\n", model)
 	rv := reflect.ValueOf(model)
+	fields := reflect.TypeOf(model)
+	values := reflect.ValueOf(model)
+	num := fields.NumField()
+
+	for i := 0; i < num; i++ {
+		field := fields.Field(i)
+		value := values.Field(i)
+		fmt.Print("Type:", field.Type, ",", field.Name, "=", value, "\n")
+
+		switch value.Elem().Kind() {
+		case reflect.String:
+			v := value.Elem().String()
+			fmt.Print(v, "\n")
+		case reflect.Int:
+			v := strconv.FormatInt(value.Elem().Int(), 10)
+			fmt.Print(v, "\n")
+		case reflect.Int32:
+			v := strconv.FormatInt(value.Elem().Int(), 10)
+			fmt.Print(v, "\n")
+		case reflect.Int64:
+			v := strconv.FormatInt(value.Elem().Int(), 10)
+			fmt.Print(v, "\n")
+		default:
+			fmt.Printf("Not support type of struct %s", value.Kind())
+		}
+	}
+
+	log.Println(values)
+
 	if rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Struct {
-		return ""
+		// Lookup field by name
+		fv := rv.FieldByName(parameterName)
+		if !fv.IsValid() {
+			log.Println(rv.Kind())
+			log.Println(parameterName)
+			log.Println(fv.IsValid())
+			return ""
+		}
+		// We expect a string field
+		if fv.Kind() != reflect.String {
+			// Convert interface to string
+			return fmt.Sprintf("%v", fv.Interface())
+		}
+		return fv.String()
 	}
 	// Dereference pointer
 	rv = rv.Elem()
@@ -156,4 +217,18 @@ func setModelParameterValue(model page.Component, parameterName string, value st
 	}
 	fv.SetString(value)
 	return model
+}
+
+func getTable(m interface{}) string {
+	p := pluralize.NewClient()
+	t := reflect.TypeOf(m)
+	n := t.Name()
+	if t.Kind() == reflect.Ptr {
+		n = t.Elem().Name()
+	}
+	n = strings.ToLower(n)
+	if !p.IsPlural(n) {
+		n = p.Plural(n)
+	}
+	return n
 }

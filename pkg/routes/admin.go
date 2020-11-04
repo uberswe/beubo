@@ -12,42 +12,86 @@ import (
 
 // Admin is the default admin route and template
 func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
-	table, err := component.MakeTable(br.DB, []structs.Site{}, []component.ColumnDefinition{
+	table, err := component.MakeTable(br.DB, structs.Site{}, []component.ColumnDefinition{
 		{Name: "ID", ValueFromStructField: "ID"},
 		{Name: "Site", ValueFromStructField: "Title"},
 		{Name: "Domain", ValueFromStructField: "Domain"},
 		{Name: "", ComponentDefinition: &page.ComponentDefinition{
 			Parameters: map[string]page.ComponentParameterDefinition{
-				"Link": page.ComponentParameterDefinition{
-					StaticValue: "",
-					StructField: "",
-					// TODO maybe a computed field is needed?
+				"Link": {
+					StructField: "Domain",
+					ComputedField: func(value string) string {
+						return fmt.Sprintf("%s://%s/", "http", value)
+					},
+				},
+				"Class": {
+					StaticValue: "button-primary",
+				},
+				"Content": {
+					StaticValue: "View",
+				},
+				"T": {
+					StructField: "T",
 				},
 			},
-			// TODO fix schema here
-			//Link:    template.URL(fmt.Sprintf("%s://%s/", "http", site.Domain)),
-			//Class:   "button-primary",
-			//Content: "View",
-			//T:       br.Renderer.T,
 		}},
-		//{Name: "", Field: component.Button{
-		//	Link:    template.URL(fmt.Sprintf("/admin/sites/a/%s", sid)),
-		//	Class:   "button-primary",
-		//	Content: "Manage",
-		//	T:       br.Renderer.T,
-		//}},
-		//{Name: "", Field: component.Button{
-		//	Link:    template.URL(fmt.Sprintf("/admin/sites/edit/%s", sid)),
-		//	Class:   "button-primary",
-		//	Content: "Edit",
-		//	T:       br.Renderer.T,
-		//}},
-		//{Name: "", Field: component.Button{
-		//	Link:    template.URL(fmt.Sprintf("/admin/sites/delete/%s", sid)),
-		//	Class:   "button-clear",
-		//	Content: "Delete",
-		//	T:       br.Renderer.T,
-		//}}
+		{Name: "", ComponentDefinition: &page.ComponentDefinition{
+			Parameters: map[string]page.ComponentParameterDefinition{
+				"Link": {
+					StructField: "ID",
+					ComputedField: func(value string) string {
+						return fmt.Sprintf("/admin/sites/a/%s", value)
+					},
+				},
+				"Class": {
+					StaticValue: "button-primary",
+				},
+				"Content": {
+					StaticValue: "Manage",
+				},
+				"T": {
+					StructField: "T",
+				},
+			},
+		}},
+		{Name: "", ComponentDefinition: &page.ComponentDefinition{
+			Parameters: map[string]page.ComponentParameterDefinition{
+				"Link": {
+					StructField: "ID",
+					ComputedField: func(value string) string {
+						return fmt.Sprintf("/admin/sites/edit/%s", value)
+					},
+				},
+				"Class": {
+					StaticValue: "button-primary",
+				},
+				"Content": {
+					StaticValue: "Edit",
+				},
+				"T": {
+					StructField: "T",
+				},
+			},
+		}},
+		{Name: "", ComponentDefinition: &page.ComponentDefinition{
+			Parameters: map[string]page.ComponentParameterDefinition{
+				"Link": {
+					StructField: "ID",
+					ComputedField: func(value string) string {
+						return fmt.Sprintf("/admin/sites/delete/%s", value)
+					},
+				},
+				"Class": {
+					StaticValue: "button-clear",
+				},
+				"Content": {
+					StaticValue: "Delete",
+				},
+				"T": {
+					StructField: "T",
+				},
+			},
+		}},
 	}, 10, 0, "main", "", "", br.Renderer.T)
 
 	utility.ErrorHandler(err, false)

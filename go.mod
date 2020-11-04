@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/aws/aws-sdk-go v1.30.7
+	github.com/gertd/go-pluralize v0.1.7
 	github.com/goincremental/negroni-sessions v0.0.0-20171223143234-40b49004abee
 	github.com/golang/gddo v0.0.0-20200324184333-3c2cc9a6329d // indirect
 	github.com/golang/protobuf v1.4.2
@@ -16,6 +17,7 @@ require (
 	github.com/lpar/gzipped v1.1.0
 	github.com/markustenghamn/beubo_grpc v0.0.0-20200705160535-84936662ed6b
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
+	github.com/stretchr/testify v1.5.1
 	github.com/urfave/negroni v1.0.0
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
