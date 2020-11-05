@@ -6,6 +6,7 @@ import (
 )
 
 type Button struct {
+	Section  string
 	Theme    string
 	Template string
 	Class    string
@@ -15,7 +16,7 @@ type Button struct {
 }
 
 func (b Button) GetSection() string {
-	return ""
+	return b.Section
 }
 
 func (b Button) GetTemplateName() string {

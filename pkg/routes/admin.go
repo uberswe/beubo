@@ -39,8 +39,18 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 					Content: "Manage",
 					T:       br.Renderer.T,
 				}},
-				{Name: ""},
-				{Name: ""},
+				{Name: "", Field: component.Button{
+					Link:    template.URL(fmt.Sprintf("/admin/sites/edit/%s", sid)),
+					Class:   "btn btn-primary",
+					Content: "Edit",
+					T:       br.Renderer.T,
+				}},
+				{Name: "", Field: component.Button{
+					Link:    template.URL(fmt.Sprintf("/admin/sites/delete/%s", sid)),
+					Class:   "btn btn-primary",
+					Content: "Delete",
+					T:       br.Renderer.T,
+				}},
 			},
 		})
 	}
@@ -66,6 +76,13 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 		Template: "admin.page",
 		Title:    "Admin - Sites",
 		Components: []page.Component{
+			component.Button{
+				Section: "main",
+				Link:    template.URL("/admin/sites/add"),
+				Class:   "btn btn-primary",
+				Content: "Add Site",
+				T:       br.Renderer.T,
+			},
 			table,
 		},
 	}
@@ -86,8 +103,20 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 		rows = append(rows, component.Row{
 			Columns: []component.Column{
 				{Name: "ID", Value: sid},
-				{Name: "Key", Value: setting.Key},
-				{Name: "Value", Value: setting.Value},
+				{Name: "Site", Value: setting.Key},
+				{Name: "Domain", Value: setting.Value},
+				{Name: "", Field: component.Button{
+					Link:    template.URL(fmt.Sprintf("/admin/settings/edit/%s", sid)),
+					Class:   "btn btn-primary",
+					Content: "Edit",
+					T:       br.Renderer.T,
+				}},
+				{Name: "", Field: component.Button{
+					Link:    template.URL(fmt.Sprintf("/admin/settings/delete/%s", sid)),
+					Class:   "btn btn-primary",
+					Content: "Delete",
+					T:       br.Renderer.T,
+				}},
 			},
 		})
 	}
@@ -98,6 +127,8 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 			{Name: "ID"},
 			{Name: "Key"},
 			{Name: "Value"},
+			{Name: ""},
+			{Name: ""},
 		},
 		Rows:             rows,
 		PageNumber:       1,
@@ -109,6 +140,13 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 		Template: "admin.page",
 		Title:    "Admin - Settings",
 		Components: []page.Component{
+			component.Button{
+				Section: "main",
+				Link:    template.URL("/admin/settings/add"),
+				Class:   "btn btn-primary",
+				Content: "Add Setting",
+				T:       br.Renderer.T,
+			},
 			table,
 		},
 	}

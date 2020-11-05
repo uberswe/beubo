@@ -83,10 +83,17 @@ func routesInit() {
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAdd).Methods("GET")
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAddPost).Methods("POST")
 
+	admin.HandleFunc("/settings/add", beuboRouter.AdminSettingAdd).Methods("GET")
+	admin.HandleFunc("/settings/add", beuboRouter.AdminSettingAddPost).Methods("POST")
+
 	admin.HandleFunc("/sites/delete/{id:[0-9]+}", beuboRouter.AdminSiteDelete)
+	admin.HandleFunc("/settings/delete/{id:[0-9]+}", beuboRouter.AdminSettingDelete)
 
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEdit).Methods("GET")
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEditPost).Methods("POST")
+
+	admin.HandleFunc("/sites/settings/{id:[0-9]+}", beuboRouter.AdminSettingEdit).Methods("GET")
+	admin.HandleFunc("/sites/settings/{id:[0-9]+}", beuboRouter.AdminSettingEditPost).Methods("POST")
 
 	// TODO I don't like this /sites/a/ structure of the routes, consider changing it
 	siteAdmin := admin.PathPrefix("/sites/a/{id:[0-9]+}").Subrouter()
