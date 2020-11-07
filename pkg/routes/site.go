@@ -61,7 +61,6 @@ func (br *BeuboRouter) AdminSiteAdd(w http.ResponseWriter, r *http.Request) {
 
 // Handles adding of a site
 func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) {
-	// TODO should authentication be checked here, maybe with a middleware?
 	path := "/admin/sites/add"
 
 	successMessage := "Site created"

@@ -15,7 +15,7 @@ type Site struct {
 	ThemeID int
 }
 
-// CreateUser is a method which creates a user using gorm
+// CreateSite is a method which creates a site using gorm
 func CreateSite(db *gorm.DB, title string, domain string, siteType int, themeID int) bool {
 	site := Site{
 		Title:   title,
