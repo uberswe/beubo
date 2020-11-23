@@ -20,7 +20,7 @@ func (br *BeuboRouter) AdminSettingAdd(w http.ResponseWriter, r *http.Request) {
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
-// Handles adding of a site
+// AdminSettingAddPost handles adding of a global setting
 func (br *BeuboRouter) AdminSettingAddPost(w http.ResponseWriter, r *http.Request) {
 	path := "/admin/setting/add"
 
@@ -53,6 +53,7 @@ func (br *BeuboRouter) AdminSettingAddPost(w http.ResponseWriter, r *http.Reques
 	http.Redirect(w, r, "/admin/setting/add", 302)
 }
 
+// AdminSettingDelete handles the deletion of a global setting
 func (br *BeuboRouter) AdminSettingDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
@@ -68,7 +69,7 @@ func (br *BeuboRouter) AdminSettingDelete(w http.ResponseWriter, r *http.Request
 	http.Redirect(w, r, "/admin/", 302)
 }
 
-// AdminSettingEdit is the route for adding a site
+// AdminSettingEdit is the route for adding a setting
 func (br *BeuboRouter) AdminSettingEdit(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
@@ -94,7 +95,7 @@ func (br *BeuboRouter) AdminSettingEdit(w http.ResponseWriter, r *http.Request) 
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
-// Handles editing of a site
+// AdminSettingEditPost handles editing of a global setting
 func (br *BeuboRouter) AdminSettingEditPost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]

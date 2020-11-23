@@ -6,7 +6,7 @@ import (
 	"github.com/markustenghamn/beubo/pkg/utility"
 )
 
-// User is a user who can authenticate with Beubo
+// Session represents an authenticated user session, there can be multiple sessions for one user
 type Session struct {
 	gorm.Model
 	Token  string `gorm:"size:255;unique_index"`
@@ -14,7 +14,7 @@ type Session struct {
 	User   User
 }
 
-// CreateUser is a method which creates a user using gorm
+// CreateSession is a method which creates a session using gorm
 func CreateSession(db *gorm.DB, userID int) Session {
 	token, err := utility.GenerateToken(255)
 	utility.ErrorHandler(err, false)
@@ -32,6 +32,7 @@ func CreateSession(db *gorm.DB, userID int) Session {
 	return session
 }
 
+// FetchUserFromSession takes a provided token string and fetches the user for the session matching the provided token
 func FetchUserFromSession(db *gorm.DB, token string) User {
 	user := User{}
 	session := Session{}

@@ -8,6 +8,7 @@ import (
 	"log"
 )
 
+// DefaultMenu is the base menu struct for Beubo
 type DefaultMenu struct {
 	Items      []page.MenuItem
 	Identifier string
@@ -16,18 +17,22 @@ type DefaultMenu struct {
 	T          *template.Template
 }
 
+// GetIdentifier is a getter for the Identifier property
 func (m DefaultMenu) GetIdentifier() string {
 	return m.Identifier
 }
 
+// GetItems is a getter for the Items property
 func (m DefaultMenu) GetItems() []page.MenuItem {
 	return m.Items
 }
 
+// SetItems is a setter for the Items property
 func (m DefaultMenu) SetItems(items []page.MenuItem) {
 	m.Items = items
 }
 
+// Render calls the relevant templates and functions to turn a menu into a html string for browser output
 func (m DefaultMenu) Render() string {
 	tmpl := "menu.default"
 	if m.Template != "" {

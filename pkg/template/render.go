@@ -22,6 +22,7 @@ var (
 	rootDir      = "./"
 )
 
+// BeuboTemplateRenderer holds all the configuration variables for rendering templates in Beubo
 type BeuboTemplateRenderer struct {
 	T               *template.Template
 	ReloadTemplates bool
@@ -29,6 +30,7 @@ type BeuboTemplateRenderer struct {
 	ThemeDir        string
 }
 
+// Init prepares the BeuboTemplateRenderer to render pages with html templates
 func (btr *BeuboTemplateRenderer) Init() {
 	log.Println("Parsing and loading templates...")
 	var err error
@@ -68,9 +70,9 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 	menus := []page.Menu{menu.DefaultMenu{
 		Items: []page.MenuItem{
-			{Text: "Home", Uri: "/"},
-			{Text: "Login", Uri: "/login"},
-			{Text: "Register", Uri: "/register"},
+			{Text: "Home", URI: "/"},
+			{Text: "Login", URI: "/login"},
+			{Text: "Register", URI: "/register"},
 		},
 		Identifier: "header",
 		T:          btr.T,
@@ -79,18 +81,18 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	if user != nil && user.(structs.User).ID > 0 {
 		menus = []page.Menu{menu.DefaultMenu{
 			Items: []page.MenuItem{
-				{Text: "Home", Uri: "/"},
-				{Text: "Admin", Uri: "/admin"},
-				{Text: "Logout", Uri: "/logout"},
+				{Text: "Home", URI: "/"},
+				{Text: "Admin", URI: "/admin"},
+				{Text: "Logout", URI: "/logout"},
 			},
 			Identifier: "header",
 			T:          btr.T,
 		}, menu.DefaultMenu{
 			Items: []page.MenuItem{
-				{Text: "Sites", Uri: "/admin/"},
-				{Text: "Settings", Uri: "/admin/settings"},
-				{Text: "Users", Uri: "/admin/users"},
-				{Text: "Plugins", Uri: "/admin/plugins"},
+				{Text: "Sites", URI: "/admin/"},
+				{Text: "Settings", URI: "/admin/settings"},
+				{Text: "Users", URI: "/admin/users"},
+				{Text: "Plugins", URI: "/admin/plugins"},
 			},
 			Identifier: "sidebar",
 			Template:   "menu.sidebar",

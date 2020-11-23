@@ -43,15 +43,19 @@ type PageData struct {
 	Menus       []page.Menu
 }
 
+// Tag of a post can be used for post categories or things like meta tag keywords for example
 type Tag struct {
 	gorm.Model
 	Value string `gorm:"unique;not null"`
 }
 
-type JsonTag struct {
+// JSONTag is used for responses where tags are shown
+// TODO is this redundant if we can use Tag?
+type JSONTag struct {
 	Value string `json:"value"`
 }
 
+// Comment can be related to a post created by a user
 type Comment struct {
 	gorm.Model
 	User    User
@@ -63,7 +67,7 @@ type Comment struct {
 	PageID  int
 }
 
-// CreateUser is a method which creates a user using gorm
+// CreatePage is a method which creates a page using gorm
 func CreatePage(db *gorm.DB, title string, slug string, tags []Tag, template string, content string, siteID int) bool {
 	pageData := Page{
 		Title:    title,
@@ -84,6 +88,7 @@ func CreatePage(db *gorm.DB, title string, slug string, tags []Tag, template str
 	return false
 }
 
+// FetchPage gets a page based on the provided id from the database
 func FetchPage(db *gorm.DB, id int) Page {
 	pageData := Page{}
 
@@ -92,6 +97,7 @@ func FetchPage(db *gorm.DB, id int) Page {
 	return pageData
 }
 
+// FetchPageBySiteIDAndSlug gets a page based on the site id and slug from the database
 func FetchPageBySiteIDAndSlug(db *gorm.DB, SiteID int, slug string) Page {
 	pageData := Page{}
 
@@ -100,7 +106,7 @@ func FetchPageBySiteIDAndSlug(db *gorm.DB, SiteID int, slug string) Page {
 	return pageData
 }
 
-// CreateUser is a method which creates a user using gorm
+// UpdatePage is a method which updates a page in the database with relevant data
 func UpdatePage(db *gorm.DB, id int, title string, slug string, tags []Tag, template string, content string, siteID int) bool {
 	pageData := FetchPage(db, id)
 
@@ -120,6 +126,7 @@ func UpdatePage(db *gorm.DB, id int, title string, slug string, tags []Tag, temp
 	return true
 }
 
+// DeletePage deletes a page with the provided id from the database
 func DeletePage(db *gorm.DB, id int) Page {
 	pageData := FetchPage(db, id)
 
@@ -128,6 +135,7 @@ func DeletePage(db *gorm.DB, id int) Page {
 	return pageData
 }
 
+// Content renders components for a page for the specified section
 func (pd PageData) Content(section string) template.HTML {
 	result := ""
 	for _, component := range pd.Components {
@@ -138,6 +146,7 @@ func (pd PageData) Content(section string) template.HTML {
 	return template.HTML(result)
 }
 
+// Menu renders a menu for the provided section
 func (pd PageData) Menu(section string) template.HTML {
 	result := ""
 	for _, menu := range pd.Menus {

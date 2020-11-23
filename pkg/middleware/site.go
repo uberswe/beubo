@@ -14,7 +14,7 @@ func (bmw *BeuboMiddleware) Site(rw http.ResponseWriter, r *http.Request, next h
 		// TODO maybe we should redirect or something if this is the case? Make it configurable
 	} else {
 		// Site exists
-		ctx := context.WithValue(r.Context(), "site", site)
+		ctx := context.WithValue(r.Context(), SiteContextKey, site)
 		r = r.WithContext(ctx)
 	}
 	next(rw, r)

@@ -90,6 +90,7 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
+// Settings is the route for loading the admin settings page
 func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 	var settings []structs.Setting
 
@@ -153,6 +154,7 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
+// Users is the route for loading the admin users page
 func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 	var users []structs.User
 
@@ -195,6 +197,7 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// GetPlugins is the route for loading the admin plugins page
 func (br *BeuboRouter) GetPlugins(w http.ResponseWriter, r *http.Request) {
 	var rows []component.Row
 	for plugin := range *br.Plugins {

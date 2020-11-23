@@ -5,6 +5,7 @@ import (
 	"github.com/markustenghamn/beubo/pkg/template"
 )
 
+// BeuboRouter holds parameters relevant to the router
 type BeuboRouter struct {
 	DB       *gorm.DB
 	Renderer *template.BeuboTemplateRenderer

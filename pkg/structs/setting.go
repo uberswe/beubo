@@ -5,13 +5,14 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// Setting represents a key value setting for Beubo usually used for global config values
 type Setting struct {
 	gorm.Model
 	Key   string `gorm:"size:255;unique_index"`
 	Value string `gorm:"size:255"`
 }
 
-// CreateSite is a method which creates a site using gorm
+// CreateSetting is a method which creates a setting using gorm
 func CreateSetting(db *gorm.DB, key string, value string) bool {
 	setting := Setting{
 		Key:   key,
@@ -28,6 +29,7 @@ func CreateSetting(db *gorm.DB, key string, value string) bool {
 	return false
 }
 
+// FetchSetting gets a setting from the database via the provided id
 func FetchSetting(db *gorm.DB, id int) Setting {
 	setting := Setting{}
 
@@ -50,6 +52,7 @@ func UpdateSetting(db *gorm.DB, id int, key string, value string) bool {
 	return true
 }
 
+// DeleteSetting removes a setting with the matching id from the database
 func DeleteSetting(db *gorm.DB, id int) Setting {
 	setting := FetchSetting(db, id)
 
