@@ -3,8 +3,8 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/markustenghamn/beubo/pkg/structs"
-	"github.com/markustenghamn/beubo/pkg/utility"
+	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/utility"
 	"net/http"
 	"strconv"
 )

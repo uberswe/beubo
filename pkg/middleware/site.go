@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/markustenghamn/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/structs"
 	"golang.org/x/net/context"
 	"net/http"
 )

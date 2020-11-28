@@ -2,10 +2,10 @@ package routes
 
 import (
 	"fmt"
-	"github.com/markustenghamn/beubo/pkg/structs"
-	"github.com/markustenghamn/beubo/pkg/structs/page"
-	"github.com/markustenghamn/beubo/pkg/structs/page/component"
-	"github.com/markustenghamn/beubo/pkg/utility"
+	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/structs/page"
+	"github.com/uberswe/beubo/pkg/structs/page/component"
+	"github.com/uberswe/beubo/pkg/utility"
 	"html/template"
 	"net/http"
 )

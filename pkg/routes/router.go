@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/markustenghamn/beubo/pkg/template"
+	"github.com/uberswe/beubo/pkg/template"
 )
 
 // BeuboRouter holds parameters relevant to the router

@@ -3,7 +3,7 @@ package structs
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/markustenghamn/beubo/pkg/structs/page"
+	"github.com/uberswe/beubo/pkg/structs/page"
 	"html/template"
 )
 

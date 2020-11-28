@@ -3,7 +3,7 @@ package structs
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/markustenghamn/beubo/pkg/utility"
+	"github.com/uberswe/beubo/pkg/utility"
 )
 
 // Session represents an authenticated user session, there can be multiple sessions for one user

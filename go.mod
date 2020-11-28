@@ -1,4 +1,4 @@
-module github.com/markustenghamn/beubo
+module github.com/uberswe/beubo
 
 go 1.12
 
@@ -14,7 +14,7 @@ require (
 	github.com/jinzhu/gorm v1.9.12
 	github.com/joho/godotenv v1.3.0
 	github.com/lpar/gzipped v1.1.0
-	github.com/markustenghamn/beubo_grpc v0.0.0-20200705160535-84936662ed6b
+	github.com/uberswe/beubo_grpc v0.0.0-20200705160535-84936662ed6b
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/urfave/negroni v1.0.0
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
