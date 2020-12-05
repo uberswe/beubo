@@ -109,7 +109,6 @@ func (br *BeuboRouter) AdminSettingEditPost(w http.ResponseWriter, r *http.Reque
 	successMessage := "Setting updated"
 	invalidError := "an error occured and the setting could not be updated."
 
-	themeID := 0
 	key := r.FormValue("key")
 	value := r.FormValue("value")
 
