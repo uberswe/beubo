@@ -9,6 +9,7 @@ type Theme struct {
 	Slug  string `gorm:"size:255;unique_index"`
 }
 
+// FetchTheme gets a theme from the database using the provided id
 func FetchTheme(db *gorm.DB, id int) Theme {
 	theme := Theme{}
 
@@ -17,6 +18,7 @@ func FetchTheme(db *gorm.DB, id int) Theme {
 	return theme
 }
 
+// FetchThemeBySlug gets a theme from the database by the slug string
 func FetchThemeBySlug(db *gorm.DB, slug string) Theme {
 	theme := Theme{}
 

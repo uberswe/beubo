@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Throttle holds relevant parameters for configuring how the throttle middleware behaves
 type Throttle struct {
 	IPs     map[string]ThrottleClient
 	Mu      *sync.RWMutex
@@ -15,6 +16,7 @@ type Throttle struct {
 	Cleanup time.Duration
 }
 
+// ThrottleClient holds info about an ip such as it's rate limiter and the last time a request was made
 type ThrottleClient struct {
 	Limiter *rate.Limiter
 	last    time.Time
@@ -54,6 +56,7 @@ func (t Throttle) cleanup() {
 	t.Mu.Unlock()
 }
 
+// Throttle prevents multiple repeated requests in a certain time period
 func (t Throttle) Throttle(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	// TODO if we are behind a load balancer we need to support X-Forwarded-For headers
 	limiter := t.getLimiter(r.RemoteAddr)

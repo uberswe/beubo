@@ -2,10 +2,10 @@ package routes
 
 import (
 	"fmt"
-	"github.com/markustenghamn/beubo/pkg/structs"
-	"github.com/markustenghamn/beubo/pkg/structs/page"
-	"github.com/markustenghamn/beubo/pkg/structs/page/component"
-	"github.com/markustenghamn/beubo/pkg/utility"
+	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/structs/page"
+	"github.com/uberswe/beubo/pkg/structs/page/component"
+	"github.com/uberswe/beubo/pkg/utility"
 	"html/template"
 	"net/http"
 )
@@ -39,8 +39,18 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 					Content: "Manage",
 					T:       br.Renderer.T,
 				}},
-				{Name: ""},
-				{Name: ""},
+				{Name: "", Field: component.Button{
+					Link:    template.URL(fmt.Sprintf("/admin/sites/edit/%s", sid)),
+					Class:   "btn btn-primary",
+					Content: "Edit",
+					T:       br.Renderer.T,
+				}},
+				{Name: "", Field: component.Button{
+					Link:    template.URL(fmt.Sprintf("/admin/sites/delete/%s", sid)),
+					Class:   "btn btn-primary",
+					Content: "Delete",
+					T:       br.Renderer.T,
+				}},
 			},
 		})
 	}
@@ -66,6 +76,13 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 		Template: "admin.page",
 		Title:    "Admin - Sites",
 		Components: []page.Component{
+			component.Button{
+				Section: "main",
+				Link:    template.URL("/admin/sites/add"),
+				Class:   "btn btn-primary",
+				Content: "Add Site",
+				T:       br.Renderer.T,
+			},
 			table,
 		},
 	}
@@ -73,6 +90,7 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
+// Settings is the route for loading the admin settings page
 func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 	var settings []structs.Setting
 
@@ -86,8 +104,20 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 		rows = append(rows, component.Row{
 			Columns: []component.Column{
 				{Name: "ID", Value: sid},
-				{Name: "Key", Value: setting.Key},
-				{Name: "Value", Value: setting.Value},
+				{Name: "Site", Value: setting.Key},
+				{Name: "Domain", Value: setting.Value},
+				{Name: "", Field: component.Button{
+					Link:    template.URL(fmt.Sprintf("/admin/settings/edit/%s", sid)),
+					Class:   "btn btn-primary",
+					Content: "Edit",
+					T:       br.Renderer.T,
+				}},
+				{Name: "", Field: component.Button{
+					Link:    template.URL(fmt.Sprintf("/admin/settings/delete/%s", sid)),
+					Class:   "btn btn-primary",
+					Content: "Delete",
+					T:       br.Renderer.T,
+				}},
 			},
 		})
 	}
@@ -98,6 +128,8 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 			{Name: "ID"},
 			{Name: "Key"},
 			{Name: "Value"},
+			{Name: ""},
+			{Name: ""},
 		},
 		Rows:             rows,
 		PageNumber:       1,
@@ -109,12 +141,27 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 		Template: "admin.page",
 		Title:    "Admin - Settings",
 		Components: []page.Component{
+			component.Button{
+				Section: "main",
+				Link:    template.URL("/admin/settings/add"),
+				Class:   "btn btn-primary",
+				Content: "Add Setting",
+				T:       br.Renderer.T,
+			},
 			table,
+			component.Text{
+				Section: "main",
+				Content: "This is the very early stages of how settings works. Currently it is just plain key and values with no checks.<br/>" +
+					"To use IP whitelisting first set any IPs to whitelist with <b>whitelisted_ip</b> as the key and the IP as value.<br/>" +
+					"Then set <b>ip_whitelist</b> to <b>true</b> to enable the whitelist blocking",
+				T: br.Renderer.T,
+			},
 		},
 	}
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
+// Users is the route for loading the admin users page
 func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 	var users []structs.User
 
@@ -157,6 +204,7 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// GetPlugins is the route for loading the admin plugins page
 func (br *BeuboRouter) GetPlugins(w http.ResponseWriter, r *http.Request) {
 	var rows []component.Row
 	for plugin := range *br.Plugins {

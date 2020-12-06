@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// GetThemes fetches all the themes in the theme directory as strings
 func (btr *BeuboTemplateRenderer) GetThemes() map[string]string {
 	pageThemes := map[string]string{}
 

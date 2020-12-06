@@ -3,13 +3,14 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/markustenghamn/beubo/pkg/structs"
-	"github.com/markustenghamn/beubo/pkg/utility"
+	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/utility"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
+// SiteAdmin is the main page for the admin area and shows a list of pages
 func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
@@ -59,9 +60,8 @@ func (br *BeuboRouter) AdminSiteAdd(w http.ResponseWriter, r *http.Request) {
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
-// Handles adding of a site
+// AdminSiteAddPost handles the post request for adding a site
 func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) {
-	// TODO should authentication be checked here, maybe with a middleware?
 	path := "/admin/sites/add"
 
 	successMessage := "Site created"
@@ -118,6 +118,7 @@ func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, "/admin/sites/add", 302)
 }
 
+// AdminSiteDelete is the route for deleting a site
 func (br *BeuboRouter) AdminSiteDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
@@ -159,7 +160,7 @@ func (br *BeuboRouter) AdminSiteEdit(w http.ResponseWriter, r *http.Request) {
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
-// Handles editing of a site
+// AdminSiteEditPost handles editing of a site
 func (br *BeuboRouter) AdminSiteEditPost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]

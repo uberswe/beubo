@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/markustenghamn/beubo/pkg/structs"
-	"github.com/markustenghamn/beubo/pkg/utility"
+	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/utility"
 	"log"
 	"net/http"
 	"strconv"
 )
 
+// SiteAdminPageNew is a route for creating new pages
 func (br *BeuboRouter) SiteAdminPageNew(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	siteID := params["id"]
@@ -27,6 +28,7 @@ func (br *BeuboRouter) SiteAdminPageNew(w http.ResponseWriter, r *http.Request) 
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
+// SiteAdminPageNewPost is a route for handling the post request for creating new pages
 func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	siteID := params["id"]
@@ -82,6 +84,7 @@ func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Reque
 	return
 }
 
+// AdminSitePageEdit is the route for editing a page
 func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	siteID := params["id"]
@@ -108,10 +111,10 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 	site := structs.FetchSite(br.DB, int(siteIDInt))
 
 	// This should not be a nil slice since we are json encoding it even if it is empty
-	tags := []structs.JsonTag{}
+	var tags []structs.JSONTag
 
 	for _, tag := range page.Tags {
-		tags = append(tags, structs.JsonTag{
+		tags = append(tags, structs.JSONTag{
 			Value: tag.Value,
 		})
 	}
@@ -143,6 +146,7 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
+// AdminSitePageEditPost is the route for handling a post request to edit a page
 func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	siteID := params["id"]
@@ -205,6 +209,7 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 	return
 }
 
+// AdminSitePageDelete is the route for handling the deletion of a pge
 func (br *BeuboRouter) AdminSitePageDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	siteID := params["id"]

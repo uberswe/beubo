@@ -6,10 +6,10 @@ import (
 	"github.com/goincremental/negroni-sessions/cookiestore"
 	"github.com/gorilla/mux"
 	"github.com/lpar/gzipped"
-	"github.com/markustenghamn/beubo/pkg/middleware"
-	"github.com/markustenghamn/beubo/pkg/routes"
-	"github.com/markustenghamn/beubo/pkg/template"
-	"github.com/markustenghamn/beubo/pkg/utility"
+	"github.com/uberswe/beubo/pkg/middleware"
+	"github.com/uberswe/beubo/pkg/routes"
+	"github.com/uberswe/beubo/pkg/template"
+	"github.com/uberswe/beubo/pkg/utility"
 	"github.com/urfave/negroni"
 	"golang.org/x/time/rate"
 	"io/ioutil"
@@ -83,10 +83,17 @@ func routesInit() {
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAdd).Methods("GET")
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAddPost).Methods("POST")
 
+	admin.HandleFunc("/settings/add", beuboRouter.AdminSettingAdd).Methods("GET")
+	admin.HandleFunc("/settings/add", beuboRouter.AdminSettingAddPost).Methods("POST")
+
 	admin.HandleFunc("/sites/delete/{id:[0-9]+}", beuboRouter.AdminSiteDelete)
+	admin.HandleFunc("/settings/delete/{id:[0-9]+}", beuboRouter.AdminSettingDelete)
 
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEdit).Methods("GET")
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEditPost).Methods("POST")
+
+	admin.HandleFunc("/settings/edit/{id:[0-9]+}", beuboRouter.AdminSettingEdit).Methods("GET")
+	admin.HandleFunc("/settings/edit/{id:[0-9]+}", beuboRouter.AdminSettingEditPost).Methods("POST")
 
 	// TODO I don't like this /sites/a/ structure of the routes, consider changing it
 	siteAdmin := admin.PathPrefix("/sites/a/{id:[0-9]+}").Subrouter()
@@ -107,6 +114,7 @@ func routesInit() {
 	muxer := http.NewServeMux()
 	muxer.Handle("/", negroni.New(
 		negroni.HandlerFunc(beuboMiddleware.Site),
+		negroni.HandlerFunc(beuboMiddleware.Whitelist),
 		negroni.HandlerFunc(beuboMiddleware.Auth),
 		negroni.HandlerFunc(throttleMiddleware.Throttle),
 		negroni.Wrap(r),

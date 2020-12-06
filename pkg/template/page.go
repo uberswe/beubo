@@ -4,6 +4,7 @@ import (
 	"strings"
 )
 
+// GetPageTemplates recursively parses the themes directory to find all theme files
 func (btr *BeuboTemplateRenderer) GetPageTemplates() map[string]string {
 	pageTemplates := map[string]string{
 		"page": "Default",

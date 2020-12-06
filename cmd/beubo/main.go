@@ -1,6 +1,6 @@
 package main
 
-import "github.com/markustenghamn/beubo"
+import "github.com/uberswe/beubo"
 
 func init() {
 	beubo.Init()

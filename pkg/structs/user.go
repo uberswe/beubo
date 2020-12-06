@@ -49,6 +49,7 @@ func CreateUser(db *gorm.DB, email string, password string) bool {
 	return false
 }
 
+// FetchUser retrieves a user from the database using the provided id
 func FetchUser(db *gorm.DB, id int) User {
 	user := User{}
 

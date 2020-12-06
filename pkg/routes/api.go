@@ -2,7 +2,7 @@ package routes
 
 import (
 	"encoding/json"
-	"github.com/markustenghamn/beubo/pkg/utility"
+	"github.com/uberswe/beubo/pkg/utility"
 	"net/http"
 )
 

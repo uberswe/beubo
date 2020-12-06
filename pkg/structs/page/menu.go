@@ -8,7 +8,8 @@ type Menu interface {
 	Render() string
 }
 
+// MenuItem is part of a Menu and usually represents a clickable link
 type MenuItem struct {
 	Text string
-	Uri  string
+	URI  string
 }

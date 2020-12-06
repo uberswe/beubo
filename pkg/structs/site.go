@@ -15,7 +15,7 @@ type Site struct {
 	ThemeID int
 }
 
-// CreateUser is a method which creates a user using gorm
+// CreateSite is a method which creates a site using gorm
 func CreateSite(db *gorm.DB, title string, domain string, siteType int, themeID int) bool {
 	site := Site{
 		Title:   title,
@@ -34,6 +34,7 @@ func CreateSite(db *gorm.DB, title string, domain string, siteType int, themeID 
 	return false
 }
 
+// FetchSite gets a site from the database using the provided id
 func FetchSite(db *gorm.DB, id int) Site {
 	site := Site{}
 
@@ -42,6 +43,8 @@ func FetchSite(db *gorm.DB, id int) Site {
 	return site
 }
 
+// FetchSiteByHost retrieves a site from the database based on the provided host string
+// TODO what if one site can have many hosts? For now a redirect can be added for other hosts
 func FetchSiteByHost(db *gorm.DB, host string) Site {
 	site := Site{}
 
@@ -50,7 +53,7 @@ func FetchSiteByHost(db *gorm.DB, host string) Site {
 	return site
 }
 
-// CreateUser is a method which creates a user using gorm
+// UpdateSite is a method which updates a site using gorm
 func UpdateSite(db *gorm.DB, id int, title string, domain string, siteType int, themeID int) bool {
 	site := FetchSite(db, id)
 
@@ -66,6 +69,7 @@ func UpdateSite(db *gorm.DB, id int, title string, domain string, siteType int, 
 	return true
 }
 
+// DeleteSite removes a site from the database based on the provided id
 func DeleteSite(db *gorm.DB, id int) Site {
 	site := FetchSite(db, id)
 

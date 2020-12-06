@@ -3,7 +3,7 @@ package middleware
 import (
 	"fmt"
 	sessions "github.com/goincremental/negroni-sessions"
-	"github.com/markustenghamn/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/structs"
 	"golang.org/x/net/context"
 	"log"
 	"net/http"
@@ -28,7 +28,7 @@ func (bmw *BeuboMiddleware) Auth(rw http.ResponseWriter, r *http.Request, next h
 			http.Redirect(rw, r, "/admin", 302)
 			return
 		}
-		ctx := context.WithValue(r.Context(), "user", user)
+		ctx := context.WithValue(r.Context(), UserContextKey, user)
 		r = r.WithContext(ctx)
 	}
 

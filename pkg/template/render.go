@@ -2,10 +2,11 @@ package template
 
 import (
 	"fmt"
-	"github.com/markustenghamn/beubo/pkg/structs"
-	"github.com/markustenghamn/beubo/pkg/structs/page"
-	"github.com/markustenghamn/beubo/pkg/structs/page/menu"
-	"github.com/markustenghamn/beubo/pkg/utility"
+	"github.com/uberswe/beubo/pkg/middleware"
+	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/structs/page"
+	"github.com/uberswe/beubo/pkg/structs/page/menu"
+	"github.com/uberswe/beubo/pkg/utility"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -22,6 +23,7 @@ var (
 	rootDir      = "./"
 )
 
+// BeuboTemplateRenderer holds all the configuration variables for rendering templates in Beubo
 type BeuboTemplateRenderer struct {
 	T               *template.Template
 	ReloadTemplates bool
@@ -29,6 +31,7 @@ type BeuboTemplateRenderer struct {
 	ThemeDir        string
 }
 
+// Init prepares the BeuboTemplateRenderer to render pages with html templates
 func (btr *BeuboTemplateRenderer) Init() {
 	log.Println("Parsing and loading templates...")
 	var err error
@@ -54,8 +57,9 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	siteName := "Beubo"
 
 	// Get the site from context
-	site := r.Context().Value("site")
-	user := r.Context().Value("user")
+	site := r.Context().Value(middleware.SiteContextKey)
+	user := r.Context().Value(middleware.UserContextKey)
+
 	if site != nil {
 		btr.CurrentTheme = site.(structs.Site).Theme.Slug
 		siteName = site.(structs.Site).Title
@@ -68,9 +72,9 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 	menus := []page.Menu{menu.DefaultMenu{
 		Items: []page.MenuItem{
-			{Text: "Home", Uri: "/"},
-			{Text: "Login", Uri: "/login"},
-			{Text: "Register", Uri: "/register"},
+			{Text: "Home", URI: "/"},
+			{Text: "Login", URI: "/login"},
+			{Text: "Register", URI: "/register"},
 		},
 		Identifier: "header",
 		T:          btr.T,
@@ -79,18 +83,18 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	if user != nil && user.(structs.User).ID > 0 {
 		menus = []page.Menu{menu.DefaultMenu{
 			Items: []page.MenuItem{
-				{Text: "Home", Uri: "/"},
-				{Text: "Admin", Uri: "/admin"},
-				{Text: "Logout", Uri: "/logout"},
+				{Text: "Home", URI: "/"},
+				{Text: "Admin", URI: "/admin"},
+				{Text: "Logout", URI: "/logout"},
 			},
 			Identifier: "header",
 			T:          btr.T,
 		}, menu.DefaultMenu{
 			Items: []page.MenuItem{
-				{Text: "Sites", Uri: "/admin/"},
-				{Text: "Settings", Uri: "/admin/settings"},
-				{Text: "Users", Uri: "/admin/users"},
-				{Text: "Plugins", Uri: "/admin/plugins"},
+				{Text: "Sites", URI: "/admin/"},
+				{Text: "Settings", URI: "/admin/settings"},
+				{Text: "Users", URI: "/admin/users"},
+				{Text: "Plugins", URI: "/admin/plugins"},
 			},
 			Identifier: "sidebar",
 			Template:   "menu.sidebar",

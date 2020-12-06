@@ -17,7 +17,8 @@ type Component interface {
 	GetTemplate() *template.Template
 }
 
-func RenderCompnent(c Component) string {
+// RenderComponent takes the provided component and finds the relevant template and renders this into a string
+func RenderComponent(c Component) string {
 	path := fmt.Sprintf("%s.%s", c.GetTheme(), c.GetTemplateName())
 	var foundTemplate *template.Template
 	if c.GetTemplate() == nil {

@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"github.com/markustenghamn/beubo/pkg/structs"
-	beuboPage "github.com/markustenghamn/beubo/pkg/structs/page"
-	"github.com/markustenghamn/beubo/pkg/structs/page/component"
+	"github.com/uberswe/beubo/pkg/structs"
+	beuboPage "github.com/uberswe/beubo/pkg/structs/page"
+	"github.com/uberswe/beubo/pkg/structs/page/component"
 	"html/template"
 	"net/http"
 )

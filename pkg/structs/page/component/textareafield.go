@@ -1,10 +1,11 @@
 package component
 
 import (
-	"github.com/markustenghamn/beubo/pkg/structs/page"
+	"github.com/uberswe/beubo/pkg/structs/page"
 	"html/template"
 )
 
+// TextAreaField is a beubo component that can be rendered using HTML templates
 type TextAreaField struct {
 	Content    string
 	Theme      string
@@ -18,22 +19,27 @@ type TextAreaField struct {
 	T          *template.Template
 }
 
+// GetSection is a getter for the Section property
 func (t TextAreaField) GetSection() string {
 	return ""
 }
 
+// GetTemplateName is a getter for the Template property
 func (t TextAreaField) GetTemplateName() string {
 	return returnTIfNotEmpty(t.Template, "component.textareafield")
 }
 
+// GetTheme is a getter for the Theme property
 func (t TextAreaField) GetTheme() string {
-	return returnTIfNotEmpty(t.Template, "default")
+	return returnTIfNotEmpty(t.Theme, "default")
 }
 
+// GetTemplate is a getter for the T Property
 func (t TextAreaField) GetTemplate() *template.Template {
 	return t.T
 }
 
+// Render calls RenderComponent to turn a Component into a html string for browser output
 func (t TextAreaField) Render() string {
-	return page.RenderCompnent(t)
+	return page.RenderComponent(t)
 }
