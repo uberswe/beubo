@@ -149,6 +149,13 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 				T:       br.Renderer.T,
 			},
 			table,
+			component.Text{
+				Section: "main",
+				Content: "This is the very early stages of how settings works. Currently it is just plain key and values with no checks.<br/>" +
+					"To use IP whitelisting first set any IPs to whitelist with <b>whitelisted_ip</b> as the key and the IP as value.<br/>" +
+					"Then set <b>ip_whitelist</b> to <b>true</b> to enable the whitelist blocking",
+				T: br.Renderer.T,
+			},
 		},
 	}
 	br.Renderer.RenderHTMLPage(w, r, pageData)

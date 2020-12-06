@@ -15,6 +15,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/lpar/gzipped v1.1.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
+	github.com/stretchr/stew v0.0.0-20130812190256-80ef0842b48b
 	github.com/uberswe/beubo_grpc v0.0.0-20200705160535-84936662ed6b
 	github.com/urfave/negroni v1.0.0
 	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c

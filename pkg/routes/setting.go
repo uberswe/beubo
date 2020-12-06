@@ -22,7 +22,7 @@ func (br *BeuboRouter) AdminSettingAdd(w http.ResponseWriter, r *http.Request) {
 
 // AdminSettingAddPost handles adding of a global setting
 func (br *BeuboRouter) AdminSettingAddPost(w http.ResponseWriter, r *http.Request) {
-	path := "/admin/setting/add"
+	path := "/admin/settings/add"
 
 	successMessage := "Setting created"
 	invalidError := "an error occured and the setting could not be created."
@@ -45,12 +45,12 @@ func (br *BeuboRouter) AdminSettingAddPost(w http.ResponseWriter, r *http.Reques
 
 	if structs.CreateSetting(br.DB, key, value) {
 		utility.SetFlash(w, "message", []byte(successMessage))
-		http.Redirect(w, r, "/admin/", 302)
+		http.Redirect(w, r, "/admin/settings", 302)
 		return
 	}
 
 	utility.SetFlash(w, "error", []byte(invalidError))
-	http.Redirect(w, r, "/admin/setting/add", 302)
+	http.Redirect(w, r, "/admin/settings/add", 302)
 }
 
 // AdminSettingDelete handles the deletion of a global setting
@@ -66,7 +66,7 @@ func (br *BeuboRouter) AdminSettingDelete(w http.ResponseWriter, r *http.Request
 
 	utility.SetFlash(w, "message", []byte("Setting deleted"))
 
-	http.Redirect(w, r, "/admin/", 302)
+	http.Redirect(w, r, "/admin/settings", 302)
 }
 
 // AdminSettingEdit is the route for adding a setting
@@ -107,11 +107,12 @@ func (br *BeuboRouter) AdminSettingEditPost(w http.ResponseWriter, r *http.Reque
 	utility.ErrorHandler(err, false)
 
 	successMessage := "Setting updated"
-	invalidError := "an error occured and the setting could not be updated."
+	invalidError := "an error occurred and the setting could not be updated."
 
-	key := r.FormValue("key")
-	value := r.FormValue("value")
+	key := r.FormValue("keyField")
+	value := r.FormValue("valueField")
 
+	// TODO make rules for models
 	if len(key) < 1 {
 		invalidError = "The key is too short"
 		utility.SetFlash(w, "error", []byte(invalidError))
@@ -127,7 +128,7 @@ func (br *BeuboRouter) AdminSettingEditPost(w http.ResponseWriter, r *http.Reque
 
 	if structs.UpdateSetting(br.DB, i, key, value) {
 		utility.SetFlash(w, "message", []byte(successMessage))
-		http.Redirect(w, r, path, 302)
+		http.Redirect(w, r, "/admin/settings", 302)
 		return
 	}
 

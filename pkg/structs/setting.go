@@ -8,7 +8,7 @@ import (
 // Setting represents a key value setting for Beubo usually used for global config values
 type Setting struct {
 	gorm.Model
-	Key   string `gorm:"size:255;unique_index"`
+	Key   string `gorm:"size:255"`
 	Value string `gorm:"size:255"`
 }
 
@@ -36,6 +36,12 @@ func FetchSetting(db *gorm.DB, id int) Setting {
 	db.First(&setting, id)
 
 	return setting
+}
+
+// FetchSettings gets all settings from the database
+func FetchSettings(db *gorm.DB) (settings []Setting) {
+	db.Find(&settings)
+	return settings
 }
 
 // UpdateSetting updates a setting key value pair using gorm

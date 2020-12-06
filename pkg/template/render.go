@@ -2,6 +2,7 @@ package template
 
 import (
 	"fmt"
+	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/structs/page/menu"
@@ -56,8 +57,9 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	siteName := "Beubo"
 
 	// Get the site from context
-	site := r.Context().Value("site")
-	user := r.Context().Value("user")
+	site := r.Context().Value(middleware.SiteContextKey)
+	user := r.Context().Value(middleware.UserContextKey)
+
 	if site != nil {
 		btr.CurrentTheme = site.(structs.Site).Theme.Slug
 		siteName = site.(structs.Site).Title
