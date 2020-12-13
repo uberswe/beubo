@@ -27,23 +27,23 @@ func (br *BeuboRouter) AdminUserAddPost(w http.ResponseWriter, r *http.Request) 
 	successMessage := "User created"
 	invalidError := "an error occured and the user could not be created."
 
-	key := r.FormValue("keyField")
-	value := r.FormValue("valueField")
+	email := r.FormValue("emailField")
+	password := r.FormValue("passwordField")
 
-	if len(key) < 1 {
-		invalidError = "The key is too short"
+	if !utility.IsEmailValid(email) {
+		invalidError = "The email is invalid"
 		utility.SetFlash(w, "error", []byte(invalidError))
 		http.Redirect(w, r, path, 302)
 		return
 	}
-	if len(value) < 1 {
-		invalidError = "The value is too short"
+	if len(password) < 8 {
+		invalidError = "The password is too short"
 		utility.SetFlash(w, "error", []byte(invalidError))
 		http.Redirect(w, r, path, 302)
 		return
 	}
 
-	if structs.CreateUser(br.DB, key, value) {
+	if structs.CreateUser(br.DB, email, password) {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, "/admin/users", 302)
 		return
@@ -109,24 +109,24 @@ func (br *BeuboRouter) AdminUserEditPost(w http.ResponseWriter, r *http.Request)
 	successMessage := "User updated"
 	invalidError := "an error occurred and the user could not be updated."
 
-	key := r.FormValue("keyField")
-	value := r.FormValue("valueField")
-
 	// TODO make rules for models
-	if len(key) < 1 {
-		invalidError = "The key is too short"
+	email := r.FormValue("emailField")
+	password := r.FormValue("passwordField")
+
+	if !utility.IsEmailValid(email) {
+		invalidError = "The email is invalid"
 		utility.SetFlash(w, "error", []byte(invalidError))
 		http.Redirect(w, r, path, 302)
 		return
 	}
-	if len(value) < 1 {
-		invalidError = "The value is too short"
+	if len(password) > 0 && len(password) < 8 {
+		invalidError = "The password is too short"
 		utility.SetFlash(w, "error", []byte(invalidError))
 		http.Redirect(w, r, path, 302)
 		return
 	}
 
-	if structs.UpdateUser(br.DB, i, key, value) {
+	if structs.UpdateUser(br.DB, i, email, password) {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, "/admin/users", 302)
 		return
