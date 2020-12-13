@@ -116,6 +116,12 @@ func databaseSeed() {
 		}
 	}
 
+	// user registration is disabled by default
+	disableRegistration := structs.Setting{Key: "enable_user_registration", Value: "false"}
+	if DB.NewRecord(disableRegistration) { // => returns `true` as primary key is blank
+		DB.Create(&disableRegistration)
+	}
+
 	// If seeding is enabled we perform the seed with default info
 	if shouldSeed {
 		log.Println("Seeding database")

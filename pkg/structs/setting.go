@@ -32,9 +32,14 @@ func CreateSetting(db *gorm.DB, key string, value string) bool {
 // FetchSetting gets a setting from the database via the provided id
 func FetchSetting(db *gorm.DB, id int) Setting {
 	setting := Setting{}
-
 	db.First(&setting, id)
+	return setting
+}
 
+// FetchSettingByKey gets a setting from the database via the provided key
+func FetchSettingByKey(db *gorm.DB, key string) Setting {
+	setting := Setting{}
+	db.Where("key = ?", key).First(&setting)
 	return setting
 }
 

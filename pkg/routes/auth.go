@@ -48,6 +48,13 @@ func (br *BeuboRouter) LoginPost(w http.ResponseWriter, r *http.Request) {
 
 // Register renders the default registration page
 func (br *BeuboRouter) Register(w http.ResponseWriter, r *http.Request) {
+	setting := structs.FetchSettingByKey(br.DB, "enable_user_registration")
+	if setting.ID == 0 || setting.Value == "false" {
+		// Registration is not allowed
+		http.Redirect(w, r, "/login", 302)
+		return
+	}
+
 	pageData := structs.PageData{
 		Template: "register",
 		Title:    "Register",
@@ -58,6 +65,12 @@ func (br *BeuboRouter) Register(w http.ResponseWriter, r *http.Request) {
 
 // RegisterPost handles a registration request and inserts the user into the database
 func (br *BeuboRouter) RegisterPost(w http.ResponseWriter, r *http.Request) {
+	setting := structs.FetchSettingByKey(br.DB, "enable_user_registration")
+	if setting.ID == 0 || setting.Value == "false" {
+		// Registration is not allowed
+		http.Redirect(w, r, "/login", 302)
+		return
+	}
 
 	invalidError := "Please make sure the email is correct or that it does not already belong to a registered account"
 
