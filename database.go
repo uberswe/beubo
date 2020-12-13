@@ -136,7 +136,7 @@ func databaseSeed() {
 
 		site := structs.Site{
 			Title:  "Beubo",
-			Domain: "localhost:3000",
+			Domain: "beubo.localhost",
 			Theme:  theme,
 			Type:   1,
 		}

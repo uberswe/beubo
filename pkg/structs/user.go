@@ -10,7 +10,7 @@ import (
 // User is a user who can authenticate with Beubo
 type User struct {
 	gorm.Model
-	Email       string `gorm:"size:255;unique_index"`
+	Email       string `gorm:"size:255"`
 	Password    string `gorm:"size:255"`
 	Activations []UserActivation
 	Roles       []UserRole
@@ -34,9 +34,11 @@ type UserRole struct {
 
 // CreateUser is a method which creates a user using gorm
 func CreateUser(db *gorm.DB, email string, password string) bool {
-
+	checkUser := FetchUserByEmail(db, email)
+	if checkUser.ID != 0 {
+		return false
+	}
 	user := User{Email: email}
-
 	if db.NewRecord(user) { // => returns `true` as primary key is blank
 		if err := db.Create(&user).Error; err != nil {
 			fmt.Println("Could not create user")
@@ -52,9 +54,14 @@ func CreateUser(db *gorm.DB, email string, password string) bool {
 // FetchUser retrieves a user from the database using the provided id
 func FetchUser(db *gorm.DB, id int) User {
 	user := User{}
-
 	db.First(&user, id)
+	return user
+}
 
+// FetchUserByEmail retrieves a user from the database using the provided email
+func FetchUserByEmail(db *gorm.DB, email string) User {
+	user := User{}
+	db.Where("email = ?", email).First(&user)
 	return user
 }
 
@@ -92,4 +99,31 @@ func AuthUser(db *gorm.DB, email string, password string) *User {
 	}
 
 	return &user
+}
+
+// UpdateUser updates the user struct with the provided details
+func UpdateUser(db *gorm.DB, id int, email string, password string) bool {
+	user := FetchUser(db, id)
+	checkUser := FetchUserByEmail(db, email)
+	if checkUser.ID != 0 && checkUser.ID != user.ID {
+		return false
+	}
+	user.Email = email
+	if err := db.Save(&user).Error; err != nil {
+		fmt.Println("Could not create user")
+		return false
+	}
+	// User password is hashed after the response is returned to improve performance
+	// An empty password updates the user without changing the password
+	if len(password) > 8 {
+		go hashUserPassword(db, user, password)
+	}
+	return true
+}
+
+// DeleteUser deletes a user by id
+func DeleteUser(db *gorm.DB, id int) (user User) {
+	db.First(&user, id)
+	db.Delete(user)
+	return user
 }

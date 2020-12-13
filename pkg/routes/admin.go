@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/structs/page/component"
@@ -169,15 +170,42 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 		utility.ErrorHandler(err, false)
 	}
 
+	self := r.Context().Value(middleware.UserContextKey)
+
 	var rows []component.Row
-	for _, user := range users {
-		sid := fmt.Sprintf("%d", user.ID)
-		rows = append(rows, component.Row{
-			Columns: []component.Column{
-				{Name: "ID", Value: sid},
-				{Name: "Email", Value: user.Email},
-			},
-		})
+	if self != nil && self.(structs.User).ID > 0 {
+		for _, user := range users {
+			sid := fmt.Sprintf("%d", user.ID)
+			if self.(structs.User).ID == user.ID {
+				rows = append(rows, component.Row{
+					Columns: []component.Column{
+						{Name: "ID", Value: sid},
+						{Name: "Email", Value: user.Email},
+						{},
+						{},
+					},
+				})
+			} else {
+				rows = append(rows, component.Row{
+					Columns: []component.Column{
+						{Name: "ID", Value: sid},
+						{Name: "Email", Value: user.Email},
+						{Name: "", Field: component.Button{
+							Link:    template.URL(fmt.Sprintf("/admin/users/edit/%s", sid)),
+							Class:   "btn btn-primary",
+							Content: "Edit",
+							T:       br.Renderer.T,
+						}},
+						{Name: "", Field: component.Button{
+							Link:    template.URL(fmt.Sprintf("/admin/users/delete/%s", sid)),
+							Class:   "btn btn-primary",
+							Content: "Delete",
+							T:       br.Renderer.T,
+						}},
+					},
+				})
+			}
+		}
 	}
 
 	table := component.Table{
@@ -185,6 +213,8 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 		Header: []component.Column{
 			{Name: "ID"},
 			{Name: "Email"},
+			{Name: ""},
+			{Name: ""},
 		},
 		Rows:             rows,
 		PageNumber:       1,
@@ -196,6 +226,13 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 		Template: "admin.page",
 		Title:    "Admin - Users",
 		Components: []page.Component{
+			component.Button{
+				Section: "main",
+				Link:    template.URL("/admin/users/add"),
+				Class:   "btn btn-primary",
+				Content: "Add User",
+				T:       br.Renderer.T,
+			},
 			table,
 		},
 	}

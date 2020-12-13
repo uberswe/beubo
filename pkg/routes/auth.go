@@ -64,9 +64,16 @@ func (br *BeuboRouter) RegisterPost(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
+	if !utility.IsEmailValid(email) {
+		utility.SetFlash(w, "error", []byte(invalidError))
+		http.Redirect(w, r, "/login", 302)
+		return
+	}
+
 	if !structs.CreateUser(br.DB, email, password) {
 		utility.SetFlash(w, "error", []byte(invalidError))
 		http.Redirect(w, r, "/login", 302)
+		return
 	}
 
 	utility.SetFlash(w, "message", []byte("Registration success, please check your email for further instructions"))
