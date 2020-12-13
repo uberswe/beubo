@@ -2,6 +2,7 @@ package template
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/structs/page"
@@ -29,6 +30,7 @@ type BeuboTemplateRenderer struct {
 	ReloadTemplates bool
 	CurrentTheme    string
 	ThemeDir        string
+	DB              *gorm.DB
 }
 
 // Init prepares the BeuboTemplateRenderer to render pages with html templates
@@ -70,12 +72,18 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		btr.CurrentTheme = "default"
 	}
 
+	menuItems := []page.MenuItem{
+		{Text: "Home", URI: "/"},
+		{Text: "Login", URI: "/login"},
+	}
+
+	setting := structs.FetchSettingByKey(btr.DB, "enable_user_registration")
+	if !(setting.ID == 0 || setting.Value == "false") {
+		menuItems = append(menuItems, page.MenuItem{Text: "Register", URI: "/register"})
+	}
+
 	menus := []page.Menu{menu.DefaultMenu{
-		Items: []page.MenuItem{
-			{Text: "Home", URI: "/"},
-			{Text: "Login", URI: "/login"},
-			{Text: "Register", URI: "/register"},
-		},
+		Items:      menuItems,
 		Identifier: "header",
 		T:          btr.T,
 	}}

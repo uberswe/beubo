@@ -30,6 +30,7 @@ func routesInit() {
 		ReloadTemplates: reloadTemplates,
 		CurrentTheme:    currentTheme,
 		ThemeDir:        rootDir,
+		DB:              DB,
 	}
 	beuboTemplateRenderer.Init()
 
