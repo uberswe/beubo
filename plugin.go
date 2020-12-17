@@ -24,6 +24,7 @@ func loadPlugins() {
 		panic(err)
 	}
 
+	log.Println("Loading plugins...")
 	for _, filename := range allPlugins {
 		p, err := plugin.Open(filename)
 		if err != nil {
@@ -42,8 +43,6 @@ func loadPlugins() {
 		}
 
 		pluginData := registerFunc()
-
-		log.Println("Loading plugins")
 		log.Println(filename, pluginData)
 
 		plugins[filename] = pluginData
