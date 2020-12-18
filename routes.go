@@ -123,7 +123,6 @@ func routesInit() {
 	siteAdmin.HandleFunc("/page/delete/{pageId:[0-9]+}", beuboRouter.AdminSitePageDelete)
 
 	r.HandleFunc("/logout", beuboRouter.Logout)
-	r.HandleFunc("/api", beuboRouter.APIHandler)
 
 	muxer := http.NewServeMux()
 	muxer.Handle("/", negroni.New(
