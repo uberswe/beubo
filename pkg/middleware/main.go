@@ -1,6 +1,9 @@
 package middleware
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"github.com/uberswe/beubo/pkg/plugin"
+)
 
 type key string
 
@@ -13,5 +16,6 @@ const (
 
 // BeuboMiddleware holds parameters relevant to Beubo middlewares
 type BeuboMiddleware struct {
-	DB *gorm.DB
+	DB            *gorm.DB
+	PluginHandler *plugin.Handler
 }

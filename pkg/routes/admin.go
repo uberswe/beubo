@@ -244,7 +244,7 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 // GetPlugins is the route for loading the admin plugins page
 func (br *BeuboRouter) GetPlugins(w http.ResponseWriter, r *http.Request) {
 	var rows []component.Row
-	for plugin := range *br.Plugins {
+	for plugin := range br.PluginHandler.Plugins {
 		rows = append(rows, component.Row{
 			Columns: []component.Column{
 				{Name: "Name", Value: plugin},

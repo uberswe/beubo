@@ -35,12 +35,15 @@ func routesInit() {
 	beuboTemplateRenderer.Init()
 
 	beuboRouter := &routes.BeuboRouter{
-		DB:       DB,
-		Renderer: &beuboTemplateRenderer,
-		Plugins:  &plugins,
+		DB:            DB,
+		Renderer:      &beuboTemplateRenderer,
+		PluginHandler: &pluginHandler,
 	}
 
-	beuboMiddleware := &middleware.BeuboMiddleware{DB: DB}
+	beuboMiddleware := &middleware.BeuboMiddleware{
+		DB:            DB,
+		PluginHandler: &pluginHandler,
+	}
 
 	// TODO make the burst and time configurable
 	throttleMiddleware := middleware.Throttle{
@@ -128,6 +131,7 @@ func routesInit() {
 		negroni.HandlerFunc(beuboMiddleware.Whitelist),
 		negroni.HandlerFunc(beuboMiddleware.Auth),
 		negroni.HandlerFunc(throttleMiddleware.Throttle),
+		negroni.HandlerFunc(beuboMiddleware.Plugin),
 		negroni.Wrap(r),
 	))
 
