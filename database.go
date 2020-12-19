@@ -3,6 +3,7 @@ package beubo
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"github.com/uberswe/beubo/pkg/plugin"
 	"github.com/uberswe/beubo/pkg/utility"
 	"io/ioutil"
 	"log"
@@ -73,7 +74,8 @@ func databaseInit() {
 		&structs.Site{},
 		&structs.Tag{},
 		&structs.Comment{},
-		&structs.Setting{})
+		&structs.Setting{},
+		&plugin.PluginSite{})
 }
 
 func prepareSeed(email string, password string) {

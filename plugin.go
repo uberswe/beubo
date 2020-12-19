@@ -53,7 +53,7 @@ func loadPlugins() {
 		pluginHandler.Plugins[filename] = beuboplugin.Plugin{
 			Plugin: plug,
 			// TODO check for this key
-			Definition: pluginData["definition"],
+			Definition: pluginData["identifier"],
 			Data:       pluginData,
 		}
 	}

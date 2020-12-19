@@ -2,12 +2,12 @@
 
 **Beubo is in Alpha and not recommended for production use, expect breaking changes**
 
-I created Beubo to get better at Go, to learn and to make it easier to get going with
+I created Beubo to get better at Go. To learn more and to make it easier to get going with
 new projects. None of the platforms or libraries in the Go ecosystem felt right for me.
-Therefore I set out to make my own and it's called Beubo.
+That's why I set out to make my own CMS/Library, Beubo.
 
-Beubo is a CMS that aims to be simple to use and written in Go. I wanted it 
-to be as easy to use as Wordpress but with much better peformance and with support
+Beubo is a CMS that aims to be easy to use and written in Go. I wanted it 
+to be as easy to use as Wordpress but with much better performance and with support
 for multiple websites right from the start. I try to keep the capabilities of Beubo 
 as small as possible. I hope I can make Beubo easy to build on using plugins so that 
 it can be used for anything and everything.
@@ -44,3 +44,9 @@ auto migrate and seed a fresh database.
 
 Beubo uses the go html templates to build pages. These templates use functions to render sections of 
 content which plugins can hook into when a request is made.
+
+## Plugins
+
+Beubo supports go plugins. Simply place your `.so` under `/plugins` and Beubo will try to load this
+plugin as it starts. A plugin will need to expose a `Register` method in order to run. Please see
+the example plugin to learn more.

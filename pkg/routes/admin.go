@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/uberswe/beubo/pkg/middleware"
+	"github.com/uberswe/beubo/pkg/plugin"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/structs/page/component"
@@ -241,15 +242,39 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// GetPlugins is the route for loading the admin plugins page
-func (br *BeuboRouter) GetPlugins(w http.ResponseWriter, r *http.Request) {
+// Plugins is the route for loading the admin plugins page
+func (br *BeuboRouter) Plugins(w http.ResponseWriter, r *http.Request) {
+	var sites []structs.Site
+	if err := br.DB.Find(&sites).Error; err != nil {
+		utility.ErrorHandler(err, false)
+	}
+
 	var rows []component.Row
-	for plugin := range br.PluginHandler.Plugins {
-		rows = append(rows, component.Row{
+	for _, p := range br.PluginHandler.Plugins {
+		comprow := component.Row{
 			Columns: []component.Column{
-				{Name: "Name", Value: plugin},
+				{Name: "Name", Value: p.Definition},
 			},
-		})
+		}
+		for _, site := range sites {
+			var pluginSite plugin.PluginSite
+			if err := br.DB.Where("site_id = ?", site.ID).Where("plugin_identifier = ?", p.Definition).First(&pluginSite).Error; err != nil {
+				utility.ErrorHandler(err, false)
+			}
+			if pluginSite.ID == 0 {
+				pluginSite = plugin.PluginSite{
+					SiteID:           site.ID,
+					PluginIdentifier: p.Definition,
+					Active:           false,
+				}
+				br.DB.Create(&pluginSite)
+			}
+			comprow.Columns = append(comprow.Columns, component.Column{Field: component.CheckBoxField{
+				Checked: pluginSite.Active,
+				T:       br.Renderer.T,
+			}})
+		}
+		rows = append(rows, comprow)
 	}
 
 	table := component.Table{
@@ -261,6 +286,9 @@ func (br *BeuboRouter) GetPlugins(w http.ResponseWriter, r *http.Request) {
 		PageNumber:       1,
 		PageDisplayCount: 10,
 		T:                br.Renderer.T,
+	}
+	for _, site := range sites {
+		table.Header = append(table.Header, component.Column{Name: site.Title})
 	}
 
 	pageData := structs.PageData{
