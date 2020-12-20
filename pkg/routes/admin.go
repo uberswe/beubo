@@ -244,6 +244,10 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 
 // Plugins is the route for loading the admin plugins page
 func (br *BeuboRouter) Plugins(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		// TODO handle post
+		return
+	}
 	var sites []structs.Site
 	if err := br.DB.Find(&sites).Error; err != nil {
 		utility.ErrorHandler(err, false)
@@ -256,6 +260,7 @@ func (br *BeuboRouter) Plugins(w http.ResponseWriter, r *http.Request) {
 				{Name: "Name", Value: p.Definition},
 			},
 		}
+		//TODO remove this and move it to edit page
 		for _, site := range sites {
 			var pluginSite plugin.PluginSite
 			if err := br.DB.Where("site_id = ?", site.ID).Where("plugin_identifier = ?", p.Definition).First(&pluginSite).Error; err != nil {
@@ -291,11 +296,26 @@ func (br *BeuboRouter) Plugins(w http.ResponseWriter, r *http.Request) {
 		table.Header = append(table.Header, component.Column{Name: site.Title})
 	}
 
+	text := component.Text{
+		Content: "Checked boxes show the sites with active plugins.",
+		T:       br.Renderer.T,
+	}
+
+	form := component.Form{
+		Section: "main",
+		Method:  "POST",
+		Action:  "/admin/plugins",
+		Fields: []page.Component{
+			table,
+		},
+		T: br.Renderer.T,
+	}
+
 	pageData := structs.PageData{
 		Template: "admin.page",
 		Title:    "Admin - Plugins",
 		Components: []page.Component{
-			table,
+			form,
 		},
 	}
 
