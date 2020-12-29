@@ -19,7 +19,8 @@ var (
 	seedEmail    = "seed@beubo.com"
 	seedPassword = "Beubo1234!"
 	// TODO change this to a config
-	shouldSeed = true
+	shouldSeed            = false
+	shouldRefreshDatabase = false
 	// DB is used to perform database queries globally. In the future this should probably
 	// be changed so that database.go declares methods that can be used to perform types of
 	// queries
@@ -43,22 +44,25 @@ func setupDB() *gorm.DB {
 func databaseInit() {
 	DB = setupDB()
 
-	type Result struct {
-		DropQuery string
-	}
+	if shouldRefreshDatabase {
 
-	var result []Result
+		type Result struct {
+			DropQuery string
+		}
 
-	log.Println("Dropping all database tables")
+		var result []Result
 
-	if databaseDriver == "sqlite3" {
-		DB.Raw("SELECT 'DROP TABLE IF EXISTS `' || name || '`;'  as drop_query FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';").Scan(&result)
-	} else {
-		DB.Raw("SELECT concat('DROP TABLE IF EXISTS `', table_name, '`;') as drop_query FROM information_schema.tables WHERE table_schema = 'beubo';").Scan(&result)
-	}
+		log.Println("Dropping all database tables")
 
-	for _, r := range result {
-		DB.Exec(r.DropQuery)
+		if databaseDriver == "sqlite3" {
+			DB.Raw("SELECT 'DROP TABLE IF EXISTS `' || name || '`;'  as drop_query FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';").Scan(&result)
+		} else {
+			DB.Raw("SELECT concat('DROP TABLE IF EXISTS `', table_name, '`;') as drop_query FROM information_schema.tables WHERE table_schema = 'beubo';").Scan(&result)
+		}
+
+		for _, r := range result {
+			DB.Exec(r.DropQuery)
+		}
 	}
 
 	log.Println("Running database migrations")
@@ -95,8 +99,10 @@ func databaseSeed() {
 	for _, file := range files {
 		// Ignore the install directory, only used for installation
 		if file.IsDir() && file.Name() != "install" {
-			theme = structs.Theme{Slug: file.Name(), Title: file.Name()}
+			theme = structs.Theme{}
+			DB.Where("slug = ?", file.Name()).First(&theme)
 			if DB.NewRecord(theme) { // => returns `true` as primary key is blank
+				theme = structs.Theme{Slug: file.Name(), Title: file.Name()}
 				DB.Create(&theme)
 			}
 		}

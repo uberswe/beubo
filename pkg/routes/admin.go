@@ -260,7 +260,6 @@ func (br *BeuboRouter) Plugins(w http.ResponseWriter, r *http.Request) {
 				{Name: "Name", Value: p.Definition},
 			},
 		}
-		//TODO remove this and move it to edit page
 		for _, site := range sites {
 			var pluginSite plugin.PluginSite
 			if err := br.DB.Where("site_id = ?", site.ID).Where("plugin_identifier = ?", p.Definition).First(&pluginSite).Error; err != nil {
@@ -301,12 +300,20 @@ func (br *BeuboRouter) Plugins(w http.ResponseWriter, r *http.Request) {
 		T:       br.Renderer.T,
 	}
 
+	button := component.Button{
+		T:       br.Renderer.T,
+		Content: "Save",
+		Class:   "primary",
+	}
+
 	form := component.Form{
 		Section: "main",
 		Method:  "POST",
 		Action:  "/admin/plugins",
 		Fields: []page.Component{
 			table,
+			text,
+			button,
 		},
 		T: br.Renderer.T,
 	}

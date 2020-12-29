@@ -72,6 +72,8 @@ func settingsInit() {
 	databaseUser = setSetting(os.Getenv("DB_USER"), databaseUser)
 	databaseDriver = setSetting(os.Getenv("DB_DRIVER"), databaseDriver)
 	databasePassword = setSetting(os.Getenv("DB_PASSWORD"), databasePassword)
+	shouldRefreshDatabase = setBoolSetting(os.Getenv("REFRESH_DATABASE"), shouldRefreshDatabase)
+	shouldSeed = setBoolSetting(os.Getenv("SEED_DATABASE"), shouldRefreshDatabase)
 
 	environment = setSetting(os.Getenv("ENVIRONMENT"), environment)
 
@@ -244,6 +246,15 @@ func Install(w http.ResponseWriter, r *http.Request) {
 func setSetting(key string, variable string) string {
 	if key != "" {
 		variable = key
+	}
+	return variable
+}
+
+func setBoolSetting(key string, variable bool) bool {
+	if key == "true" {
+		return true
+	} else if key == "false" {
+		return false
 	}
 	return variable
 }
