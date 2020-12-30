@@ -3,7 +3,6 @@ package component
 import (
 	"github.com/uberswe/beubo/pkg/structs/page"
 	"html/template"
-	"log"
 )
 
 // Form is a beubo component that can be rendered using HTML templates
@@ -44,7 +43,6 @@ func (f Form) Render() string {
 
 // RenderField calls Render to turn a Column into a string which is added to the Form Render
 func (f Form) RenderField(value string, field page.Component) template.HTML {
-	log.Println("Field render called")
 	if field != nil && field.Render() != "" {
 		return template.HTML(field.Render())
 	}

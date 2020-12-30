@@ -2,8 +2,8 @@ package structs
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/uberswe/beubo/pkg/structs/page"
+	"gorm.io/gorm"
 	"html/template"
 )
 
@@ -78,14 +78,11 @@ func CreatePage(db *gorm.DB, title string, slug string, tags []Tag, template str
 		Tags:     tags,
 	}
 
-	if db.NewRecord(pageData) { // => returns `true` as primary key is blank
-		if err := db.Create(&pageData).Error; err != nil {
-			fmt.Println("Could not create pageData")
-			return false
-		}
-		return true
+	if err := db.Create(&pageData).Error; err != nil {
+		fmt.Println("Could not create pageData")
+		return false
 	}
-	return false
+	return true
 }
 
 // FetchPage gets a page based on the provided id from the database
@@ -129,9 +126,7 @@ func UpdatePage(db *gorm.DB, id int, title string, slug string, tags []Tag, temp
 // DeletePage deletes a page with the provided id from the database
 func DeletePage(db *gorm.DB, id int) Page {
 	pageData := FetchPage(db, id)
-
-	db.Delete(pageData)
-
+	db.Delete(&pageData)
 	return pageData
 }
 

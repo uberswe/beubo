@@ -2,17 +2,17 @@ package beubo
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/uberswe/beubo/pkg/plugin"
 	"github.com/uberswe/beubo/pkg/utility"
+	"gorm.io/gorm"
 	"io/ioutil"
 	"log"
 
-	// Gorm recommends a blank import to support underlying mysql
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/uberswe/beubo/pkg/structs"
 	"golang.org/x/crypto/bcrypt"
+	// Gorm recommends a blank import to support underlying mysql
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 )
 
 var (
@@ -29,16 +29,21 @@ var (
 
 func setupDB() *gorm.DB {
 	log.Println("Opening database")
-	connectString := ""
-	if databaseDriver == "sqlite3" {
-		connectString = databaseName
-	} else {
-		connectString = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", databaseUser, databasePassword, databaseHost, databasePort, databaseName)
-	}
-	db, err := gorm.Open(databaseDriver, connectString)
+	dialector := getDialector(databaseUser, databasePassword, databaseHost, databasePort, databaseName, databaseDriver)
+	db, err := gorm.Open(dialector, &gorm.Config{})
 	utility.ErrorHandler(err, true)
 
 	return db
+}
+
+func getDialector(user string, pass string, host string, port string, name string, driver string) gorm.Dialector {
+	connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", user, pass, host, port, name)
+	dialector := mysql.Open(connectString)
+	if driver == "sqlite3" {
+		connectString = databaseName
+		dialector = sqlite.Open(connectString)
+	}
+	return dialector
 }
 
 func databaseInit() {
@@ -101,7 +106,7 @@ func databaseSeed() {
 		if file.IsDir() && file.Name() != "install" {
 			theme = structs.Theme{}
 			DB.Where("slug = ?", file.Name()).First(&theme)
-			if DB.NewRecord(theme) { // => returns `true` as primary key is blank
+			if theme.ID == 0 {
 				theme = structs.Theme{Slug: file.Name(), Title: file.Name()}
 				DB.Create(&theme)
 			}
@@ -119,16 +124,13 @@ func databaseSeed() {
 
 		user := structs.User{Email: testuser, Password: string(hashedPassword)}
 
-		if DB.NewRecord(user) { // => returns `true` as primary key is blank
-			DB.Create(&user)
-		}
+		DB.Create(&user)
+
 	}
 
 	// user registration is disabled by default
 	disableRegistration := structs.Setting{Key: "enable_user_registration", Value: "false"}
-	if DB.NewRecord(disableRegistration) { // => returns `true` as primary key is blank
-		DB.Create(&disableRegistration)
-	}
+	DB.Create(&disableRegistration)
 
 	// If seeding is enabled we perform the seed with default info
 	if shouldSeed {
@@ -142,9 +144,7 @@ func databaseSeed() {
 
 		user := structs.User{Email: seedEmail, Password: string(hashedPassword)}
 
-		if DB.NewRecord(user) { // => returns `true` as primary key is blank
-			DB.Create(&user)
-		}
+		DB.Create(&user)
 
 		// Create a site
 
@@ -155,9 +155,7 @@ func databaseSeed() {
 			Type:   1,
 		}
 
-		if DB.NewRecord(site) {
-			DB.Create(&site)
-		}
+		DB.Create(&site)
 
 		// Create a page
 		content := `<p>Welcome to Beubo! Beubo is a free, simple, and minimal CMS with unlimited extensibility using plugins. This is the default page and can be changed in the admin area for this site.</p>`
@@ -174,9 +172,7 @@ func databaseSeed() {
 			SiteID:   int(site.ID),
 		}
 
-		if DB.NewRecord(page) {
-			DB.Create(&page)
-		}
+		DB.Create(&page)
 
 		shouldSeed = false
 		seedEmail = ""

@@ -2,7 +2,7 @@ package structs
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // Setting represents a key value setting for Beubo usually used for global config values
@@ -19,14 +19,11 @@ func CreateSetting(db *gorm.DB, key string, value string) bool {
 		Value: value,
 	}
 
-	if db.NewRecord(setting) { // => returns `true` as primary key is blank
-		if err := db.Create(&setting).Error; err != nil {
-			fmt.Println("Could not create setting")
-			return false
-		}
-		return true
+	if err := db.Create(&setting).Error; err != nil {
+		fmt.Println("Could not create setting")
+		return false
 	}
-	return false
+	return true
 }
 
 // FetchSetting gets a setting from the database via the provided id
@@ -66,8 +63,6 @@ func UpdateSetting(db *gorm.DB, id int, key string, value string) bool {
 // DeleteSetting removes a setting with the matching id from the database
 func DeleteSetting(db *gorm.DB, id int) Setting {
 	setting := FetchSetting(db, id)
-
-	db.Delete(setting)
-
+	db.Delete(&setting)
 	return setting
 }

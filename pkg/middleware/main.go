@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/uberswe/beubo/pkg/plugin"
+	"gorm.io/gorm"
 )
 
 type key string

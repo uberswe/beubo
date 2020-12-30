@@ -2,8 +2,8 @@ package structs
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"log"
 )
 
@@ -39,16 +39,14 @@ func CreateUser(db *gorm.DB, email string, password string) bool {
 		return false
 	}
 	user := User{Email: email}
-	if db.NewRecord(user) { // => returns `true` as primary key is blank
-		if err := db.Create(&user).Error; err != nil {
-			fmt.Println("Could not create user")
-			return false
-		}
-		// User password is hashed after the response is returned to improve performance
-		go hashUserPassword(db, user, password)
-		return true
+
+	if err := db.Create(&user).Error; err != nil {
+		fmt.Println("Could not create user")
+		return false
 	}
-	return false
+	// User password is hashed after the response is returned to improve performance
+	go hashUserPassword(db, user, password)
+	return true
 }
 
 // FetchUser retrieves a user from the database using the provided id
@@ -124,6 +122,6 @@ func UpdateUser(db *gorm.DB, id int, email string, password string) bool {
 // DeleteUser deletes a user by id
 func DeleteUser(db *gorm.DB, id int) (user User) {
 	db.First(&user, id)
-	db.Delete(user)
+	db.Delete(&user)
 	return user
 }

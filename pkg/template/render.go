@@ -2,12 +2,12 @@ package template
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/structs/page/menu"
 	"github.com/uberswe/beubo/pkg/utility"
+	"gorm.io/gorm"
 	"html/template"
 	"io/ioutil"
 	"log"
