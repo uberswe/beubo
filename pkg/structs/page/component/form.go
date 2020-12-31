@@ -40,3 +40,11 @@ func (f Form) GetTemplate() *template.Template {
 func (f Form) Render() string {
 	return page.RenderComponent(f)
 }
+
+// RenderField calls Render to turn a Column into a string which is added to the Form Render
+func (f Form) RenderField(value string, field page.Component) template.HTML {
+	if field != nil && field.Render() != "" {
+		return template.HTML(field.Render())
+	}
+	return template.HTML(value)
+}

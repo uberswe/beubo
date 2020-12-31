@@ -14,9 +14,9 @@ func Init() {
 // Run runs the main application
 func Run() {
 	settingsInit()
-	loadPlugins()
 	databaseInit()
 	databaseSeed()
+	loadPlugins()
 	routesInit()
 }
 

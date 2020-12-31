@@ -2,8 +2,8 @@ package structs
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/uberswe/beubo/pkg/utility"
+	"gorm.io/gorm"
 )
 
 // Session represents an authenticated user session, there can be multiple sessions for one user
@@ -24,11 +24,10 @@ func CreateSession(db *gorm.DB, userID int) Session {
 		UserID: userID,
 	}
 
-	if db.NewRecord(session) { // => returns `true` as primary key is blank
-		if err := db.Create(&session).Error; err != nil {
-			fmt.Println("Could not create session")
-		}
+	if err := db.Create(&session).Error; err != nil {
+		fmt.Println("Could not create session")
 	}
+
 	return session
 }
 

@@ -2,7 +2,7 @@ package structs
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // Site represents one website, the idea is that Beubo handles many websites at the same time, you could then have 100s of sites all on the same platform
@@ -24,23 +24,25 @@ func CreateSite(db *gorm.DB, title string, domain string, siteType int, themeID 
 		ThemeID: themeID,
 	}
 
-	if db.NewRecord(site) { // => returns `true` as primary key is blank
-		if err := db.Create(&site).Error; err != nil {
-			fmt.Println("Could not create site")
-			return false
-		}
-		return true
+	if err := db.Create(&site).Error; err != nil {
+		fmt.Println("Could not create site")
+		return false
 	}
-	return false
+	return true
 }
 
 // FetchSite gets a site from the database using the provided id
-func FetchSite(db *gorm.DB, id int) Site {
-	site := Site{}
-
+func FetchSite(db *gorm.DB, id int) (site Site) {
+	site = Site{}
 	db.Preload("Theme").First(&site, id)
-
 	return site
+}
+
+// FetchSite gets a site from the database using the provided id
+func FetchSites(db *gorm.DB) (sites []Site) {
+	sites = []Site{}
+	db.Find(&sites)
+	return sites
 }
 
 // FetchSiteByHost retrieves a site from the database based on the provided host string
@@ -72,8 +74,6 @@ func UpdateSite(db *gorm.DB, id int, title string, domain string, siteType int, 
 // DeleteSite removes a site from the database based on the provided id
 func DeleteSite(db *gorm.DB, id int) Site {
 	site := FetchSite(db, id)
-
-	db.Delete(site)
-
+	db.Delete(&site)
 	return site
 }

@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/uberswe/beubo/pkg/middleware"
+	"github.com/uberswe/beubo/pkg/plugin"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/structs/page/component"
@@ -241,15 +242,25 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// GetPlugins is the route for loading the admin plugins page
-func (br *BeuboRouter) GetPlugins(w http.ResponseWriter, r *http.Request) {
+// Plugins is the route for loading the admin plugins page
+func (br *BeuboRouter) Plugins(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		// TODO handle post
+		return
+	}
+
+	// reload plugins when viewing the plugin page
+	plh := plugin.Load(*br.PluginHandler)
+	br.PluginHandler = &plh
+
 	var rows []component.Row
-	for plugin := range *br.Plugins {
-		rows = append(rows, component.Row{
+	for _, p := range br.PluginHandler.Plugins {
+		comprow := component.Row{
 			Columns: []component.Column{
-				{Name: "Name", Value: plugin},
+				{Name: "Name", Value: fmt.Sprintf("<a href=\"/admin/plugins/edit/%s\">%s</a>", p.Definition, p.Definition)},
 			},
-		})
+		}
+		rows = append(rows, comprow)
 	}
 
 	table := component.Table{

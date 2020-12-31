@@ -58,7 +58,7 @@ func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Reque
 	for i, tag := range tagSlice {
 		tempTag := structs.Tag{}
 		br.DB.Where("value = ?", tag.Value).First(&tempTag)
-		if tempTag.ID == 0 && br.DB.NewRecord(tag) {
+		if tempTag.ID == 0 {
 			br.DB.Create(&tag)
 			tagSlice[i] = tag
 		} else {
@@ -183,7 +183,7 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 	for i, tag := range tagSlice {
 		tempTag := structs.Tag{}
 		br.DB.Where("value = ?", tag.Value).First(&tempTag)
-		if tempTag.ID == 0 && br.DB.NewRecord(tag) {
+		if tempTag.ID == 0 {
 			br.DB.Create(&tag)
 			tagSlice[i] = tag
 		} else {

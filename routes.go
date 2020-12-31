@@ -30,17 +30,21 @@ func routesInit() {
 		ReloadTemplates: reloadTemplates,
 		CurrentTheme:    currentTheme,
 		ThemeDir:        rootDir,
+		PluginHandler:   &pluginHandler,
 		DB:              DB,
 	}
 	beuboTemplateRenderer.Init()
 
 	beuboRouter := &routes.BeuboRouter{
-		DB:       DB,
-		Renderer: &beuboTemplateRenderer,
-		Plugins:  &plugins,
+		DB:            DB,
+		Renderer:      &beuboTemplateRenderer,
+		PluginHandler: &pluginHandler,
 	}
 
-	beuboMiddleware := &middleware.BeuboMiddleware{DB: DB}
+	beuboMiddleware := &middleware.BeuboMiddleware{
+		DB:            DB,
+		PluginHandler: &pluginHandler,
+	}
 
 	// TODO make the burst and time configurable
 	throttleMiddleware := middleware.Throttle{
@@ -79,7 +83,7 @@ func routesInit() {
 
 	admin.HandleFunc("/settings", beuboRouter.Settings)
 	admin.HandleFunc("/users", beuboRouter.Users)
-	admin.HandleFunc("/plugins", beuboRouter.GetPlugins)
+	admin.HandleFunc("/plugins", beuboRouter.Plugins)
 
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAdd).Methods("GET")
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAddPost).Methods("POST")
@@ -103,6 +107,9 @@ func routesInit() {
 	admin.HandleFunc("/users/edit/{id:[0-9]+}", beuboRouter.AdminUserEdit).Methods("GET")
 	admin.HandleFunc("/users/edit/{id:[0-9]+}", beuboRouter.AdminUserEditPost).Methods("POST")
 
+	admin.HandleFunc("/plugins/edit/{id:[a-zA-Z_]+}", beuboRouter.AdminPluginEdit).Methods("GET")
+	admin.HandleFunc("/plugins/edit/{id:[a-zA-Z_]+}", beuboRouter.AdminPluginEditPost).Methods("POST")
+
 	// TODO I don't like this /sites/a/ structure of the routes, consider changing it
 	siteAdmin := admin.PathPrefix("/sites/a/{id:[0-9]+}").Subrouter()
 
@@ -117,7 +124,6 @@ func routesInit() {
 	siteAdmin.HandleFunc("/page/delete/{pageId:[0-9]+}", beuboRouter.AdminSitePageDelete)
 
 	r.HandleFunc("/logout", beuboRouter.Logout)
-	r.HandleFunc("/api", beuboRouter.APIHandler)
 
 	muxer := http.NewServeMux()
 	muxer.Handle("/", negroni.New(
@@ -125,6 +131,7 @@ func routesInit() {
 		negroni.HandlerFunc(beuboMiddleware.Whitelist),
 		negroni.HandlerFunc(beuboMiddleware.Auth),
 		negroni.HandlerFunc(throttleMiddleware.Throttle),
+		negroni.HandlerFunc(beuboMiddleware.Plugin),
 		negroni.Wrap(r),
 	))
 

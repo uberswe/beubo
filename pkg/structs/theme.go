@@ -1,6 +1,6 @@
 package structs
 
-import "github.com/jinzhu/gorm"
+import "gorm.io/gorm"
 
 // Theme is the template or html files that a site uses, theme files are found under the web directory
 type Theme struct {

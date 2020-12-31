@@ -1,6 +1,6 @@
 package structs
 
-import "github.com/jinzhu/gorm"
+import "gorm.io/gorm"
 
 // Config is a key value store for various settings and configurations
 type Config struct {

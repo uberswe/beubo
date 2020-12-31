@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
-	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/uberswe/beubo/pkg/routes"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/template"
 	"github.com/uberswe/beubo/pkg/utility"
 	"github.com/urfave/negroni"
+	"gorm.io/gorm"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -61,7 +61,7 @@ func settingsInit() {
 		// No .env file
 		utility.ErrorHandler(err, false)
 		log.Println("Attempting to create .env file")
-		writeEnv("", "", "", "", "", "")
+		writeEnv("", "", "", "", "", "", "")
 	}
 
 	rootDir = setSetting(os.Getenv("ASSETS_DIR"), rootDir)
@@ -72,6 +72,8 @@ func settingsInit() {
 	databaseUser = setSetting(os.Getenv("DB_USER"), databaseUser)
 	databaseDriver = setSetting(os.Getenv("DB_DRIVER"), databaseDriver)
 	databasePassword = setSetting(os.Getenv("DB_PASSWORD"), databasePassword)
+	shouldRefreshDatabase = setBoolSetting(os.Getenv("REFRESH_DATABASE"), shouldRefreshDatabase)
+	shouldSeed = setBoolSetting(os.Getenv("SEED_DATABASE"), shouldRefreshDatabase)
 
 	environment = setSetting(os.Getenv("ENVIRONMENT"), environment)
 
@@ -160,6 +162,7 @@ func Install(w http.ResponseWriter, r *http.Request) {
 	dbnameKey := "dbname"
 	dbuserKey := "dbuser"
 	dbpasswordKey := "dbpassword"
+	dbdriverKey := "dbdriver"
 	usernameKey := "username"
 	passwordKey := "password"
 
@@ -180,6 +183,7 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		extra[formKey][dbnameKey] = r.PostFormValue(dbnameKey)
 		extra[formKey][dbuserKey] = r.PostFormValue(dbuserKey)
 		extra[formKey][dbpasswordKey] = r.PostFormValue(dbpasswordKey)
+		extra[formKey][dbdriverKey] = r.PostFormValue(dbdriverKey)
 		extra[formKey][usernameKey] = r.PostFormValue(usernameKey)
 		extra[formKey][passwordKey] = r.PostFormValue(passwordKey)
 
@@ -201,9 +205,8 @@ func Install(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", extra[formKey][dbuserKey], extra[formKey][dbpasswordKey], extra[formKey][dbhostKey], databasePort, extra[formKey][dbnameKey])
-
-		db, err := gorm.Open("mysql", connectString)
+		dialector := getDialector(extra[formKey][dbuserKey], extra[formKey][dbpasswordKey], extra[formKey][dbhostKey], databasePort, extra[formKey][dbnameKey], extra[formKey][dbdriverKey])
+		_, err = gorm.Open(dialector, &gorm.Config{})
 		if err != nil {
 
 			utility.SetFlash(w, "error", []byte(err.Error()))
@@ -213,9 +216,7 @@ func Install(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fmt.Println("no error, install done")
-		err2 := db.Close()
-		utility.ErrorHandler(err2, false)
-		writeEnv("", "", extra[formKey][dbhostKey], extra[formKey][dbnameKey], extra[formKey][dbuserKey], extra[formKey][dbpasswordKey])
+		writeEnv("", "", extra[formKey][dbhostKey], extra[formKey][dbnameKey], extra[formKey][dbuserKey], extra[formKey][dbpasswordKey], extra[formKey][dbdriverKey])
 		beuboTemplateRenderer.RenderHTMLPage(w, r, pageData)
 		currentTheme = "default"
 		prepareSeed(extra[formKey][usernameKey], extra[formKey][passwordKey])
@@ -248,9 +249,18 @@ func setSetting(key string, variable string) string {
 	return variable
 }
 
+func setBoolSetting(key string, variable bool) bool {
+	if key == "true" {
+		return true
+	} else if key == "false" {
+		return false
+	}
+	return variable
+}
+
 // writeEnv writes environmental variables to an .env file
-func writeEnv(assetDir string, theme string, dbHost string, dbName string, dbUser string, dbPassword string) {
-	envContent := []byte("ASSETS_DIR=" + assetDir + "\nTHEME=" + theme + "\n\nDB_HOST=" + dbHost + "\nDB_NAME=" + dbName + "\nDB_USER=" + dbUser + "\nDB_PASSWORD=" + dbPassword)
+func writeEnv(assetDir string, theme string, dbHost string, dbName string, dbUser string, dbPassword string, dbDriver string) {
+	envContent := []byte("ASSETS_DIR=" + assetDir + "\nTHEME=" + theme + "\n\nDB_DRIVER=" + dbDriver + "\nDB_HOST=" + dbHost + "\nDB_NAME=" + dbName + "\nDB_USER=" + dbUser + "\nDB_PASSWORD=" + dbPassword)
 	// TODO allow users to specify folder or even config filename, maybe beuboConfig
 	err := ioutil.WriteFile(".env", envContent, 0600) // TODO allow user to change permissions here?
 
