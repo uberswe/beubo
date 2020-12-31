@@ -123,14 +123,19 @@ func databaseSeed() {
 		utility.ErrorHandler(err, true)
 
 		user := structs.User{Email: testuser, Password: string(hashedPassword)}
-
-		DB.Create(&user)
+		DB.Where("email = ?", user.Email).First(&user)
+		if user.ID == 0 {
+			DB.Create(&user)
+		}
 
 	}
 
 	// user registration is disabled by default
 	disableRegistration := structs.Setting{Key: "enable_user_registration", Value: "false"}
-	DB.Create(&disableRegistration)
+	DB.Where("key = ?", disableRegistration.Key).First(&disableRegistration)
+	if disableRegistration.ID == 0 {
+		DB.Create(&disableRegistration)
+	}
 
 	// If seeding is enabled we perform the seed with default info
 	if shouldSeed {
