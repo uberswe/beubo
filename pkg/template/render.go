@@ -3,6 +3,7 @@ package template
 import (
 	"fmt"
 	"github.com/uberswe/beubo/pkg/middleware"
+	"github.com/uberswe/beubo/pkg/plugin"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/structs/page/menu"
@@ -27,6 +28,7 @@ var (
 // BeuboTemplateRenderer holds all the configuration variables for rendering templates in Beubo
 type BeuboTemplateRenderer struct {
 	T               *template.Template
+	PluginHandler   *plugin.Handler
 	ReloadTemplates bool
 	CurrentTheme    string
 	ThemeDir        string
@@ -139,6 +141,7 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	}
 
 	data = mergePageData(data, pageData)
+	data = btr.PluginHandler.PageData(r, data)
 
 	if btr.ReloadTemplates {
 		log.Println("Parsing and loading templates...")

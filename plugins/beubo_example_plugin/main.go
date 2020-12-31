@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/uberswe/beubo/pkg/structs"
 	"log"
 	"net/http"
 )
@@ -28,4 +29,10 @@ func AfterRequest(w http.ResponseWriter, r *http.Request) {
 func PageHandler(w http.ResponseWriter, r *http.Request) (handled bool) {
 	log.Println("PageHandler called in example plugin")
 	return false
+}
+
+// PageData allows the modification of page data before it is passed to the execute function of the template handler
+func PageData(r *http.Request, pd structs.PageData) structs.PageData {
+	log.Println("PageData called in example plugin")
+	return pd
 }
