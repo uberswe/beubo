@@ -30,7 +30,13 @@ var (
 func setupDB() *gorm.DB {
 	log.Println("Opening database")
 	dialector := getDialector(databaseUser, databasePassword, databaseHost, databasePort, databaseName, databaseDriver)
-	db, err := gorm.Open(dialector, &gorm.Config{})
+	config := gorm.Config{}
+	if databaseDriver == "sqlite3" {
+		config = gorm.Config{
+			DisableForeignKeyConstraintWhenMigrating: true,
+		}
+	}
+	db, err := gorm.Open(dialector, &config)
 	utility.ErrorHandler(err, true)
 
 	return db
@@ -72,10 +78,9 @@ func databaseInit() {
 
 	log.Println("Running database migrations")
 
-	DB.AutoMigrate(
+	err := DB.AutoMigrate(
 		&structs.User{},
 		&structs.UserActivation{},
-		&structs.UserRole{},
 		&structs.Config{},
 		&structs.Page{},
 		&structs.Theme{},
@@ -84,7 +89,10 @@ func databaseInit() {
 		&structs.Tag{},
 		&structs.Comment{},
 		&structs.Setting{},
-		&plugin.PluginSite{})
+		&plugin.PluginSite{},
+		&structs.Role{},
+		&structs.Feature{})
+	utility.ErrorHandler(err, true)
 }
 
 func prepareSeed(email string, password string) {

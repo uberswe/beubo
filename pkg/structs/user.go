@@ -13,7 +13,7 @@ type User struct {
 	Email       string `gorm:"size:255"`
 	Password    string `gorm:"size:255"`
 	Activations []UserActivation
-	Roles       []UserRole
+	Roles       []*Role `gorm:"many2many:user_roles;"`
 }
 
 // UserActivation is used to verify a user when signing up
@@ -25,11 +25,8 @@ type UserActivation struct {
 	Code   string
 }
 
-// UserRole can be admin, moderator, normal or guest
-type UserRole struct {
-	gorm.Model
-	UserID uint
-	Name   string
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	return
 }
 
 // CreateUser is a method which creates a user using gorm
