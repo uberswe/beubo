@@ -36,7 +36,7 @@ func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Reque
 	successMessage := "Page created"
 	invalidError := "an error occured and the site could not be created."
 
-	siteIDInt, err := strconv.ParseInt(siteID, 10, 64)
+	siteIDInt, err := strconv.Atoi(siteID)
 	if err != nil {
 		invalidError = "Invalid site id"
 		utility.SetFlash(w, "error", []byte(invalidError))
@@ -73,7 +73,7 @@ func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if structs.CreatePage(br.DB, title, slug, tagSlice, template, content, int(siteIDInt)) {
+	if structs.CreatePage(br.DB, title, slug, tagSlice, template, content, siteIDInt) {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, fmt.Sprintf("/admin/sites/a/%s", siteID), 302)
 		return
@@ -90,7 +90,7 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 	siteID := params["id"]
 	pageID := params["pageId"]
 
-	pageIDInt, err := strconv.ParseInt(pageID, 10, 64)
+	pageIDInt, err := strconv.Atoi(pageID)
 	if err != nil {
 		invalidError := "Invalid page id"
 		utility.SetFlash(w, "error", []byte(invalidError))
@@ -98,7 +98,7 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	siteIDInt, err := strconv.ParseInt(siteID, 10, 64)
+	siteIDInt, err := strconv.Atoi(siteID)
 	if err != nil {
 		invalidError := "Invalid site id"
 		utility.SetFlash(w, "error", []byte(invalidError))
@@ -106,9 +106,9 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	page := structs.FetchPage(br.DB, int(pageIDInt))
+	page := structs.FetchPage(br.DB, pageIDInt)
 
-	site := structs.FetchSite(br.DB, int(siteIDInt))
+	site := structs.FetchSite(br.DB, siteIDInt)
 
 	// This should not be a nil slice since we are json encoding it even if it is empty
 	var tags []structs.JSONTag
@@ -156,7 +156,7 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 
 	i, err := strconv.Atoi(siteID)
 
-	pageIDInt, err := strconv.ParseInt(pageID, 10, 64)
+	pageIDInt, err := strconv.Atoi(pageID)
 	if err != nil {
 		invalidError := "Invalid page id"
 		utility.SetFlash(w, "error", []byte(invalidError))
@@ -198,7 +198,7 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if structs.UpdatePage(br.DB, i, title, slug, tagSlice, template, content, int(pageIDInt)) {
+	if structs.UpdatePage(br.DB, i, title, slug, tagSlice, template, content, pageIDInt) {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, path, 302)
 		return
