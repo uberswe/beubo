@@ -103,7 +103,18 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 			Items: []page.MenuItem{
 				{Text: "Sites", URI: "/admin/"},
 				{Text: "Settings", URI: "/admin/settings"},
-				{Text: "Users", URI: "/admin/users"},
+				{
+					Text: "Users",
+					URI:  "/admin/users",
+					Items: []page.MenuItem{
+						{
+							Text: "Roles",
+							URI:  "/admin/users/roles",
+						},
+					},
+					// Submenus need template to be defined
+					T: btr.T,
+				},
 				{Text: "Plugins", URI: "/admin/plugins"},
 			},
 			Identifier: "sidebar",

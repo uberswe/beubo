@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-// AdminUserAdd is the route for adding a site
+// AdminUserAdd is the route for adding a user
 func (br *BeuboRouter) AdminUserAdd(w http.ResponseWriter, r *http.Request) {
 	pageData := structs.PageData{
 		Template: "admin.user.add",
@@ -134,4 +134,15 @@ func (br *BeuboRouter) AdminUserEditPost(w http.ResponseWriter, r *http.Request)
 
 	utility.SetFlash(w, "error", []byte(invalidError))
 	http.Redirect(w, r, path, 302)
+}
+
+// AdminUserRoles is the route for managing user roles
+func (br *BeuboRouter) AdminUserRoles(w http.ResponseWriter, r *http.Request) {
+	pageData := structs.PageData{
+		Template: "admin.page",
+		Title:    "Admin - User Roles",
+		Themes:   br.Renderer.GetThemes(),
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
 }

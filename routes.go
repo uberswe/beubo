@@ -83,6 +83,7 @@ func routesInit() {
 
 	admin.HandleFunc("/settings", beuboRouter.Settings)
 	admin.HandleFunc("/users", beuboRouter.Users)
+	admin.HandleFunc("/users/roles", beuboRouter.AdminUserRoles)
 	admin.HandleFunc("/plugins", beuboRouter.Plugins)
 
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAdd).Methods("GET")

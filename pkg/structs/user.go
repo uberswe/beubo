@@ -25,10 +25,6 @@ type UserActivation struct {
 	Code   string
 }
 
-func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
-	return
-}
-
 // CreateUser is a method which creates a user using gorm
 func CreateUser(db *gorm.DB, email string, password string) bool {
 	checkUser := FetchUserByEmail(db, email)
