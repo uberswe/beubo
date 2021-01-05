@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/structs/page"
+	"github.com/uberswe/beubo/pkg/structs/page/component"
 	"github.com/uberswe/beubo/pkg/utility"
+	"html/template"
 	"net/http"
 	"strconv"
 )
@@ -138,10 +141,74 @@ func (br *BeuboRouter) AdminUserEditPost(w http.ResponseWriter, r *http.Request)
 
 // AdminUserRoles is the route for managing user roles
 func (br *BeuboRouter) AdminUserRoles(w http.ResponseWriter, r *http.Request) {
+	var roles []structs.Role
+
+	if err := br.DB.Find(&roles).Error; err != nil {
+		utility.ErrorHandler(err, false)
+	}
+
+	var rows []component.Row
+	for _, role := range roles {
+		sid := fmt.Sprintf("%d", role.ID)
+		// TODO For now it's not possible to edit default roles. This is because they would be added again when launching Beubo and this needs to be handled in a better way.
+		if role.Name == "Administrator" || role.Name == "Member" {
+			rows = append(rows, component.Row{
+				Columns: []component.Column{
+					{Name: "ID", Value: sid},
+					{Name: "Name", Value: role.Name},
+					{},
+					{},
+				},
+			})
+		} else {
+			rows = append(rows, component.Row{
+				Columns: []component.Column{
+					{Name: "ID", Value: sid},
+					{Name: "Name", Value: role.Name},
+					{Name: "", Field: component.Button{
+						Link:    template.URL(fmt.Sprintf("/admin/roles/roles/edit/%s", sid)),
+						Class:   "btn btn-primary",
+						Content: "Edit",
+						T:       br.Renderer.T,
+					}},
+					{Name: "", Field: component.Button{
+						Link:    template.URL(fmt.Sprintf("/admin/roles/roles/delete/%s", sid)),
+						Class:   "btn btn-primary",
+						Content: "Delete",
+						T:       br.Renderer.T,
+					}},
+				},
+			})
+		}
+	}
+
+	table := component.Table{
+		Section: "main",
+		Header: []component.Column{
+			{Name: "ID"},
+			{Name: "Name"},
+			{Name: ""},
+			{Name: ""},
+		},
+		Rows:             rows,
+		PageNumber:       1,
+		PageDisplayCount: 10,
+		T:                br.Renderer.T,
+	}
+
 	pageData := structs.PageData{
 		Template: "admin.page",
 		Title:    "Admin - User Roles",
-		Themes:   br.Renderer.GetThemes(),
+		Components: []page.Component{
+			component.Button{
+				Section: "main",
+				Link:    template.URL("/admin/roles/roles/add"),
+				Class:   "btn btn-primary",
+				Content: "Add Role",
+				T:       br.Renderer.T,
+			},
+			table,
+		},
 	}
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)

@@ -145,6 +145,20 @@ func databaseSeed() {
 		DB.Create(&disableRegistration)
 	}
 
+	// Add default roles if not exist
+	role := structs.Role{}
+	DB.Where("name = ?", "Administrator").First(&role)
+	if role.ID == 0 {
+		role = structs.Role{Name: "Administrator"}
+		DB.Create(&role)
+	}
+	role = structs.Role{}
+	DB.Where("name = ?", "Member").First(&role)
+	if role.ID == 0 {
+		role = structs.Role{Name: "Member"}
+		DB.Create(&role)
+	}
+
 	// If seeding is enabled we perform the seed with default info
 	if shouldSeed {
 		log.Println("Seeding database")

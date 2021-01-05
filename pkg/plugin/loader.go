@@ -49,6 +49,7 @@ func Load(pluginHandler Handler) Handler {
 		}
 	}
 
+	// TODO the following code requires an active database connection but what if a plugin wants to modify a connection? It would be good if this could be moved so the loading of plugins happens before the active check is performed.
 	if pluginHandler.Plugins != nil {
 		sites := structs.FetchSites(pluginHandler.DB)
 		var plugins []string
