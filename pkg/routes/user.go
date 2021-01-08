@@ -23,12 +23,12 @@ func (br *BeuboRouter) AdminUserAdd(w http.ResponseWriter, r *http.Request) {
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
-// AdminUserAddPost handles adding of a global user
+// AdminUserAddPost handles adding of a user
 func (br *BeuboRouter) AdminUserAddPost(w http.ResponseWriter, r *http.Request) {
 	path := "/admin/users/add"
 
 	successMessage := "User created"
-	invalidError := "an error occured and the user could not be created."
+	invalidError := "an error occurred and the user could not be created."
 
 	email := r.FormValue("emailField")
 	password := r.FormValue("passwordField")
@@ -56,7 +56,7 @@ func (br *BeuboRouter) AdminUserAddPost(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, "/admin/users/add", 302)
 }
 
-// AdminUserDelete handles the deletion of a global user
+// AdminUserDelete handles the deletion of a user
 func (br *BeuboRouter) AdminUserDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
@@ -98,7 +98,7 @@ func (br *BeuboRouter) AdminUserEdit(w http.ResponseWriter, r *http.Request) {
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
-// AdminUserEditPost handles editing of a global user
+// AdminUserEditPost handles editing of a user
 func (br *BeuboRouter) AdminUserEditPost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
@@ -166,13 +166,13 @@ func (br *BeuboRouter) AdminUserRoles(w http.ResponseWriter, r *http.Request) {
 					{Name: "ID", Value: sid},
 					{Name: "Name", Value: role.Name},
 					{Name: "", Field: component.Button{
-						Link:    template.URL(fmt.Sprintf("/admin/roles/roles/edit/%s", sid)),
+						Link:    template.URL(fmt.Sprintf("/admin/users/roles/edit/%s", sid)),
 						Class:   "btn btn-primary",
 						Content: "Edit",
 						T:       br.Renderer.T,
 					}},
 					{Name: "", Field: component.Button{
-						Link:    template.URL(fmt.Sprintf("/admin/roles/roles/delete/%s", sid)),
+						Link:    template.URL(fmt.Sprintf("/admin/users/roles/delete/%s", sid)),
 						Class:   "btn btn-primary",
 						Content: "Delete",
 						T:       br.Renderer.T,
@@ -202,7 +202,7 @@ func (br *BeuboRouter) AdminUserRoles(w http.ResponseWriter, r *http.Request) {
 		Components: []page.Component{
 			component.Button{
 				Section: "main",
-				Link:    template.URL("/admin/roles/roles/add"),
+				Link:    template.URL("/admin/users/roles/add"),
 				Class:   "btn btn-primary",
 				Content: "Add Role",
 				T:       br.Renderer.T,
@@ -212,4 +212,122 @@ func (br *BeuboRouter) AdminUserRoles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)
+}
+
+// AdminUserRoleAdd is the route for adding a user role
+func (br *BeuboRouter) AdminUserRoleAdd(w http.ResponseWriter, r *http.Request) {
+	pageData := structs.PageData{
+		Template: "admin.user.role.add",
+		Title:    "Admin - Add Role",
+		Themes:   br.Renderer.GetThemes(),
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
+}
+
+// AdminUserRoleAddPost handles adding of a user role
+func (br *BeuboRouter) AdminUserRoleAddPost(w http.ResponseWriter, r *http.Request) {
+	path := "/admin/users/roles/add"
+
+	successMessage := "Role created"
+	invalidError := "an error occurred and the user could not be created."
+
+	name := r.FormValue("nameField")
+
+	if len(name) < 2 {
+		invalidError = "The name is too short"
+		utility.SetFlash(w, "error", []byte(invalidError))
+		http.Redirect(w, r, path, 302)
+		return
+	}
+
+	if structs.CreateRole(br.DB, name) {
+		utility.SetFlash(w, "message", []byte(successMessage))
+		http.Redirect(w, r, "/admin/users/roles", 302)
+		return
+	}
+
+	utility.SetFlash(w, "error", []byte(invalidError))
+	http.Redirect(w, r, "/admin/users/roles/add", 302)
+}
+
+// AdminUserRoleDelete handles the deletion of a user role
+func (br *BeuboRouter) AdminUserRoleDelete(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	i, err := strconv.Atoi(id)
+
+	utility.ErrorHandler(err, false)
+
+	role := structs.FetchRole(br.DB, i)
+	if role.ID != 0 && !role.IsDefault() {
+		structs.DeleteRole(br.DB, i)
+	} else {
+		utility.SetFlash(w, "error", []byte("Can not delete a default role"))
+		http.Redirect(w, r, "/admin/users/roles", 302)
+		return
+	}
+
+	utility.SetFlash(w, "message", []byte("Role deleted"))
+
+	http.Redirect(w, r, "/admin/users/roles", 302)
+}
+
+// AdminUserRoleEdit is the route for adding a user role
+func (br *BeuboRouter) AdminUserRoleEdit(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	i, err := strconv.Atoi(id)
+
+	utility.ErrorHandler(err, false)
+
+	role := structs.FetchRole(br.DB, i)
+	if role.ID == 0 || role.IsDefault() {
+		br.NotFoundHandler(w, r)
+		return
+	}
+
+	pageData := structs.PageData{
+		Template: "admin.user.role.edit",
+		Title:    "Admin - Edit Role",
+		Extra:    role,
+		Themes:   br.Renderer.GetThemes(),
+	}
+
+	br.Renderer.RenderHTMLPage(w, r, pageData)
+}
+
+// AdminUserRoleEditPost handles editing of a user role
+func (br *BeuboRouter) AdminUserRoleEditPost(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	path := fmt.Sprintf("/admin/users/roles/edit/%s", id)
+
+	i, err := strconv.Atoi(id)
+
+	utility.ErrorHandler(err, false)
+
+	successMessage := "Role updated"
+	invalidError := "an error occurred and the role could not be updated."
+
+	name := r.FormValue("nameField")
+
+	if len(name) < 2 {
+		invalidError = "The name is too short"
+		utility.SetFlash(w, "error", []byte(invalidError))
+		http.Redirect(w, r, path, 302)
+		return
+	}
+
+	if structs.UpdateRole(br.DB, i, name) {
+		utility.SetFlash(w, "message", []byte(successMessage))
+		http.Redirect(w, r, "/admin/users/roles", 302)
+		return
+	}
+
+	utility.SetFlash(w, "error", []byte(invalidError))
+	http.Redirect(w, r, path, 302)
 }

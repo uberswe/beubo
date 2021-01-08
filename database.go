@@ -38,7 +38,6 @@ func setupDB() *gorm.DB {
 	}
 	db, err := gorm.Open(dialector, &config)
 	utility.ErrorHandler(err, true)
-
 	return db
 }
 
