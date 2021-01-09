@@ -39,7 +39,7 @@ func FetchSite(db *gorm.DB, id int) (site Site) {
 	return site
 }
 
-// FetchSite gets a site from the database using the provided id
+// FetchSites gets a site from the database using the provided id
 func FetchSites(db *gorm.DB) (sites []Site) {
 	sites = []Site{}
 	db.Find(&sites)

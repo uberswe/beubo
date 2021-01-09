@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// CanAccess checks if a user is allowed to access a specified feature
 func CanAccess(db *gorm.DB, FeatureKey string, r *http.Request) bool {
 	self := r.Context().Value(UserContextKey)
 	if self != nil && self.(structs.User).ID > 0 {

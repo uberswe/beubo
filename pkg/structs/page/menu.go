@@ -25,7 +25,7 @@ type MenuItem struct {
 	T        *template.Template
 }
 
-// SetItems is a setter for the Items property
+// SubMenu renders submenu items recursively in templates
 func (m MenuItem) SubMenu() template.HTML {
 	if len(m.Items) > 0 {
 		tmpl := "menu.sub"

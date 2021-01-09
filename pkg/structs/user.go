@@ -27,6 +27,7 @@ type UserActivation struct {
 	Code   string
 }
 
+// CanAccess checks if a user has access to the specified feature
 func (u User) CanAccess(db *gorm.DB, featureKey string) bool {
 	var count int64
 	db.Model(&Feature{}).
@@ -39,6 +40,7 @@ func (u User) CanAccess(db *gorm.DB, featureKey string) bool {
 	return count > 0
 }
 
+// CanAccessSite checks if a user is allowed to access the specified site
 func (u User) CanAccessSite(db *gorm.DB, site Site) bool {
 	var count int64
 	db.Model(&Site{}).
@@ -51,6 +53,7 @@ func (u User) CanAccessSite(db *gorm.DB, site Site) bool {
 	return count > 0
 }
 
+// HasRole checks if a user has the specified role
 func (u User) HasRole(db *gorm.DB, r Role) bool {
 	roles := []Role{}
 	_ = db.Model(&u).Where("roles.name = ?", r.Name).Association("Roles").Find(&roles)

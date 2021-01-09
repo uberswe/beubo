@@ -21,6 +21,8 @@ type Feature struct {
 	Roles []*Role `gorm:"many2many:role_features;"`
 }
 
+// IsDefault checks if the role is a default role
+// TODO find a better way to handle default roles
 func (r Role) IsDefault() bool {
 	if r.Name == "Administrator" || r.Name == "Member" {
 		return true
@@ -28,6 +30,7 @@ func (r Role) IsDefault() bool {
 	return false
 }
 
+// HasFeature checks if a role has the specified feature
 func (r Role) HasFeature(db *gorm.DB, f Feature) bool {
 	features := []Feature{}
 	_ = db.Model(&r).Where("key = ?", f.Key).Association("Features").Find(&features)
