@@ -25,7 +25,7 @@ func (br *BeuboRouter) AdminUserAddPost(w http.ResponseWriter, r *http.Request) 
 	path := "/admin/users/add"
 
 	successMessage := "User created"
-	invalidError := "an error occured and the user could not be created."
+	invalidError := "an error occurred and the user could not be created."
 
 	email := r.FormValue("emailField")
 	password := r.FormValue("passwordField")

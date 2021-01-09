@@ -25,7 +25,7 @@ func (br *BeuboRouter) AdminSettingAddPost(w http.ResponseWriter, r *http.Reques
 	path := "/admin/settings/add"
 
 	successMessage := "Setting created"
-	invalidError := "an error occured and the setting could not be created."
+	invalidError := "an error occurred and the setting could not be created."
 
 	key := r.FormValue("keyField")
 	value := r.FormValue("valueField")
