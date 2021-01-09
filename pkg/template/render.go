@@ -90,22 +90,60 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		T:          btr.T,
 	}}
 
+	adminHeaderMenu := []page.MenuItem{
+		{Text: "Home", URI: "/"},
+		{Text: "Logout", URI: "/logout"},
+	}
+
+	if !user.(structs.User).CanAccess(btr.DB, "manage_sites") &&
+		!user.(structs.User).CanAccess(btr.DB, "manage_pages") &&
+		!user.(structs.User).CanAccess(btr.DB, "manage_users") &&
+		!user.(structs.User).CanAccess(btr.DB, "manage_user_roles") &&
+		!user.(structs.User).CanAccess(btr.DB, "manage_plugins") &&
+		!user.(structs.User).CanAccess(btr.DB, "manage_settings") {
+		adminHeaderMenu = []page.MenuItem{
+			{Text: "Home", URI: "/"},
+			{Text: "Admin", URI: "/admin"},
+			{Text: "Logout", URI: "/logout"},
+		}
+	}
+
+	adminSidebarMenu := []page.MenuItem{}
+
+	if user.(structs.User).CanAccess(btr.DB, "manage_sites") {
+		adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Sites", URI: "/admin/"})
+	}
+
+	if user.(structs.User).CanAccess(btr.DB, "manage_settings") {
+		adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Settings", URI: "/admin/settings"})
+	}
+
+	if user.(structs.User).CanAccess(btr.DB, "manage_users") {
+		adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{
+			Text: "Users",
+			URI:  "/admin/users",
+			Items: []page.MenuItem{
+				{
+					Text: "Roles",
+					URI:  "/admin/users/roles",
+				},
+			},
+			// Submenus need template to be defined
+			T: btr.T,
+		})
+	}
+
+	if user.(structs.User).CanAccess(btr.DB, "manage_plugins") {
+		adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Plugins", URI: "/admin/plugins"})
+	}
+
 	if user != nil && user.(structs.User).ID > 0 {
 		menus = []page.Menu{menu.DefaultMenu{
-			Items: []page.MenuItem{
-				{Text: "Home", URI: "/"},
-				{Text: "Admin", URI: "/admin"},
-				{Text: "Logout", URI: "/logout"},
-			},
+			Items:      adminHeaderMenu,
 			Identifier: "header",
 			T:          btr.T,
 		}, menu.DefaultMenu{
-			Items: []page.MenuItem{
-				{Text: "Sites", URI: "/admin/"},
-				{Text: "Settings", URI: "/admin/settings"},
-				{Text: "Users", URI: "/admin/users"},
-				{Text: "Plugins", URI: "/admin/plugins"},
-			},
+			Items:      adminSidebarMenu,
 			Identifier: "sidebar",
 			Template:   "menu.sidebar",
 			T:          btr.T,

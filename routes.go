@@ -83,6 +83,7 @@ func routesInit() {
 
 	admin.HandleFunc("/settings", beuboRouter.Settings)
 	admin.HandleFunc("/users", beuboRouter.Users)
+	admin.HandleFunc("/users/roles", beuboRouter.AdminUserRoles)
 	admin.HandleFunc("/plugins", beuboRouter.Plugins)
 
 	admin.HandleFunc("/sites/add", beuboRouter.AdminSiteAdd).Methods("GET")
@@ -94,9 +95,13 @@ func routesInit() {
 	admin.HandleFunc("/users/add", beuboRouter.AdminUserAdd).Methods("GET")
 	admin.HandleFunc("/users/add", beuboRouter.AdminUserAddPost).Methods("POST")
 
+	admin.HandleFunc("/users/roles/add", beuboRouter.AdminUserRoleAdd).Methods("GET")
+	admin.HandleFunc("/users/roles/add", beuboRouter.AdminUserRoleAddPost).Methods("POST")
+
 	admin.HandleFunc("/sites/delete/{id:[0-9]+}", beuboRouter.AdminSiteDelete)
 	admin.HandleFunc("/settings/delete/{id:[0-9]+}", beuboRouter.AdminSettingDelete)
 	admin.HandleFunc("/users/delete/{id:[0-9]+}", beuboRouter.AdminUserDelete)
+	admin.HandleFunc("/users/roles/delete/{id:[0-9]+}", beuboRouter.AdminUserRoleDelete)
 
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEdit).Methods("GET")
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEditPost).Methods("POST")
@@ -106,6 +111,9 @@ func routesInit() {
 
 	admin.HandleFunc("/users/edit/{id:[0-9]+}", beuboRouter.AdminUserEdit).Methods("GET")
 	admin.HandleFunc("/users/edit/{id:[0-9]+}", beuboRouter.AdminUserEditPost).Methods("POST")
+
+	admin.HandleFunc("/users/roles/edit/{id:[0-9]+}", beuboRouter.AdminUserRoleEdit).Methods("GET")
+	admin.HandleFunc("/users/roles/edit/{id:[0-9]+}", beuboRouter.AdminUserRoleEditPost).Methods("POST")
 
 	admin.HandleFunc("/plugins/edit/{id:[a-zA-Z_]+}", beuboRouter.AdminPluginEdit).Methods("GET")
 	admin.HandleFunc("/plugins/edit/{id:[a-zA-Z_]+}", beuboRouter.AdminPluginEditPost).Methods("POST")

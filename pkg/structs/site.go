@@ -13,6 +13,7 @@ type Site struct {
 	Type    int
 	Theme   Theme
 	ThemeID int
+	Users   []*User `gorm:"many2many:user_sites;"`
 }
 
 // CreateSite is a method which creates a site using gorm
@@ -38,7 +39,7 @@ func FetchSite(db *gorm.DB, id int) (site Site) {
 	return site
 }
 
-// FetchSite gets a site from the database using the provided id
+// FetchSites gets a site from the database using the provided id
 func FetchSites(db *gorm.DB) (sites []Site) {
 	sites = []Site{}
 	db.Find(&sites)
