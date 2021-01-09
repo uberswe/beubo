@@ -76,6 +76,8 @@ func (br *BeuboRouter) RegisterPost(w http.ResponseWriter, r *http.Request) {
 
 	email := r.FormValue("email")
 	password := r.FormValue("password")
+	roles := []*structs.Role{}
+	sites := []*structs.Site{}
 
 	if !utility.IsEmailValid(email) {
 		utility.SetFlash(w, "error", []byte(invalidError))
@@ -83,7 +85,8 @@ func (br *BeuboRouter) RegisterPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !structs.CreateUser(br.DB, email, password) {
+	// TODO default role should be added on register
+	if !structs.CreateUser(br.DB, email, password, roles, sites) {
 		utility.SetFlash(w, "error", []byte(invalidError))
 		http.Redirect(w, r, "/login", 302)
 		return

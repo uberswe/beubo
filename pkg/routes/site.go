@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/utility"
 	"net/http"
@@ -12,6 +13,11 @@ import (
 
 // SiteAdmin is the main page for the admin area and shows a list of pages
 func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_pages", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -21,13 +27,21 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 
 	site := structs.FetchSite(br.DB, i)
 
+	self := r.Context().Value(middleware.UserContextKey)
+	if self != nil && self.(structs.User).ID > 0 {
+		if !self.(structs.User).CanAccessSite(br.DB, site) {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+	}
+
 	var pages []structs.Page
 
 	extra := make(map[string]interface{})
 	pagesRes := make(map[string]map[string]string)
 	extra["SiteID"] = fmt.Sprintf("%d", site.ID)
 
-	if err := br.DB.Find(&pages).Error; err != nil {
+	if err := br.DB.Where("site_id = ?", site.ID).Find(&pages).Error; err != nil {
 		utility.ErrorHandler(err, false)
 	}
 
@@ -51,6 +65,24 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 
 // AdminSiteAdd is the route for adding a site
 func (br *BeuboRouter) AdminSiteAdd(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_sites", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	params := mux.Vars(r)
+	id := params["id"]
+	i, err := strconv.Atoi(id)
+	utility.ErrorHandler(err, false)
+	site := structs.FetchSite(br.DB, i)
+	self := r.Context().Value(middleware.UserContextKey)
+	if self != nil && self.(structs.User).ID > 0 {
+		if !self.(structs.User).CanAccessSite(br.DB, site) {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+	}
+
 	pageData := structs.PageData{
 		Template: "admin.site.add",
 		Title:    "Admin - Add Site",
@@ -62,6 +94,24 @@ func (br *BeuboRouter) AdminSiteAdd(w http.ResponseWriter, r *http.Request) {
 
 // AdminSiteAddPost handles the post request for adding a site
 func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_sites", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	params := mux.Vars(r)
+	id := params["id"]
+	i, err := strconv.Atoi(id)
+	utility.ErrorHandler(err, false)
+	site := structs.FetchSite(br.DB, i)
+	self := r.Context().Value(middleware.UserContextKey)
+	if self != nil && self.(structs.User).ID > 0 {
+		if !self.(structs.User).CanAccessSite(br.DB, site) {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+	}
+
 	path := "/admin/sites/add"
 
 	successMessage := "Site created"
@@ -120,12 +170,23 @@ func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) 
 
 // AdminSiteDelete is the route for deleting a site
 func (br *BeuboRouter) AdminSiteDelete(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_sites", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	id := params["id"]
-
 	i, err := strconv.Atoi(id)
-
 	utility.ErrorHandler(err, false)
+	site := structs.FetchSite(br.DB, i)
+	self := r.Context().Value(middleware.UserContextKey)
+	if self != nil && self.(structs.User).ID > 0 {
+		if !self.(structs.User).CanAccessSite(br.DB, site) {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+	}
 
 	structs.DeleteSite(br.DB, i)
 
@@ -136,6 +197,11 @@ func (br *BeuboRouter) AdminSiteDelete(w http.ResponseWriter, r *http.Request) {
 
 // AdminSiteEdit is the route for adding a site
 func (br *BeuboRouter) AdminSiteEdit(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_sites", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -150,6 +216,14 @@ func (br *BeuboRouter) AdminSiteEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	self := r.Context().Value(middleware.UserContextKey)
+	if self != nil && self.(structs.User).ID > 0 {
+		if !self.(structs.User).CanAccessSite(br.DB, site) {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+	}
+
 	pageData := structs.PageData{
 		Template: "admin.site.edit",
 		Title:    "Admin - Edit Site",
@@ -162,6 +236,11 @@ func (br *BeuboRouter) AdminSiteEdit(w http.ResponseWriter, r *http.Request) {
 
 // AdminSiteEditPost handles editing of a site
 func (br *BeuboRouter) AdminSiteEditPost(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_sites", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -170,6 +249,14 @@ func (br *BeuboRouter) AdminSiteEditPost(w http.ResponseWriter, r *http.Request)
 	i, err := strconv.Atoi(id)
 
 	utility.ErrorHandler(err, false)
+	site := structs.FetchSite(br.DB, i)
+	self := r.Context().Value(middleware.UserContextKey)
+	if self != nil && self.(structs.User).ID > 0 {
+		if !self.(structs.User).CanAccessSite(br.DB, site) {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+	}
 
 	successMessage := "Site updated"
 	invalidError := "an error occured and the site could not be updated."

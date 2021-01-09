@@ -13,6 +13,7 @@ type Site struct {
 	Type    int
 	Theme   Theme
 	ThemeID int
+	Users   []*User `gorm:"many2many:user_sites;"`
 }
 
 // CreateSite is a method which creates a site using gorm

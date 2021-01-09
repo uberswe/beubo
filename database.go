@@ -55,11 +55,9 @@ func databaseInit() {
 	DB = setupDB()
 
 	if shouldRefreshDatabase {
-
 		type Result struct {
 			DropQuery string
 		}
-
 		var result []Result
 
 		log.Println("Dropping all database tables")
@@ -101,7 +99,6 @@ func prepareSeed(email string, password string) {
 }
 
 func databaseSeed() {
-
 	theme := structs.Theme{}
 	// Add initial themes
 	files, err := ioutil.ReadDir(rootDir)
@@ -120,6 +117,50 @@ func databaseSeed() {
 		}
 	}
 
+	// user registration is disabled by default
+	disableRegistration := structs.Setting{Key: "enable_user_registration", Value: "false"}
+	DB.Where("key = ?", disableRegistration.Key).First(&disableRegistration)
+	if disableRegistration.ID == 0 {
+		DB.Create(&disableRegistration)
+	}
+
+	// users who register should have a member role
+	newUserRole := structs.Setting{Key: "new_user_role", Value: "Member"}
+	DB.Where("key = ?", newUserRole.Key).First(&newUserRole)
+	if newUserRole.ID == 0 {
+		DB.Create(&newUserRole)
+	}
+
+	features := []*structs.Feature{
+		{Key: "manage_sites"},
+		{Key: "manage_pages"},
+		{Key: "manage_users"},
+		{Key: "manage_user_roles"},
+		{Key: "manage_plugins"},
+		{Key: "manage_settings"},
+	}
+
+	for _, feature := range features {
+		DB.Where("key = ?", feature.Key).First(&feature)
+		if feature.ID == 0 {
+			DB.Create(&feature)
+		}
+	}
+
+	// Add default roles if not exist
+	adminRole := structs.Role{}
+	DB.Where("name = ?", "Administrator").First(&adminRole)
+	if adminRole.ID == 0 {
+		adminRole = structs.Role{Name: "Administrator", Features: features}
+		DB.Create(&adminRole)
+	}
+	role := structs.Role{}
+	DB.Where("name = ?", "Member").First(&role)
+	if role.ID == 0 {
+		role = structs.Role{Name: "Member"}
+		DB.Create(&role)
+	}
+
 	// Add the specified default test user if the environment is also not set to production
 	if environment != "production" && testuser != "" && testpass != "" {
 		var err error
@@ -132,30 +173,11 @@ func databaseSeed() {
 		user := structs.User{Email: testuser, Password: string(hashedPassword)}
 		DB.Where("email = ?", user.Email).First(&user)
 		if user.ID == 0 {
+			user.Roles = []*structs.Role{
+				&adminRole,
+			}
 			DB.Create(&user)
 		}
-
-	}
-
-	// user registration is disabled by default
-	disableRegistration := structs.Setting{Key: "enable_user_registration", Value: "false"}
-	DB.Where("key = ?", disableRegistration.Key).First(&disableRegistration)
-	if disableRegistration.ID == 0 {
-		DB.Create(&disableRegistration)
-	}
-
-	// Add default roles if not exist
-	role := structs.Role{}
-	DB.Where("name = ?", "Administrator").First(&role)
-	if role.ID == 0 {
-		role = structs.Role{Name: "Administrator"}
-		DB.Create(&role)
-	}
-	role = structs.Role{}
-	DB.Where("name = ?", "Member").First(&role)
-	if role.ID == 0 {
-		role = structs.Role{Name: "Member"}
-		DB.Create(&role)
 	}
 
 	// If seeding is enabled we perform the seed with default info
@@ -197,7 +219,6 @@ func databaseSeed() {
 			Template: "page",
 			SiteID:   int(site.ID),
 		}
-
 		DB.Create(&page)
 
 		shouldSeed = false

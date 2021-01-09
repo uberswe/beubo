@@ -2,6 +2,7 @@ package structs
 
 import (
 	"fmt"
+	"github.com/uberswe/beubo/pkg/utility"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +23,15 @@ type Feature struct {
 
 func (r Role) IsDefault() bool {
 	if r.Name == "Administrator" || r.Name == "Member" {
+		return true
+	}
+	return false
+}
+
+func (r Role) HasFeature(db *gorm.DB, f Feature) bool {
+	features := []Feature{}
+	_ = db.Model(&r).Where("key = ?", f.Key).Association("Features").Find(&features)
+	if len(features) >= 1 {
 		return true
 	}
 	return false
@@ -64,13 +74,16 @@ func DeleteRole(db *gorm.DB, id int) (role Role) {
 }
 
 // UpdateRole updates the role struct with the provided details
-func UpdateRole(db *gorm.DB, id int, name string) bool {
+func UpdateRole(db *gorm.DB, id int, name string, features []*Feature) bool {
 	role := FetchRole(db, id)
 	checkRole := FetchRoleByName(db, name)
 	if checkRole.ID != 0 && checkRole.ID != role.ID {
 		return false
 	}
+	err := db.Model(&role).Association("Features").Clear()
+	utility.ErrorHandler(err, false)
 	role.Name = name
+	role.Features = features
 	if err := db.Save(&role).Error; err != nil {
 		fmt.Println("Could not create role")
 		return false

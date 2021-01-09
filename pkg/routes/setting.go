@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/utility"
 	"net/http"
@@ -11,6 +12,11 @@ import (
 
 // AdminSettingAdd is the route for adding a site
 func (br *BeuboRouter) AdminSettingAdd(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_settings", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	pageData := structs.PageData{
 		Template: "admin.setting.add",
 		Title:    "Admin - Add Setting",
@@ -22,6 +28,11 @@ func (br *BeuboRouter) AdminSettingAdd(w http.ResponseWriter, r *http.Request) {
 
 // AdminSettingAddPost handles adding of a global setting
 func (br *BeuboRouter) AdminSettingAddPost(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_settings", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	path := "/admin/settings/add"
 
 	successMessage := "Setting created"
@@ -55,6 +66,11 @@ func (br *BeuboRouter) AdminSettingAddPost(w http.ResponseWriter, r *http.Reques
 
 // AdminSettingDelete handles the deletion of a global setting
 func (br *BeuboRouter) AdminSettingDelete(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_settings", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -71,6 +87,11 @@ func (br *BeuboRouter) AdminSettingDelete(w http.ResponseWriter, r *http.Request
 
 // AdminSettingEdit is the route for adding a setting
 func (br *BeuboRouter) AdminSettingEdit(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_settings", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -97,6 +118,11 @@ func (br *BeuboRouter) AdminSettingEdit(w http.ResponseWriter, r *http.Request) 
 
 // AdminSettingEditPost handles editing of a global setting
 func (br *BeuboRouter) AdminSettingEditPost(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_settings", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	id := params["id"]
 

@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/plugin"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/structs/page"
@@ -14,6 +15,11 @@ import (
 
 // AdminPluginEdit is the route for editing a plugin
 func (br *BeuboRouter) AdminPluginEdit(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_plugins", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -94,6 +100,11 @@ func (br *BeuboRouter) AdminPluginEdit(w http.ResponseWriter, r *http.Request) {
 
 // AdminPluginEditPost handles editing of plugins
 func (br *BeuboRouter) AdminPluginEditPost(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_plugins", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	err := r.ParseForm()
 	utility.ErrorHandler(err, false)
 
