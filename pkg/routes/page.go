@@ -155,6 +155,7 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 	path := fmt.Sprintf("/admin/sites/a/%s", siteID)
 
 	i, err := strconv.Atoi(siteID)
+	utility.ErrorHandler(err, false)
 
 	pageIDInt, err := strconv.Atoi(pageID)
 	if err != nil {
@@ -163,8 +164,6 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 		http.Redirect(w, r, path, 302)
 		return
 	}
-
-	utility.ErrorHandler(err, false)
 
 	successMessage := "Page updated"
 	invalidError := "an error occurred and the page could not be updated."
