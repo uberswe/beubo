@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/utility"
 	"log"
@@ -13,6 +14,11 @@ import (
 
 // SiteAdminPageNew is a route for creating new pages
 func (br *BeuboRouter) SiteAdminPageNew(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_pages", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	siteID := params["id"]
 	extra := map[string]string{
@@ -30,6 +36,11 @@ func (br *BeuboRouter) SiteAdminPageNew(w http.ResponseWriter, r *http.Request) 
 
 // SiteAdminPageNewPost is a route for handling the post request for creating new pages
 func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_pages", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	siteID := params["id"]
 
@@ -86,6 +97,11 @@ func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Reque
 
 // AdminSitePageEdit is the route for editing a page
 func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_pages", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	siteID := params["id"]
 	pageID := params["pageId"]
@@ -148,6 +164,11 @@ func (br *BeuboRouter) AdminSitePageEdit(w http.ResponseWriter, r *http.Request)
 
 // AdminSitePageEditPost is the route for handling a post request to edit a page
 func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_pages", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	siteID := params["id"]
 	pageID := params["pageId"]
@@ -208,6 +229,11 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 
 // AdminSitePageDelete is the route for handling the deletion of a pge
 func (br *BeuboRouter) AdminSitePageDelete(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_pages", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	params := mux.Vars(r)
 	siteID := params["id"]
 	pageID := params["pageId"]

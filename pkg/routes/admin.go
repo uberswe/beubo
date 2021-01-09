@@ -14,6 +14,11 @@ import (
 
 // Admin is the default admin route and template
 func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_sites", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	var sites []structs.Site
 
 	if err := br.DB.Find(&sites).Error; err != nil {
@@ -21,40 +26,47 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var rows []component.Row
-	for _, site := range sites {
-		sid := fmt.Sprintf("%d", site.ID)
-		rows = append(rows, component.Row{
-			Columns: []component.Column{
-				{Name: "ID", Value: sid},
-				{Name: "Site", Value: site.Title},
-				{Name: "Domain", Value: site.Domain},
-				{Name: "", Field: component.Button{
-					// TODO fix schema here
-					Link:    template.URL(fmt.Sprintf("%s://%s/", "http", site.Domain)),
-					Class:   "btn btn-primary",
-					Content: "View",
-					T:       br.Renderer.T,
-				}},
-				{Name: "", Field: component.Button{
-					Link:    template.URL(fmt.Sprintf("/admin/sites/a/%s", sid)),
-					Class:   "btn btn-primary",
-					Content: "Manage",
-					T:       br.Renderer.T,
-				}},
-				{Name: "", Field: component.Button{
-					Link:    template.URL(fmt.Sprintf("/admin/sites/edit/%s", sid)),
-					Class:   "btn btn-primary",
-					Content: "Edit",
-					T:       br.Renderer.T,
-				}},
-				{Name: "", Field: component.Button{
-					Link:    template.URL(fmt.Sprintf("/admin/sites/delete/%s", sid)),
-					Class:   "btn btn-primary",
-					Content: "Delete",
-					T:       br.Renderer.T,
-				}},
-			},
-		})
+
+	self := r.Context().Value(middleware.UserContextKey)
+	if self != nil && self.(structs.User).ID > 0 {
+		for _, site := range sites {
+			if !self.(structs.User).CanAccessSite(br.DB, site) {
+				continue
+			}
+			sid := fmt.Sprintf("%d", site.ID)
+			rows = append(rows, component.Row{
+				Columns: []component.Column{
+					{Name: "ID", Value: sid},
+					{Name: "Site", Value: site.Title},
+					{Name: "Domain", Value: site.Domain},
+					{Name: "", Field: component.Button{
+						// TODO fix schema here
+						Link:    template.URL(fmt.Sprintf("%s://%s/", "http", site.Domain)),
+						Class:   "btn btn-primary",
+						Content: "View",
+						T:       br.Renderer.T,
+					}},
+					{Name: "", Field: component.Button{
+						Link:    template.URL(fmt.Sprintf("/admin/sites/a/%s", sid)),
+						Class:   "btn btn-primary",
+						Content: "Manage",
+						T:       br.Renderer.T,
+					}},
+					{Name: "", Field: component.Button{
+						Link:    template.URL(fmt.Sprintf("/admin/sites/edit/%s", sid)),
+						Class:   "btn btn-primary",
+						Content: "Edit",
+						T:       br.Renderer.T,
+					}},
+					{Name: "", Field: component.Button{
+						Link:    template.URL(fmt.Sprintf("/admin/sites/delete/%s", sid)),
+						Class:   "btn btn-primary",
+						Content: "Delete",
+						T:       br.Renderer.T,
+					}},
+				},
+			})
+		}
 	}
 
 	table := component.Table{
@@ -94,6 +106,11 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 
 // Settings is the route for loading the admin settings page
 func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_settings", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	var settings []structs.Setting
 
 	if err := br.DB.Find(&settings).Error; err != nil {
@@ -165,6 +182,11 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 
 // Users is the route for loading the admin users page
 func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_users", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	var users []structs.User
 
 	if err := br.DB.Find(&users).Error; err != nil {
@@ -244,6 +266,11 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 
 // Plugins is the route for loading the admin plugins page
 func (br *BeuboRouter) Plugins(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_plugins", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	if r.Method == http.MethodPost {
 		// TODO handle post
 		return

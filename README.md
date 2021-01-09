@@ -1,6 +1,6 @@
 # Beubo
 
-**Beubo is in Alpha and not recommended for production use, expect breaking changes**
+**Beubo is in Alpha and not recommended for production use, expect breaking changes and bugs**
 
 I created Beubo to get better at Go. To learn more and to make it easier to get going with
 new projects. None of the platforms or libraries in the Go ecosystem felt right for me.
@@ -12,7 +12,7 @@ for multiple websites right from the start. I try to keep the capabilities of Be
 as small as possible. I hope I can make Beubo easy to build on using plugins so that 
 it can be used for anything and everything.
 
-Here are some of the features I want to support:
+Here are a few of the features I want to support:
  - Site management, routing based on domain
  - Page creation, editing, deletion
  - Themes
@@ -22,6 +22,10 @@ Here are some of the features I want to support:
 That's pretty much it.
 
 Simply run `go run cmd/beubo/main.go` to get started.
+
+## Database
+
+Beubo uses [GORM](https://gorm.io/) to handle database operations. Currently I am supporting sqlite3 and mysql but other drivers may work but have not been tested.
 
 ## Installation
 

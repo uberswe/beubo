@@ -30,9 +30,14 @@ var (
 func setupDB() *gorm.DB {
 	log.Println("Opening database")
 	dialector := getDialector(databaseUser, databasePassword, databaseHost, databasePort, databaseName, databaseDriver)
-	db, err := gorm.Open(dialector, &gorm.Config{})
+	config := gorm.Config{}
+	if databaseDriver == "sqlite3" {
+		config = gorm.Config{
+			DisableForeignKeyConstraintWhenMigrating: true,
+		}
+	}
+	db, err := gorm.Open(dialector, &config)
 	utility.ErrorHandler(err, true)
-
 	return db
 }
 
@@ -50,11 +55,9 @@ func databaseInit() {
 	DB = setupDB()
 
 	if shouldRefreshDatabase {
-
 		type Result struct {
 			DropQuery string
 		}
-
 		var result []Result
 
 		log.Println("Dropping all database tables")
@@ -72,10 +75,9 @@ func databaseInit() {
 
 	log.Println("Running database migrations")
 
-	DB.AutoMigrate(
+	err := DB.AutoMigrate(
 		&structs.User{},
 		&structs.UserActivation{},
-		&structs.UserRole{},
 		&structs.Config{},
 		&structs.Page{},
 		&structs.Theme{},
@@ -84,7 +86,10 @@ func databaseInit() {
 		&structs.Tag{},
 		&structs.Comment{},
 		&structs.Setting{},
-		&plugin.PluginSite{})
+		&plugin.PluginSite{},
+		&structs.Role{},
+		&structs.Feature{})
+	utility.ErrorHandler(err, true)
 }
 
 func prepareSeed(email string, password string) {
@@ -94,7 +99,6 @@ func prepareSeed(email string, password string) {
 }
 
 func databaseSeed() {
-
 	theme := structs.Theme{}
 	// Add initial themes
 	files, err := ioutil.ReadDir(rootDir)
@@ -113,6 +117,50 @@ func databaseSeed() {
 		}
 	}
 
+	// user registration is disabled by default
+	disableRegistration := structs.Setting{Key: "enable_user_registration", Value: "false"}
+	DB.Where("key = ?", disableRegistration.Key).First(&disableRegistration)
+	if disableRegistration.ID == 0 {
+		DB.Create(&disableRegistration)
+	}
+
+	// users who register should have a member role
+	newUserRole := structs.Setting{Key: "new_user_role", Value: "Member"}
+	DB.Where("key = ?", newUserRole.Key).First(&newUserRole)
+	if newUserRole.ID == 0 {
+		DB.Create(&newUserRole)
+	}
+
+	features := []*structs.Feature{
+		{Key: "manage_sites"},
+		{Key: "manage_pages"},
+		{Key: "manage_users"},
+		{Key: "manage_user_roles"},
+		{Key: "manage_plugins"},
+		{Key: "manage_settings"},
+	}
+
+	for _, feature := range features {
+		DB.Where("key = ?", feature.Key).First(&feature)
+		if feature.ID == 0 {
+			DB.Create(&feature)
+		}
+	}
+
+	// Add default roles if not exist
+	adminRole := structs.Role{}
+	DB.Where("name = ?", "Administrator").First(&adminRole)
+	if adminRole.ID == 0 {
+		adminRole = structs.Role{Name: "Administrator", Features: features}
+		DB.Create(&adminRole)
+	}
+	role := structs.Role{}
+	DB.Where("name = ?", "Member").First(&role)
+	if role.ID == 0 {
+		role = structs.Role{Name: "Member"}
+		DB.Create(&role)
+	}
+
 	// Add the specified default test user if the environment is also not set to production
 	if environment != "production" && testuser != "" && testpass != "" {
 		var err error
@@ -125,16 +173,11 @@ func databaseSeed() {
 		user := structs.User{Email: testuser, Password: string(hashedPassword)}
 		DB.Where("email = ?", user.Email).First(&user)
 		if user.ID == 0 {
+			user.Roles = []*structs.Role{
+				&adminRole,
+			}
 			DB.Create(&user)
 		}
-
-	}
-
-	// user registration is disabled by default
-	disableRegistration := structs.Setting{Key: "enable_user_registration", Value: "false"}
-	DB.Where("key = ?", disableRegistration.Key).First(&disableRegistration)
-	if disableRegistration.ID == 0 {
-		DB.Create(&disableRegistration)
 	}
 
 	// If seeding is enabled we perform the seed with default info
@@ -176,7 +219,6 @@ func databaseSeed() {
 			Template: "page",
 			SiteID:   int(site.ID),
 		}
-
 		DB.Create(&page)
 
 		shouldSeed = false

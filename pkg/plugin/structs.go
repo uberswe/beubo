@@ -19,6 +19,7 @@ type Plugin struct {
 	Data       map[string]string
 }
 
+// PluginSite defines which site a plugin is activated for
 type PluginSite struct {
 	gorm.Model
 	Site             structs.Site
@@ -27,6 +28,7 @@ type PluginSite struct {
 	Active           bool
 }
 
+// FetchPluginSites gets a PluginSite definition based on the specified plugin identifier
 func FetchPluginSites(db *gorm.DB, plugin string) (ps []PluginSite) {
 	db.Preload("Site").Where("plugin_identifier = ?", plugin).Find(&ps)
 	return ps
