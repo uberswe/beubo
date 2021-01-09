@@ -36,7 +36,6 @@ func (u User) CanAccess(db *gorm.DB, featureKey string) bool {
 		Where("features.key = ?", featureKey).
 		Where("user_roles.user_id = ?", u.ID).
 		Count(&count)
-	log.Println(featureKey, count)
 	return count > 0
 }
 
