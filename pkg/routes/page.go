@@ -45,7 +45,7 @@ func (br *BeuboRouter) SiteAdminPageNewPost(w http.ResponseWriter, r *http.Reque
 	siteID := params["id"]
 
 	successMessage := "Page created"
-	invalidError := "an error occured and the site could not be created."
+	invalidError := "an error occurred and the site could not be created."
 
 	siteIDInt, err := strconv.Atoi(siteID)
 	if err != nil {
@@ -176,6 +176,7 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 	path := fmt.Sprintf("/admin/sites/a/%s", siteID)
 
 	i, err := strconv.Atoi(siteID)
+	utility.ErrorHandler(err, false)
 
 	pageIDInt, err := strconv.Atoi(pageID)
 	if err != nil {
@@ -185,10 +186,8 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	utility.ErrorHandler(err, false)
-
 	successMessage := "Page updated"
-	invalidError := "an error occured and the page could not be updated."
+	invalidError := "an error occurred and the page could not be updated."
 
 	title := r.FormValue("titleField")
 	slug := r.FormValue("slugField")
@@ -196,10 +195,8 @@ func (br *BeuboRouter) AdminSitePageEditPost(w http.ResponseWriter, r *http.Requ
 	template := r.FormValue("templateField")
 	tags := r.FormValue("tagField")
 	var tagSlice []structs.Tag
-	err = json.Unmarshal([]byte(tags), &tagSlice)
-	if err != nil {
-		log.Println(err)
-	}
+	err2 := json.Unmarshal([]byte(tags), &tagSlice)
+	utility.ErrorHandler(err2, false)
 
 	for i, tag := range tagSlice {
 		tempTag := structs.Tag{}

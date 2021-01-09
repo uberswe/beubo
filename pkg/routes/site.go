@@ -115,7 +115,7 @@ func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) 
 	path := "/admin/sites/add"
 
 	successMessage := "Site created"
-	invalidError := "an error occured and the site could not be created."
+	invalidError := "an error occurred and the site could not be created."
 
 	themeID := 0
 	title := r.FormValue("titleField")
@@ -259,7 +259,7 @@ func (br *BeuboRouter) AdminSiteEditPost(w http.ResponseWriter, r *http.Request)
 	}
 
 	successMessage := "Site updated"
-	invalidError := "an error occured and the site could not be updated."
+	invalidError := "an error occurred and the site could not be updated."
 
 	themeID := 0
 	title := r.FormValue("titleField")
