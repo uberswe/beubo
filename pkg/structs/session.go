@@ -35,12 +35,9 @@ func CreateSession(db *gorm.DB, userID int) Session {
 func FetchUserFromSession(db *gorm.DB, token string) User {
 	user := User{}
 	session := Session{}
-
 	db.Where("token = ?", token).First(&session)
-
 	if session.ID != 0 {
 		user = FetchUser(db, session.UserID)
 	}
-
 	return user
 }

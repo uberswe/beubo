@@ -1,15 +1,15 @@
 [submodule "themes/default"]
 	path = themes/default
-	url = git@github.com:markustenghamn/beubo-default.git
+	url = git@github.com:uberswe/beubo-default.git
 [submodule "plugins/beubo_grpc"]
 	path = plugins/beubo_grpc
-	url = git@github.com:markustenghamn/beubo_grpc.git
+	url = git@github.com:uberswe/beubo_grpc.git
 [submodule "themes/install"]
 	path = themes/install
-	url = git@github.com:markustenghamn/beubo-install.git
+	url = git@github.com:uberswe/beubo-install.git
 [submodule "plugin/beubo_email_aws"]
 	path = plugin/beubo_email_aws
-	url = git@github.com:markustenghamn/beubo_email_aws.git
+	url = git@github.com:uberswe/beubo_email_aws.git
 [submodule "plugins/beubo_email_aws"]
 	path = plugins/beubo_email_aws
-	url = git@github.com:markustenghamn/beubo_email_aws.git
+	url = git@github.com:uberswe/beubo_email_aws.git

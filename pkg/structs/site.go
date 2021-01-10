@@ -50,9 +50,7 @@ func FetchSites(db *gorm.DB) (sites []Site) {
 // TODO what if one site can have many hosts? For now a redirect can be added for other hosts
 func FetchSiteByHost(db *gorm.DB, host string) Site {
 	site := Site{}
-
 	db.Preload("Theme").Where("domain = ?", host).First(&site)
-
 	return site
 }
 
