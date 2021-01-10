@@ -96,12 +96,12 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 			{Text: "Logout", URI: "/logout"},
 		}
 
-		if !user.(structs.User).CanAccess(btr.DB, "manage_sites") &&
-			!user.(structs.User).CanAccess(btr.DB, "manage_pages") &&
-			!user.(structs.User).CanAccess(btr.DB, "manage_users") &&
-			!user.(structs.User).CanAccess(btr.DB, "manage_user_roles") &&
-			!user.(structs.User).CanAccess(btr.DB, "manage_plugins") &&
-			!user.(structs.User).CanAccess(btr.DB, "manage_settings") {
+		if user.(structs.User).CanAccess(btr.DB, "manage_sites") ||
+			user.(structs.User).CanAccess(btr.DB, "manage_pages") ||
+			user.(structs.User).CanAccess(btr.DB, "manage_users") ||
+			user.(structs.User).CanAccess(btr.DB, "manage_user_roles") ||
+			user.(structs.User).CanAccess(btr.DB, "manage_plugins") ||
+			user.(structs.User).CanAccess(btr.DB, "manage_settings") {
 			adminHeaderMenu = []page.MenuItem{
 				{Text: "Home", URI: "/"},
 				{Text: "Admin", URI: "/admin"},
@@ -152,11 +152,11 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 	// TODO in the future we should make some way for the theme to define the stylesheets
 	scripts := []string{
-		"/default/js/main.min.js",
+		"/default/js/main.js",
 	}
 
 	stylesheets := []string{
-		"/default/css/main.min.css",
+		"/default/css/main.css",
 	}
 
 	if strings.HasPrefix(r.URL.Path, "/admin") {

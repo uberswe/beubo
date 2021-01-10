@@ -70,19 +70,6 @@ func (br *BeuboRouter) AdminSiteAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := mux.Vars(r)
-	id := params["id"]
-	i, err := strconv.Atoi(id)
-	utility.ErrorHandler(err, false)
-	site := structs.FetchSite(br.DB, i)
-	self := r.Context().Value(middleware.UserContextKey)
-	if self != nil && self.(structs.User).ID > 0 {
-		if !self.(structs.User).CanAccessSite(br.DB, site) {
-			w.WriteHeader(http.StatusForbidden)
-			return
-		}
-	}
-
 	pageData := structs.PageData{
 		Template: "admin.site.add",
 		Title:    "Admin - Add Site",
@@ -97,19 +84,6 @@ func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) 
 	if !middleware.CanAccess(br.DB, "manage_sites", r) {
 		w.WriteHeader(http.StatusForbidden)
 		return
-	}
-
-	params := mux.Vars(r)
-	id := params["id"]
-	i, err := strconv.Atoi(id)
-	utility.ErrorHandler(err, false)
-	site := structs.FetchSite(br.DB, i)
-	self := r.Context().Value(middleware.UserContextKey)
-	if self != nil && self.(structs.User).ID > 0 {
-		if !self.(structs.User).CanAccessSite(br.DB, site) {
-			w.WriteHeader(http.StatusForbidden)
-			return
-		}
 	}
 
 	path := "/admin/sites/add"
