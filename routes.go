@@ -5,7 +5,6 @@ import (
 	"github.com/goincremental/negroni-sessions"
 	"github.com/goincremental/negroni-sessions/cookiestore"
 	"github.com/gorilla/mux"
-	"github.com/lpar/gzipped"
 	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/routes"
 	"github.com/uberswe/beubo/pkg/template"
@@ -165,7 +164,7 @@ func registerStaticFiles(r *mux.Router) *mux.Router {
 		}
 		themes = append(themes, f.Name())
 		// Register file paths for themes
-		fileServers[f.Name()+"_css"] = gzipped.FileServer(http.Dir(themedir + f.Name() + "/css/"))
+		fileServers[f.Name()+"_css"] = http.FileServer(http.Dir(themedir + f.Name() + "/css/"))
 		fileServers[f.Name()+"_js"] = http.FileServer(http.Dir(themedir + f.Name() + "/js/"))
 		fileServers[f.Name()+"_images"] = http.FileServer(http.Dir(themedir + f.Name() + "/images/"))
 		fileServers[f.Name()+"_fonts"] = http.FileServer(http.Dir(themedir + f.Name() + "/fonts/"))

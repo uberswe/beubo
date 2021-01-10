@@ -12,7 +12,6 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/joho/godotenv v1.3.0
-	github.com/lpar/gzipped v1.1.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/stretchr/stew v0.0.0-20130812190256-80ef0842b48b
 	github.com/uberswe/beubo_grpc v0.0.0-20201217233052-a073736aeeb2
@@ -27,5 +26,5 @@ require (
 	google.golang.org/protobuf v1.25.0
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/driver/sqlite v1.1.4
-	gorm.io/gorm v1.20.9
+	gorm.io/gorm v1.20.10
 )
