@@ -204,7 +204,12 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 					Columns: []component.Column{
 						{Name: "ID", Value: sid},
 						{Name: "Email", Value: user.Email},
-						{},
+						{Name: "", Field: component.Button{
+							Link:    template.URL(fmt.Sprintf("/admin/users/edit/%s", sid)),
+							Class:   "btn btn-primary",
+							Content: "Edit",
+							T:       br.Renderer.T,
+						}},
 						{},
 					},
 				})

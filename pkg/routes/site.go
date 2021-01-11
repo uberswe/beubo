@@ -94,6 +94,7 @@ func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) 
 	themeID := 0
 	title := r.FormValue("titleField")
 	domain := r.FormValue("domainField")
+	destDomain := r.FormValue("destinationField")
 	// typeField
 	// 1 - Beubo hosted site
 	// 2 - HTML files from directory
@@ -119,6 +120,9 @@ func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) 
 	domain = strings.ToLower(domain)
 	domain = utility.TrimWhitespace(domain)
 
+	destDomain = strings.ToLower(destDomain)
+	destDomain = utility.TrimWhitespace(destDomain)
+
 	if len(title) < 1 {
 		invalidError = "The title is too short"
 		utility.SetFlash(w, "error", []byte(invalidError))
@@ -132,7 +136,7 @@ func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if structs.CreateSite(br.DB, title, domain, typeID, themeID) {
+	if structs.CreateSite(br.DB, title, domain, typeID, themeID, destDomain) {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, "/admin/", 302)
 		return
@@ -238,6 +242,7 @@ func (br *BeuboRouter) AdminSiteEditPost(w http.ResponseWriter, r *http.Request)
 	themeID := 0
 	title := r.FormValue("titleField")
 	domain := r.FormValue("domainField")
+	destDomain := r.FormValue("destinationField")
 	// typeField
 	// 1 - Beubo hosted site
 	// 2 - HTML files from directory
@@ -263,6 +268,9 @@ func (br *BeuboRouter) AdminSiteEditPost(w http.ResponseWriter, r *http.Request)
 	domain = strings.ToLower(domain)
 	domain = utility.TrimWhitespace(domain)
 
+	destDomain = strings.ToLower(destDomain)
+	destDomain = utility.TrimWhitespace(destDomain)
+
 	if len(title) < 1 {
 		invalidError = "The title is too short"
 		utility.SetFlash(w, "error", []byte(invalidError))
@@ -276,7 +284,7 @@ func (br *BeuboRouter) AdminSiteEditPost(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if structs.UpdateSite(br.DB, i, title, domain, typeID, themeID) {
+	if structs.UpdateSite(br.DB, i, title, domain, typeID, themeID, destDomain) {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, path, 302)
 		return

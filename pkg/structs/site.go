@@ -8,21 +8,23 @@ import (
 // Site represents one website, the idea is that Beubo handles many websites at the same time, you could then have 100s of sites all on the same platform
 type Site struct {
 	gorm.Model
-	Title   string `gorm:"size:255"`
-	Domain  string `gorm:"size:255;unique_index"`
-	Type    int
-	Theme   Theme
-	ThemeID int
-	Users   []*User `gorm:"many2many:user_sites;"`
+	Title             string `gorm:"size:255"`
+	Domain            string `gorm:"size:255;unique_index"`
+	DestinationDomain string
+	Type              int
+	Theme             Theme
+	ThemeID           int
+	Users             []*User `gorm:"many2many:user_sites;"`
 }
 
 // CreateSite is a method which creates a site using gorm
-func CreateSite(db *gorm.DB, title string, domain string, siteType int, themeID int) bool {
+func CreateSite(db *gorm.DB, title string, domain string, siteType int, themeID int, destinationDomain string) bool {
 	site := Site{
-		Title:   title,
-		Domain:  domain,
-		Type:    siteType,
-		ThemeID: themeID,
+		Title:             title,
+		Domain:            domain,
+		Type:              siteType,
+		ThemeID:           themeID,
+		DestinationDomain: destinationDomain,
 	}
 
 	if err := db.Create(&site).Error; err != nil {
@@ -55,13 +57,14 @@ func FetchSiteByHost(db *gorm.DB, host string) Site {
 }
 
 // UpdateSite is a method which updates a site using gorm
-func UpdateSite(db *gorm.DB, id int, title string, domain string, siteType int, themeID int) bool {
+func UpdateSite(db *gorm.DB, id int, title string, domain string, siteType int, themeID int, destinationDomain string) bool {
 	site := FetchSite(db, id)
 
 	site.Title = title
 	site.Domain = domain
 	site.Type = siteType
 	site.ThemeID = themeID
+	site.DestinationDomain = destinationDomain
 
 	if err := db.Save(&site).Error; err != nil {
 		fmt.Println("Could not create site")
