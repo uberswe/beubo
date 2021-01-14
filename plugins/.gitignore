@@ -1,4 +1,2 @@
-./beubo_admin
-./beubo_database
-*.so
+*
 !README.md
