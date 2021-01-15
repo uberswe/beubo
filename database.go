@@ -5,8 +5,11 @@ import (
 	"github.com/uberswe/beubo/pkg/plugin"
 	"github.com/uberswe/beubo/pkg/utility"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"io/ioutil"
 	"log"
+	"os"
+	"time"
 
 	"github.com/uberswe/beubo/pkg/structs"
 	"golang.org/x/crypto/bcrypt"
@@ -30,10 +33,21 @@ var (
 func setupDB() *gorm.DB {
 	log.Println("Opening database")
 	dialector := getDialector(databaseUser, databasePassword, databaseHost, databasePort, databaseName, databaseDriver)
-	config := gorm.Config{}
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold: time.Second,   // Slow SQL threshold
+			LogLevel:      logger.Silent, // Log level
+			Colorful:      true,
+		},
+	)
+	config := gorm.Config{
+		Logger: newLogger,
+	}
 	if databaseDriver == "sqlite3" {
 		config = gorm.Config{
 			DisableForeignKeyConstraintWhenMigrating: true,
+			Logger:                                   newLogger,
 		}
 	}
 	db, err := gorm.Open(dialector, &config)

@@ -37,7 +37,6 @@ func (u User) CanAccess(db *gorm.DB, featureKey string) bool {
 		Where("features.key = ?", featureKey).
 		Where("user_roles.user_id = ?", u.ID).
 		Count(&count)
-	log.Println(count)
 	return count > 0
 }
 
@@ -50,7 +49,6 @@ func (u User) CanAccessSite(db *gorm.DB, site Site) bool {
 		Where("user_sites.user_id = ?", u.ID).
 		Where("sites.id = ?", site.ID).
 		Count(&count)
-	log.Println(site.Title, count)
 	return count > 0
 }
 

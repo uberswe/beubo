@@ -131,7 +131,6 @@ func hasDirectory(path string) bool {
 		return false
 	}
 	for _, f := range files {
-		log.Println(f.Name(), f.IsDir())
 		if f.IsDir() {
 			return true
 		}
