@@ -71,7 +71,9 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		btr.CurrentTheme = os.Getenv("THEME")
 	} else {
 		// Default theme
-		btr.CurrentTheme = "default"
+		if btr.CurrentTheme == "" {
+			btr.CurrentTheme = "default"
+		}
 	}
 
 	menuItems := []page.MenuItem{
@@ -79,9 +81,12 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		{Text: "Login", URI: "/login"},
 	}
 
-	setting := structs.FetchSettingByKey(btr.DB, "enable_user_registration")
-	if !(setting.ID == 0 || setting.Value == "false") {
-		menuItems = append(menuItems, page.MenuItem{Text: "Register", URI: "/register"})
+	// DB is not available during installation
+	if btr.DB != nil {
+		setting := structs.FetchSettingByKey(btr.DB, "enable_user_registration")
+		if !(setting.ID == 0 || setting.Value == "false") {
+			menuItems = append(menuItems, page.MenuItem{Text: "Register", URI: "/register"})
+		}
 	}
 
 	menus := []page.Menu{menu.DefaultMenu{
@@ -179,7 +184,10 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	}
 
 	data = mergePageData(data, pageData)
-	data = btr.PluginHandler.PageData(r, data)
+	// PluginHandler is not available during installation
+	if btr.PluginHandler != nil {
+		data = btr.PluginHandler.PageData(r, data)
+	}
 
 	if btr.ReloadTemplates {
 		log.Println("Parsing and loading templates...")
@@ -190,10 +198,14 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 	var foundTemplate *template.Template
 
-	path := fmt.Sprintf("%s.%s", currentTheme, pageData.Template)
+	path := fmt.Sprintf("%s.%s", btr.CurrentTheme, pageData.Template)
 	if foundTemplate = btr.T.Lookup(path); foundTemplate == nil {
-		log.Printf("Theme file not found %s\n", path)
-		return
+		// Fallback to default
+		path := fmt.Sprintf("%s.%s", "default", pageData.Template)
+		if foundTemplate = btr.T.Lookup(path); foundTemplate == nil {
+			log.Printf("Theme file not found %s\n", path)
+			return
+		}
 	}
 
 	err = foundTemplate.Execute(w, data)
@@ -271,6 +283,10 @@ func mergePageData(a structs.PageData, b structs.PageData) structs.PageData {
 
 	if b.Favicon != "" {
 		a.Favicon = b.Favicon
+	}
+
+	if len(b.Menus) > 0 {
+		a.Menus = b.Menus
 	}
 
 	a.Components = b.Components

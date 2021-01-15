@@ -3,19 +3,17 @@ package beubo
 import (
 	"fmt"
 	"github.com/uberswe/beubo/pkg/plugin"
+	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/utility"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"io/ioutil"
 	"log"
 	"os"
 	"time"
-
-	"github.com/uberswe/beubo/pkg/structs"
-	"golang.org/x/crypto/bcrypt"
-	// Gorm recommends a blank import to support underlying mysql
-	"gorm.io/driver/mysql"
-	"gorm.io/driver/sqlite"
 )
 
 var (
@@ -194,19 +192,12 @@ func databaseSeed() {
 		}
 	}
 
+	log.Println("should seed", shouldSeed)
+
 	// If seeding is enabled we perform the seed with default info
 	if shouldSeed {
 		log.Println("Seeding database")
 		var err error
-
-		// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(seedPassword), 14)
-
-		utility.ErrorHandler(err, true)
-
-		user := structs.User{Email: seedEmail, Password: string(hashedPassword)}
-
-		DB.Create(&user)
 
 		// Create a site
 
@@ -234,6 +225,20 @@ func databaseSeed() {
 			SiteID:   int(site.ID),
 		}
 		DB.Create(&page)
+
+		// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(seedPassword), 14)
+
+		utility.ErrorHandler(err, true)
+
+		user := structs.User{Email: seedEmail, Password: string(hashedPassword)}
+		DB.Where("email = ?", user.Email).First(&user)
+		if user.ID == 0 {
+			user.Roles = []*structs.Role{
+				&adminRole,
+			}
+			DB.Create(&user)
+		}
 
 		shouldSeed = false
 		seedEmail = ""

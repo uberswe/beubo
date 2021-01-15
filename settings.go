@@ -2,6 +2,7 @@ package beubo
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -9,10 +10,13 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/uberswe/beubo/pkg/routes"
 	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/structs/page"
+	"github.com/uberswe/beubo/pkg/structs/page/menu"
 	"github.com/uberswe/beubo/pkg/template"
 	"github.com/uberswe/beubo/pkg/utility"
 	"github.com/urfave/negroni"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -36,7 +40,7 @@ var (
 	installed       = false // TODO handle this in a middleware or something
 	reloadTemplates = false
 
-	sessionKey = string(securecookie.GenerateRandomKey(64))
+	sessionKey = base64.StdEncoding.EncodeToString(securecookie.GenerateRandomKey(64))
 
 	failures map[string]map[string]string
 )
@@ -73,7 +77,7 @@ func settingsInit() {
 	databaseDriver = setSetting(os.Getenv("DB_DRIVER"), databaseDriver)
 	databasePassword = setSetting(os.Getenv("DB_PASSWORD"), databasePassword)
 	shouldRefreshDatabase = setBoolSetting(os.Getenv("REFRESH_DATABASE"), shouldRefreshDatabase)
-	shouldSeed = setBoolSetting(os.Getenv("SEED_DATABASE"), shouldRefreshDatabase)
+	shouldSeed = setBoolSetting(os.Getenv("SEED_DATABASE"), shouldSeed)
 
 	environment = setSetting(os.Getenv("ENVIRONMENT"), environment)
 
@@ -82,7 +86,7 @@ func settingsInit() {
 
 	sessionKey = setSetting(os.Getenv("SESSION_KEY"), sessionKey)
 
-	if databaseUser != "" && databaseName != "" {
+	if databaseName != "" {
 		installed = true
 	} else {
 		log.Println("No installation detected, starting install server")
@@ -111,7 +115,16 @@ func startInstallServer() *http.Server {
 	r := mux.NewRouter()
 	n := negroni.Classic()
 
-	beuboRouter := &routes.BeuboRouter{}
+	beuboTemplateRenderer := template.BeuboTemplateRenderer{
+		ReloadTemplates: true,
+		CurrentTheme:    "install",
+	}
+
+	beuboTemplateRenderer.Init()
+
+	beuboRouter := &routes.BeuboRouter{
+		Renderer: &beuboTemplateRenderer,
+	}
 
 	r.NotFoundHandler = http.HandlerFunc(beuboRouter.NotFoundHandler)
 
@@ -151,6 +164,8 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		ReloadTemplates: true,
 		CurrentTheme:    "install",
 	}
+
+	beuboTemplateRenderer.Init()
 
 	pageData := structs.PageData{
 		Template: "finished",
@@ -205,25 +220,53 @@ func Install(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		dialector := getDialector(extra[formKey][dbuserKey], extra[formKey][dbpasswordKey], extra[formKey][dbhostKey], databasePort, extra[formKey][dbnameKey], extra[formKey][dbdriverKey])
-		_, err = gorm.Open(dialector, &gorm.Config{})
-		if err != nil {
+		newLogger := logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+			logger.Config{
+				SlowThreshold: time.Second, // Slow SQL threshold
+				LogLevel:      logger.Info, // Log level
+				Colorful:      true,
+			},
+		)
+		config := gorm.Config{
+			Logger: newLogger,
+		}
+		if extra[formKey][dbdriverKey] == "sqlite3" {
+			config = gorm.Config{
+				DisableForeignKeyConstraintWhenMigrating: true,
+				Logger:                                   newLogger,
+			}
+		}
 
+		dialector := getDialector(extra[formKey][dbuserKey], extra[formKey][dbpasswordKey], extra[formKey][dbhostKey], databasePort, extra[formKey][dbnameKey], extra[formKey][dbdriverKey])
+		_, err = gorm.Open(dialector, &config)
+		if err != nil {
 			utility.SetFlash(w, "error", []byte(err.Error()))
 			// Redirect back with error
 			w.Header().Add("Location", "/")
 			w.WriteHeader(302)
 			return
 		}
-		fmt.Println("no error, install done")
+
+		log.Println("no error, install done")
 		writeEnv("", "", extra[formKey][dbhostKey], extra[formKey][dbnameKey], extra[formKey][dbuserKey], extra[formKey][dbpasswordKey], extra[formKey][dbdriverKey])
 		beuboTemplateRenderer.RenderHTMLPage(w, r, pageData)
 		currentTheme = "default"
 		prepareSeed(extra[formKey][usernameKey], extra[formKey][passwordKey])
 		installed = true
 		return
-
 	}
+
+	menuItems := []page.MenuItem{
+		{Text: "Home", URI: "/"},
+	}
+
+	menus := []page.Menu{menu.DefaultMenu{
+		Items:      menuItems,
+		Identifier: "header",
+		T:          beuboTemplateRenderer.T,
+	}}
+
 	extra = make(map[string]map[string]string)
 	token, err := utility.GetFlash(w, r, "token")
 	if err == nil {
@@ -232,9 +275,11 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		failures[string(token)] = nil
 	}
 	pageData = structs.PageData{
+		Theme:    "install",
 		Template: "page",
 		Title:    "Install",
 		Extra:    extra,
+		Menus:    menus,
 	}
 	beuboTemplateRenderer.RenderHTMLPage(w, r, pageData)
 	return
@@ -260,8 +305,9 @@ func setBoolSetting(key string, variable bool) bool {
 
 // writeEnv writes environmental variables to an .env file
 func writeEnv(assetDir string, theme string, dbHost string, dbName string, dbUser string, dbPassword string, dbDriver string) {
-	envContent := []byte("ASSETS_DIR=" + assetDir + "\nTHEME=" + theme + "\n\nDB_DRIVER=" + dbDriver + "\nDB_HOST=" + dbHost + "\nDB_NAME=" + dbName + "\nDB_USER=" + dbUser + "\nDB_PASSWORD=" + dbPassword)
+	envContent := []byte("ASSETS_DIR=" + assetDir + "\nTHEME=" + theme + "\n\nDB_DRIVER=" + dbDriver + "\nDB_HOST=" + dbHost + "\nDB_NAME=" + dbName + "\nDB_USER=" + dbUser + "\nDB_PASSWORD=" + dbPassword + "\nSESSION_KEY=" + sessionKey)
 	// TODO allow users to specify folder or even config filename, maybe beuboConfig
+	// TODO generate session key
 	err := ioutil.WriteFile(".env", envContent, 0600) // TODO allow user to change permissions here?
 
 	// We panic if we can not write env
