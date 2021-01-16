@@ -253,6 +253,7 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		beuboTemplateRenderer.RenderHTMLPage(w, r, pageData)
 		currentTheme = "default"
 		prepareSeed(extra[formKey][usernameKey], extra[formKey][passwordKey])
+		databaseName = extra[formKey][dbnameKey]
 		installed = true
 		return
 	}
