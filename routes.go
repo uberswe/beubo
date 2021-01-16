@@ -60,7 +60,7 @@ func routesInit() {
 	r.StrictSlash(true)
 	n := negroni.Classic()
 
-	store := cookiestore.New([]byte(sessionKey))
+	store := cookiestore.New(sessionKey)
 	n.Use(sessions.Sessions("beubo", store))
 
 	r.NotFoundHandler = http.HandlerFunc(beuboRouter.PageHandler)

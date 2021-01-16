@@ -2,7 +2,7 @@ package beubo
 
 import (
 	"context"
-	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -40,7 +40,7 @@ var (
 	installed       = false // TODO handle this in a middleware or something
 	reloadTemplates = false
 
-	sessionKey = base64.StdEncoding.EncodeToString(securecookie.GenerateRandomKey(64))
+	sessionKey = securecookie.GenerateRandomKey(64)
 
 	failures map[string]map[string]string
 )
@@ -84,7 +84,11 @@ func settingsInit() {
 	testpass = setSetting(os.Getenv("TEST_PASS"), testpass)
 	testuser = setSetting(os.Getenv("TEST_USER"), testuser)
 
-	sessionKey = setSetting(os.Getenv("SESSION_KEY"), sessionKey)
+	sessionKeyBytes, err := hex.DecodeString(os.Getenv("SESSION_KEY"))
+	utility.ErrorHandler(err, false)
+	if len(sessionKeyBytes) > 1 {
+		sessionKey = sessionKeyBytes
+	}
 
 	if databaseName != "" {
 		installed = true
@@ -306,9 +310,8 @@ func setBoolSetting(key string, variable bool) bool {
 
 // writeEnv writes environmental variables to an .env file
 func writeEnv(assetDir string, theme string, dbHost string, dbName string, dbUser string, dbPassword string, dbDriver string) {
-	envContent := []byte("ASSETS_DIR=" + assetDir + "\nTHEME=" + theme + "\n\nDB_DRIVER=" + dbDriver + "\nDB_HOST=" + dbHost + "\nDB_NAME=" + dbName + "\nDB_USER=" + dbUser + "\nDB_PASSWORD=" + dbPassword + "\nSESSION_KEY=" + sessionKey)
+	envContent := []byte("ASSETS_DIR=" + assetDir + "\nTHEME=" + theme + "\n\nDB_DRIVER=" + dbDriver + "\nDB_HOST=" + dbHost + "\nDB_NAME=" + dbName + "\nDB_USER=" + dbUser + "\nDB_PASSWORD=" + dbPassword + "\nSESSION_KEY=" + hex.EncodeToString(sessionKey))
 	// TODO allow users to specify folder or even config filename, maybe beuboConfig
-	// TODO generate session key
 	err := ioutil.WriteFile(".env", envContent, 0600) // TODO allow user to change permissions here?
 
 	// We panic if we can not write env

@@ -97,9 +97,7 @@ func FetchPage(db *gorm.DB, id int) Page {
 // FetchPageBySiteIDAndSlug gets a page based on the site id and slug from the database
 func FetchPageBySiteIDAndSlug(db *gorm.DB, SiteID int, slug string) Page {
 	pageData := Page{}
-
 	db.Where("slug = ? AND site_id = ?", slug, SiteID).First(&pageData)
-
 	return pageData
 }
 
