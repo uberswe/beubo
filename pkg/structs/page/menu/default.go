@@ -27,11 +27,6 @@ func (m DefaultMenu) GetItems() []page.MenuItem {
 	return m.Items
 }
 
-// SetItems is a setter for the Items property
-func (m DefaultMenu) SetItems(items []page.MenuItem) {
-	m.Items = items
-}
-
 // Render calls the relevant templates and functions to turn a menu into a html string for browser output
 func (m DefaultMenu) Render() string {
 	tmpl := "menu.default"
