@@ -11,7 +11,6 @@ import (
 type Menu interface {
 	GetIdentifier() string
 	GetItems() []MenuItem
-	SetItems([]MenuItem)
 	Render() string
 }
 
