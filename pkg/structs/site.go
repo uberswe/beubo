@@ -18,7 +18,7 @@ type Site struct {
 }
 
 // CreateSite is a method which creates a site using gorm
-func CreateSite(db *gorm.DB, title string, domain string, siteType int, themeID int, destinationDomain string) bool {
+func CreateSite(db *gorm.DB, title string, domain string, siteType int, themeID int, destinationDomain string) Site {
 	site := Site{
 		Title:             title,
 		Domain:            domain,
@@ -29,9 +29,9 @@ func CreateSite(db *gorm.DB, title string, domain string, siteType int, themeID 
 
 	if err := db.Create(&site).Error; err != nil {
 		fmt.Println("Could not create site")
-		return false
+		return site
 	}
-	return true
+	return site
 }
 
 // FetchSite gets a site from the database using the provided id

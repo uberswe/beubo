@@ -136,7 +136,16 @@ func (br *BeuboRouter) AdminSiteAddPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if structs.CreateSite(br.DB, title, domain, typeID, themeID, destDomain) {
+	if site := structs.CreateSite(br.DB, title, domain, typeID, themeID, destDomain); site.ID > 0 {
+		self := r.Context().Value(middleware.UserContextKey)
+		if self != nil && self.(structs.User).ID > 0 {
+			selfUser := self.(structs.User)
+			site.Users = []*structs.User{
+				&selfUser,
+			}
+			br.DB.Save(&site)
+		}
+
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, "/admin/", 302)
 		return
