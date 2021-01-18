@@ -111,23 +111,7 @@ func prepareSeed(email string, password string) {
 }
 
 func databaseSeed() {
-	theme := structs.Theme{}
-	// Add initial themes
-	files, err := ioutil.ReadDir(rootDir)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, file := range files {
-		// Ignore the install directory, only used for installation
-		if file.IsDir() && file.Name() != "install" {
-			theme = structs.Theme{}
-			DB.Where("slug = ?", file.Name()).First(&theme)
-			if theme.ID == 0 {
-				theme = structs.Theme{Slug: file.Name(), Title: file.Name()}
-				DB.Create(&theme)
-			}
-		}
-	}
+	theme := addThemes()
 
 	// user registration is disabled by default
 	disableRegistration := structs.Setting{Key: "enable_user_registration", Value: "false"}
@@ -196,52 +180,76 @@ func databaseSeed() {
 
 	// If seeding is enabled we perform the seed with default info
 	if shouldSeed {
-		log.Println("Seeding database")
-		var err error
-
-		// Create a site
-
-		site := structs.Site{
-			Title:  "Beubo",
-			Domain: "beubo.localhost",
-			Theme:  theme,
-			Type:   1,
-		}
-
-		DB.Create(&site)
-
-		// Create a page
-		content := `<p>Welcome to Beubo! Beubo is a free, simple, and minimal CMS with unlimited extensibility using plugins. This is the default page and can be changed in the admin area for this site.</p>`
-		content += `<p>Beubo is open source and the project can be found on <a href="https://github.com/uberswe/beubo">Github</a>. If you find any problems or have an idea on how Beubo can be improved, please feel free to <a href="https://github.com/uberswe/beubo/issues">open an issue here</a>.</p>`
-		content += `<p>Feel free to <a href="https://github.com/uberswe/beubo/pulls">open a pull request</a> if you would like to contribute your own changes.</p>`
-		content += `<p>For more information on how to use, customize and extend Beubo please see the <a href="https://github.com/uberswe/beubo/wiki">wiki</a></p>`
-
-		page := structs.Page{
-			Model:    gorm.Model{},
-			Title:    "Default page",
-			Content:  content,
-			Slug:     "/",
-			Template: "page",
-			SiteID:   int(site.ID),
-		}
-		DB.Create(&page)
-
-		// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(seedPassword), 14)
-
-		utility.ErrorHandler(err, true)
-
-		user := structs.User{Email: seedEmail, Password: string(hashedPassword)}
-		DB.Where("email = ?", user.Email).First(&user)
-		if user.ID == 0 {
-			user.Roles = []*structs.Role{
-				&adminRole,
-			}
-			DB.Create(&user)
-		}
-
-		shouldSeed = false
-		seedEmail = ""
-		seedPassword = ""
+		seedData(theme, adminRole)
 	}
+
+	shouldSeed = false
+	seedEmail = ""
+	seedPassword = ""
+}
+
+func seedData(theme structs.Theme, adminRole structs.Role) {
+	log.Println("Seeding database")
+	var err error
+
+	// Create a site
+
+	site := structs.Site{
+		Title:  "Beubo",
+		Domain: "beubo.localhost",
+		Theme:  theme,
+		Type:   1,
+	}
+
+	DB.Create(&site)
+
+	// Create a page
+	content := `<p>Welcome to Beubo! Beubo is a free, simple, and minimal CMS with unlimited extensibility using plugins. This is the default page and can be changed in the admin area for this site.</p>`
+	content += `<p>Beubo is open source and the project can be found on <a href="https://github.com/uberswe/beubo">Github</a>. If you find any problems or have an idea on how Beubo can be improved, please feel free to <a href="https://github.com/uberswe/beubo/issues">open an issue here</a>.</p>`
+	content += `<p>Feel free to <a href="https://github.com/uberswe/beubo/pulls">open a pull request</a> if you would like to contribute your own changes.</p>`
+	content += `<p>For more information on how to use, customize and extend Beubo please see the <a href="https://github.com/uberswe/beubo/wiki">wiki</a></p>`
+
+	page := structs.Page{
+		Model:    gorm.Model{},
+		Title:    "Default page",
+		Content:  content,
+		Slug:     "/",
+		Template: "page",
+		SiteID:   int(site.ID),
+	}
+	DB.Create(&page)
+
+	// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(seedPassword), 14)
+
+	utility.ErrorHandler(err, true)
+
+	user := structs.User{Email: seedEmail, Password: string(hashedPassword)}
+	DB.Where("email = ?", user.Email).First(&user)
+	if user.ID == 0 {
+		user.Roles = []*structs.Role{
+			&adminRole,
+		}
+		DB.Create(&user)
+	}
+}
+
+func addThemes() (theme structs.Theme) {
+	// Add initial themes
+	files, err := ioutil.ReadDir(rootDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		// Ignore the install directory, only used for installation
+		if file.IsDir() && file.Name() != "install" {
+			theme = structs.Theme{}
+			DB.Where("slug = ?", file.Name()).First(&theme)
+			if theme.ID == 0 {
+				theme = structs.Theme{Slug: file.Name(), Title: file.Name()}
+				DB.Create(&theme)
+			}
+		}
+	}
+	return theme
 }
