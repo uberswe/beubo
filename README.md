@@ -1,5 +1,7 @@
 # Beubo
 
+![Beubo logo](./assets/logo-light.svg)
+
 **Beubo is in Alpha and not recommended for production use, expect breaking changes and bugs**
 
 I created Beubo to get better at Go. To learn more and to make it easier to get going with
