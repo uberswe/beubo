@@ -76,85 +76,6 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		}
 	}
 
-	menuItems := []page.MenuItem{
-		{Text: "Home", URI: "/"},
-		{Text: "Login", URI: "/login"},
-	}
-
-	// DB is not available during installation
-	if btr.DB != nil {
-		setting := structs.FetchSettingByKey(btr.DB, "enable_user_registration")
-		if !(setting.ID == 0 || setting.Value == "false") {
-			menuItems = append(menuItems, page.MenuItem{Text: "Register", URI: "/register"})
-		}
-	}
-
-	menus := []page.Menu{menu.DefaultMenu{
-		Items:      menuItems,
-		Identifier: "header",
-		T:          btr.T,
-	}}
-
-	if user != nil && user.(structs.User).ID > 0 {
-		adminHeaderMenu := []page.MenuItem{
-			{Text: "Home", URI: "/"},
-			{Text: "Logout", URI: "/logout"},
-		}
-
-		if user.(structs.User).CanAccess(btr.DB, "manage_sites") ||
-			user.(structs.User).CanAccess(btr.DB, "manage_pages") ||
-			user.(structs.User).CanAccess(btr.DB, "manage_users") ||
-			user.(structs.User).CanAccess(btr.DB, "manage_user_roles") ||
-			user.(structs.User).CanAccess(btr.DB, "manage_plugins") ||
-			user.(structs.User).CanAccess(btr.DB, "manage_settings") {
-			adminHeaderMenu = []page.MenuItem{
-				{Text: "Home", URI: "/"},
-				{Text: "Admin", URI: "/admin"},
-				{Text: "Logout", URI: "/logout"},
-			}
-		}
-
-		adminSidebarMenu := []page.MenuItem{}
-
-		if user.(structs.User).CanAccess(btr.DB, "manage_sites") {
-			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Sites", URI: "/admin/"})
-		}
-
-		if user.(structs.User).CanAccess(btr.DB, "manage_settings") {
-			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Settings", URI: "/admin/settings"})
-		}
-
-		if user.(structs.User).CanAccess(btr.DB, "manage_users") {
-			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{
-				Text: "Users",
-				URI:  "/admin/users",
-				Items: []page.MenuItem{
-					{
-						Text: "Roles",
-						URI:  "/admin/users/roles",
-					},
-				},
-				// Submenus need template to be defined
-				T: btr.T,
-			})
-		}
-
-		if user.(structs.User).CanAccess(btr.DB, "manage_plugins") {
-			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Plugins", URI: "/admin/plugins"})
-		}
-
-		menus = []page.Menu{menu.DefaultMenu{
-			Items:      adminHeaderMenu,
-			Identifier: "header",
-			T:          btr.T,
-		}, menu.DefaultMenu{
-			Items:      adminSidebarMenu,
-			Identifier: "sidebar",
-			Template:   "menu.sidebar",
-			T:          btr.T,
-		}}
-	}
-
 	// TODO in the future we should make some way for the theme to define the stylesheets
 	scripts := []string{
 		"/default/js/main.js",
@@ -168,6 +89,10 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		scripts = append(scripts, "/default/js/admin.js")
 		stylesheets = append(stylesheets, "/default/css/admin.css")
 	}
+	var userFromContext structs.User
+	if user != nil && user.(structs.User).ID > 0 {
+		userFromContext = user.(structs.User)
+	}
 
 	data := structs.PageData{
 		Stylesheets: stylesheets,
@@ -180,7 +105,7 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		Warning:     string(warningMessage),
 		Message:     string(stringMessage),
 		Year:        strconv.Itoa(time.Now().Year()),
-		Menus:       menus,
+		Menus:       btr.buildMenus(userFromContext),
 	}
 
 	data = mergePageData(data, pageData)
@@ -210,6 +135,88 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 	err = foundTemplate.Execute(w, data)
 	utility.ErrorHandler(err, false)
+}
+
+func (btr *BeuboTemplateRenderer) buildMenus(user structs.User) []page.Menu {
+	menuItems := []page.MenuItem{
+		{Text: "Home", URI: "/"},
+		{Text: "Login", URI: "/login"},
+	}
+
+	// DB is not available during installation
+	if btr.DB != nil {
+		setting := structs.FetchSettingByKey(btr.DB, "enable_user_registration")
+		if !(setting.ID == 0 || setting.Value == "false") {
+			menuItems = append(menuItems, page.MenuItem{Text: "Register", URI: "/register"})
+		}
+	}
+
+	menus := []page.Menu{menu.DefaultMenu{
+		Items:      menuItems,
+		Identifier: "header",
+		T:          btr.T,
+	}}
+
+	if user.ID > 0 {
+		adminHeaderMenu := []page.MenuItem{
+			{Text: "Home", URI: "/"},
+			{Text: "Logout", URI: "/logout"},
+		}
+
+		if user.CanAccess(btr.DB, "manage_sites") ||
+			user.CanAccess(btr.DB, "manage_pages") ||
+			user.CanAccess(btr.DB, "manage_users") ||
+			user.CanAccess(btr.DB, "manage_user_roles") ||
+			user.CanAccess(btr.DB, "manage_plugins") ||
+			user.CanAccess(btr.DB, "manage_settings") {
+			adminHeaderMenu = []page.MenuItem{
+				{Text: "Home", URI: "/"},
+				{Text: "Admin", URI: "/admin"},
+				{Text: "Logout", URI: "/logout"},
+			}
+		}
+
+		adminSidebarMenu := []page.MenuItem{}
+
+		if user.CanAccess(btr.DB, "manage_sites") {
+			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Sites", URI: "/admin/"})
+		}
+
+		if user.CanAccess(btr.DB, "manage_settings") {
+			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Settings", URI: "/admin/settings"})
+		}
+
+		if user.CanAccess(btr.DB, "manage_users") {
+			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{
+				Text: "Users",
+				URI:  "/admin/users",
+				Items: []page.MenuItem{
+					{
+						Text: "Roles",
+						URI:  "/admin/users/roles",
+					},
+				},
+				// Submenus need template to be defined
+				T: btr.T,
+			})
+		}
+
+		if user.CanAccess(btr.DB, "manage_plugins") {
+			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Plugins", URI: "/admin/plugins"})
+		}
+
+		menus = []page.Menu{menu.DefaultMenu{
+			Items:      adminHeaderMenu,
+			Identifier: "header",
+			T:          btr.T,
+		}, menu.DefaultMenu{
+			Items:      adminSidebarMenu,
+			Identifier: "sidebar",
+			Template:   "menu.sidebar",
+			T:          btr.T,
+		}}
+	}
+	return menus
 }
 
 // findAndParseTemplates finds all the templates in the rootDir and makes a template map
