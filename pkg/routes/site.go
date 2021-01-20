@@ -6,6 +6,7 @@ import (
 	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/structs"
 	"github.com/uberswe/beubo/pkg/utility"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
@@ -49,8 +50,8 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 		pid := fmt.Sprintf("%d", page.ID)
 		pagesRes[pid] = make(map[string]string)
 		pagesRes[pid]["id"] = pid
-		pagesRes[pid]["title"] = page.Title
-		pagesRes[pid]["slug"] = page.Slug
+		pagesRes[pid]["title"] = html.EscapeString(page.Title)
+		pagesRes[pid]["slug"] = html.EscapeString(page.Slug)
 	}
 	extra["pagesRes"] = pagesRes
 
