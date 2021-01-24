@@ -3,6 +3,7 @@ package page
 import (
 	"bytes"
 	"fmt"
+	"gorm.io/gorm"
 	"html/template"
 	"log"
 )
@@ -14,14 +15,22 @@ type Menu interface {
 	Render() string
 }
 
+type MenuSection struct {
+	gorm.Model
+	Section string
+	Items   []MenuItem `gorm:"foreignKey:SectionID"`
+}
+
 // MenuItem is part of a Menu and usually represents a clickable link
 type MenuItem struct {
-	Text     string
-	URI      string
-	Template string
-	Theme    string
-	Items    []MenuItem // A menu item can contain submenus
-	T        *template.Template
+	gorm.Model
+	SectionID uint
+	Text      string
+	URI       string
+	Template  string             `gorm:"-"`
+	Theme     string             `gorm:"-"`
+	Items     []MenuItem         `gorm:"foreignKey:SectionID"` // A menu item can contain submenus
+	T         *template.Template `gorm:"-"`
 }
 
 // SubMenu renders submenu items recursively in templates

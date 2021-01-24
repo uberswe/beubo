@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/uberswe/beubo/pkg/plugin"
 	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/utility"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
@@ -100,7 +101,9 @@ func databaseInit() {
 		&structs.Setting{},
 		&plugin.PluginSite{},
 		&structs.Role{},
-		&structs.Feature{})
+		&structs.Feature{},
+		&page.MenuSection{},
+		&page.MenuItem{})
 	utility.ErrorHandler(err, true)
 }
 
@@ -134,6 +137,7 @@ func databaseSeed() {
 		{Key: "manage_user_roles"},
 		{Key: "manage_plugins"},
 		{Key: "manage_settings"},
+		{Key: "manage_menus"},
 	}
 
 	for _, feature := range features {
