@@ -121,14 +121,20 @@ func routesInit() {
 	siteAdmin := admin.PathPrefix("/sites/a/{id:[0-9]+}").Subrouter()
 
 	siteAdmin.HandleFunc("/", beuboRouter.SiteAdmin)
+	siteAdmin.HandleFunc("/menus", beuboRouter.MenuAdmin)
 
 	siteAdmin.HandleFunc("/page/new", beuboRouter.SiteAdminPageNew).Methods("GET")
 	siteAdmin.HandleFunc("/page/new", beuboRouter.SiteAdminPageNewPost).Methods("POST")
+	siteAdmin.HandleFunc("/menus/new", beuboRouter.AdminMenuAdd).Methods("GET")
+	siteAdmin.HandleFunc("/menus/new", beuboRouter.AdminMenuAddPost).Methods("POST")
 
 	siteAdmin.HandleFunc("/page/edit/{pageId:[0-9]+}", beuboRouter.AdminSitePageEdit).Methods("GET")
 	siteAdmin.HandleFunc("/page/edit/{pageId:[0-9]+}", beuboRouter.AdminSitePageEditPost).Methods("POST")
+	siteAdmin.HandleFunc("/menus/edit/{menuId:[0-9]+}", beuboRouter.AdminMenuEdit).Methods("GET")
+	siteAdmin.HandleFunc("/menus/edit/{menuId:[0-9]+}", beuboRouter.AdminMenuEditPost).Methods("POST")
 
 	siteAdmin.HandleFunc("/page/delete/{pageId:[0-9]+}", beuboRouter.AdminSitePageDelete)
+	siteAdmin.HandleFunc("/menus/delete/{menuId:[0-9]+}", beuboRouter.AdminMenuDelete)
 
 	r.HandleFunc("/logout", beuboRouter.Logout)
 
