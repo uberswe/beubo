@@ -5,22 +5,14 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/utility"
 	"net/http"
 	"strconv"
 )
 
-// MenuAdmin shows menus that can be managed
-func (br *BeuboRouter) MenuAdmin(w http.ResponseWriter, r *http.Request) {
-	if !middleware.CanAccess(br.DB, "manage_menus", r) {
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-	// TODO implement menus
-	params := mux.Vars(r)
-	id := params["id"]
-
-	i, err := strconv.Atoi(id)
+func currentUserCanAccessSite(siteId string, br *BeuboRouter, r *http.Request) bool {
+	i, err := strconv.Atoi(siteId)
 
 	utility.ErrorHandler(err, false)
 
@@ -29,32 +21,51 @@ func (br *BeuboRouter) MenuAdmin(w http.ResponseWriter, r *http.Request) {
 	self := r.Context().Value(middleware.UserContextKey)
 	if self != nil && self.(structs.User).ID > 0 {
 		if !self.(structs.User).CanAccessSite(br.DB, site) {
-			w.WriteHeader(http.StatusForbidden)
-			return
+			return false
 		}
 	}
+	return true
+}
 
-	var pages []structs.Page
+// MenuAdmin shows menus that can be managed
+func (br *BeuboRouter) MenuAdmin(w http.ResponseWriter, r *http.Request) {
+	if !middleware.CanAccess(br.DB, "manage_menus", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	params := mux.Vars(r)
+	id := params["id"]
+
+	i, err := strconv.Atoi(id)
+
+	utility.ErrorHandler(err, false)
+
+	if !currentUserCanAccessSite(id, br, r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	var menus []page.MenuSection
 
 	extra := make(map[string]interface{})
-	pagesRes := make(map[string]map[string]string)
-	extra["SiteID"] = fmt.Sprintf("%d", site.ID)
+	menusRes := make(map[string]map[string]string)
+	extra["SiteID"] = fmt.Sprintf("%d", i)
 
-	if err := br.DB.Where("site_id = ?", site.ID).Find(&pages).Error; err != nil {
+	if err := br.DB.Where("site_id = ?", i).Find(&menus).Error; err != nil {
 		utility.ErrorHandler(err, false)
 	}
 
-	for _, page := range pages {
-		pid := fmt.Sprintf("%d", page.ID)
-		pagesRes[pid] = make(map[string]string)
-		pagesRes[pid]["id"] = pid
-		pagesRes[pid]["title"] = page.Title
-		pagesRes[pid]["slug"] = page.Slug
+	for _, menu := range menus {
+		pid := fmt.Sprintf("%d", menu.ID)
+		menusRes[pid] = make(map[string]string)
+		menusRes[pid]["id"] = pid
+		menusRes[pid]["section"] = menu.Section
 	}
-	extra["pagesRes"] = pagesRes
+	extra["menusRes"] = menusRes
 
 	pageData := structs.PageData{
-		Template: "admin.site.page.home",
+		Template: "admin.site.menu.home",
 		Title:    "Admin",
 		Extra:    extra,
 	}
@@ -68,12 +79,25 @@ func (br *BeuboRouter) AdminMenuAdd(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	// TODO implement menus
+
+	params := mux.Vars(r)
+	id := params["id"]
+	i, err := strconv.Atoi(id)
+	utility.ErrorHandler(err, false)
+
+	if !currentUserCanAccessSite(id, br, r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	extra := make(map[string]interface{})
+	extra["SiteID"] = fmt.Sprintf("%d", i)
 
 	pageData := structs.PageData{
-		Template: "admin.setting.add",
-		Title:    "Admin - Add Setting",
+		Template: "admin.menu.add",
+		Title:    "Admin - Add Menu",
 		Themes:   br.Renderer.GetThemes(),
+		Extra:    extra,
 	}
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)
@@ -85,37 +109,39 @@ func (br *BeuboRouter) AdminMenuAddPost(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	// TODO implement menus
 
-	path := "/admin/settings/add"
+	params := mux.Vars(r)
+	id := params["id"]
+	i, err := strconv.Atoi(id)
+	utility.ErrorHandler(err, false)
 
-	successMessage := "Setting created"
-	invalidError := "an error occurred and the setting could not be created."
+	if !currentUserCanAccessSite(id, br, r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
-	key := r.FormValue("keyField")
-	value := r.FormValue("valueField")
+	path := "/admin/menus/add"
 
-	if len(key) < 1 {
-		invalidError = "The key is too short"
+	successMessage := "Menu created"
+	invalidError := "an error occurred and the menu could not be created."
+
+	section := r.FormValue("sectionField")
+
+	if len(section) < 1 {
+		invalidError = "The section is too short"
 		utility.SetFlash(w, "error", []byte(invalidError))
 		http.Redirect(w, r, path, 302)
 		return
 	}
-	if len(value) < 1 {
-		invalidError = "The value is too short"
-		utility.SetFlash(w, "error", []byte(invalidError))
-		http.Redirect(w, r, path, 302)
-		return
-	}
 
-	if structs.CreateSetting(br.DB, key, value) {
+	if page.CreateMenu(br.DB, section) {
 		utility.SetFlash(w, "message", []byte(successMessage))
-		http.Redirect(w, r, "/admin/settings", 302)
+		http.Redirect(w, r, "/admin/menus", 302)
 		return
 	}
 
 	utility.SetFlash(w, "error", []byte(invalidError))
-	http.Redirect(w, r, "/admin/settings/add", 302)
+	http.Redirect(w, r, "/admin/sites/a/%s/menus/add", 302)
 }
 
 // AdminMenuDelete handles the deletion of a menu
@@ -124,20 +150,21 @@ func (br *BeuboRouter) AdminMenuDelete(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	// TODO implement menus
 
 	params := mux.Vars(r)
+	menuId := params["menuId"]
 	id := params["id"]
 
-	i, err := strconv.Atoi(id)
+	if !currentUserCanAccessSite(id, br, r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
-	utility.ErrorHandler(err, false)
+	structs.DeleteMenu(br.DB, menuId)
 
-	structs.DeleteSetting(br.DB, i)
+	utility.SetFlash(w, "message", []byte("Menu deleted"))
 
-	utility.SetFlash(w, "message", []byte("Setting deleted"))
-
-	http.Redirect(w, r, "/admin/settings", 302)
+	http.Redirect(w, r, "/admin/sites/a/%s/menus", 302)
 }
 
 // AdminMenuEdit is the route for editing a menu
@@ -146,26 +173,30 @@ func (br *BeuboRouter) AdminMenuEdit(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	// TODO implement menus
 
 	params := mux.Vars(r)
 	id := params["id"]
+	menuId := params["menuIid"]
 
-	i, err := strconv.Atoi(id)
-
+	menuI, err := strconv.Atoi(menuId)
 	utility.ErrorHandler(err, false)
 
-	setting := structs.FetchSetting(br.DB, i)
+	if !currentUserCanAccessSite(id, br, r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
-	if setting.ID == 0 {
+	menu := structs.FetchMenu(br.DB, menuI)
+
+	if menu.ID == 0 {
 		br.NotFoundHandler(w, r)
 		return
 	}
 
 	pageData := structs.PageData{
-		Template: "admin.setting.edit",
-		Title:    "Admin - Edit Site",
-		Extra:    setting,
+		Template: "admin.menu.edit",
+		Title:    "Admin - Edit Menu",
+		Extra:    menu,
 		Themes:   br.Renderer.GetThemes(),
 	}
 
@@ -178,40 +209,32 @@ func (br *BeuboRouter) AdminMenuEditPost(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	// TODO implement menus
 
 	params := mux.Vars(r)
 	id := params["id"]
 
-	path := fmt.Sprintf("/admin/settings/edit/%s", id)
+	path := fmt.Sprintf("/admin/sites/a/%s/menus/edit/%s", id)
 
 	i, err := strconv.Atoi(id)
 
 	utility.ErrorHandler(err, false)
 
-	successMessage := "Setting updated"
-	invalidError := "an error occurred and the setting could not be updated."
+	successMessage := "Menu updated"
+	invalidError := "an error occurred and the menu could not be updated."
 
-	key := r.FormValue("keyField")
-	value := r.FormValue("valueField")
+	section := r.FormValue("sectionField")
 
 	// TODO make rules for models
-	if len(key) < 1 {
+	if len(section) < 1 {
 		invalidError = "The key is too short"
 		utility.SetFlash(w, "error", []byte(invalidError))
 		http.Redirect(w, r, path, 302)
 		return
 	}
-	if len(value) < 1 {
-		invalidError = "The value is too short"
-		utility.SetFlash(w, "error", []byte(invalidError))
-		http.Redirect(w, r, path, 302)
-		return
-	}
 
-	if structs.UpdateSetting(br.DB, i, key, value) {
+	if page.UpdateMenu(br.DB, i, section) {
 		utility.SetFlash(w, "message", []byte(successMessage))
-		http.Redirect(w, r, "/admin/settings", 302)
+		http.Redirect(w, r, "/admin/sites/a/%s/menus", 302)
 		return
 	}
 
