@@ -5,7 +5,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/structs"
+	"github.com/uberswe/beubo/pkg/structs/page"
+	"github.com/uberswe/beubo/pkg/structs/page/component"
 	"github.com/uberswe/beubo/pkg/utility"
+	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -37,27 +40,73 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 
 	var pages []structs.Page
 
-	extra := make(map[string]interface{})
-	pagesRes := make(map[string]map[string]string)
-	extra["SiteID"] = fmt.Sprintf("%d", site.ID)
-
 	if err := br.DB.Where("site_id = ?", site.ID).Find(&pages).Error; err != nil {
 		utility.ErrorHandler(err, false)
 	}
 
-	for _, page := range pages {
-		pid := fmt.Sprintf("%d", page.ID)
-		pagesRes[pid] = make(map[string]string)
-		pagesRes[pid]["id"] = pid
-		pagesRes[pid]["title"] = page.Title
-		pagesRes[pid]["slug"] = page.Slug
+	var rows []component.Row
+
+	if self != nil && self.(structs.User).ID > 0 {
+		for _, pageStruct := range pages {
+			sid := fmt.Sprintf("%d", pageStruct.ID)
+			rows = append(rows, component.Row{
+				Columns: []component.Column{
+					{Name: "ID", Value: sid},
+					{Name: "Title", Value: pageStruct.Title},
+					{Name: "Slug", Value: pageStruct.Slug},
+					{Name: "", Field: component.Button{
+						// TODO fix schema here
+						Link:    template.URL(fmt.Sprintf("/%s", pageStruct.Slug)),
+						Class:   "btn btn-primary",
+						Content: "View",
+						T:       br.Renderer.T,
+					}},
+					{Name: "", Field: component.Button{
+						Link:    template.URL(fmt.Sprintf("/admin/sites/a/%s/page/edit/%d", id, pageStruct.ID)),
+						Class:   "btn btn-primary",
+						Content: "Edit",
+						T:       br.Renderer.T,
+					}},
+					{Name: "", Field: component.Button{
+						Link:    template.URL(fmt.Sprintf("/admin/sites/a/%s/page/delete/%d", id, pageStruct.ID)),
+						Class:   "btn btn-danger",
+						Content: "Delete",
+						T:       br.Renderer.T,
+					}},
+				},
+			})
+		}
 	}
-	extra["pagesRes"] = pagesRes
+
+	table := component.Table{
+		Section: "main",
+		Header: []component.Column{
+			{Name: "ID"},
+			{Name: "Site"},
+			{Name: "Domain"},
+			{Name: ""},
+			{Name: ""},
+			{Name: ""},
+		},
+		Rows:             rows,
+		PageNumber:       1,
+		PageDisplayCount: 10,
+		T:                br.Renderer.T,
+	}
 
 	pageData := structs.PageData{
-		Template: "admin.site.page.home",
-		Title:    "Admin",
-		Extra:    extra,
+		Template: "admin.page",
+		Title:    "Admin - Pages",
+		Components: []page.Component{
+			component.Button{
+				Section: "main",
+				Link:    template.URL(fmt.Sprintf("/admin/sites/a/%s/page/new", id)),
+				Class:   "btn btn-primary",
+				Content: "Add Page",
+				T:       br.Renderer.T,
+			},
+			table,
+		},
 	}
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)

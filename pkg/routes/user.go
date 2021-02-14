@@ -527,3 +527,11 @@ func (br *BeuboRouter) AdminUserRoleEditPost(w http.ResponseWriter, r *http.Requ
 	utility.SetFlash(w, "error", []byte(invalidError))
 	http.Redirect(w, r, path, 302)
 }
+
+func IsAuthenticated(r *http.Request) bool {
+	self := r.Context().Value(middleware.UserContextKey)
+	if self != nil && self.(structs.User).ID > 0 {
+		return true
+	}
+	return false
+}

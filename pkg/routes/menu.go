@@ -112,8 +112,6 @@ func (br *BeuboRouter) AdminMenuAddPost(w http.ResponseWriter, r *http.Request) 
 
 	params := mux.Vars(r)
 	id := params["id"]
-	i, err := strconv.Atoi(id)
-	utility.ErrorHandler(err, false)
 
 	if !currentUserCanAccessSite(id, br, r) {
 		w.WriteHeader(http.StatusForbidden)
@@ -134,7 +132,7 @@ func (br *BeuboRouter) AdminMenuAddPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if page.CreateMenu(br.DB, section) {
+	if menu := page.CreateMenu(br.DB, section); menu.ID != 0 {
 		utility.SetFlash(w, "message", []byte(successMessage))
 		http.Redirect(w, r, "/admin/menus", 302)
 		return
@@ -154,13 +152,15 @@ func (br *BeuboRouter) AdminMenuDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	menuId := params["menuId"]
 	id := params["id"]
+	i, err := strconv.Atoi(menuId)
+	utility.ErrorHandler(err, false)
 
 	if !currentUserCanAccessSite(id, br, r) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	structs.DeleteMenu(br.DB, menuId)
+	page.DeleteMenu(br.DB, i)
 
 	utility.SetFlash(w, "message", []byte("Menu deleted"))
 
@@ -186,7 +186,7 @@ func (br *BeuboRouter) AdminMenuEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	menu := structs.FetchMenu(br.DB, menuI)
+	menu := page.FetchMenu(br.DB, menuI)
 
 	if menu.ID == 0 {
 		br.NotFoundHandler(w, r)

@@ -115,6 +115,7 @@ func prepareSeed(email string, password string) {
 
 func databaseSeed() {
 	theme := addThemes()
+	_ = addMenus()
 
 	// user registration is disabled by default
 	disableRegistration := structs.Setting{Key: "enable_user_registration", Value: "false"}
@@ -256,4 +257,74 @@ func addThemes() (theme structs.Theme) {
 		}
 	}
 	return theme
+}
+
+func addMenus() []page.MenuSection {
+	sections := []page.MenuSection{{
+		Section: "sidebar",
+		Items: []page.MenuItem{
+			{
+				Text:          "Sites",
+				URI:           "/admin/sites",
+				Authenticated: true,
+			},
+			{
+				Text:          "Settings",
+				URI:           "/admin/settings",
+				Authenticated: true,
+			},
+			{
+				Text:          "Users",
+				URI:           "/admin/users",
+				Authenticated: true,
+			},
+			{
+				Text:          "Plugins",
+				URI:           "/admin/plugins",
+				Authenticated: true,
+			},
+			// TODO menu items for site admin
+		}}, {
+		Section: "header",
+		Items: []page.MenuItem{
+			{
+				Text:   "Home",
+				URI:    "/",
+				Always: true,
+			},
+			{
+				Text:          "Login",
+				URI:           "/login",
+				Authenticated: false,
+			},
+			{
+				Text:          "Admin",
+				URI:           "/admin",
+				Authenticated: true,
+			},
+			{
+				Text:          "Logout",
+				URI:           "/logout",
+				Authenticated: true,
+			},
+		},
+	},
+	}
+	// TODO loop sites and add a section for each sites
+	for _, section := range sections {
+		DB.Where("section = ?", section.Section).First(&section)
+		if section.ID == 0 {
+			DB.Create(&section)
+		}
+		for _, m := range section.Items {
+			DB.Where("uri = ?", m.URI).Where("site_id", m.SiteID).First(&m)
+			if m.ID == 0 {
+				DB.Create(&m)
+			}
+		}
+		// TODO add default menu items
+	}
+	// TODO create database models for each site
+	// TODO new sections should be added when a new site is added
+	return sections
 }
