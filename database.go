@@ -261,7 +261,7 @@ func addThemes() (theme structs.Theme) {
 
 func addMenus() []page.MenuSection {
 	sections := []page.MenuSection{{
-		Section: "sidebar",
+		Section: "admin_sidebar",
 		Items: []page.MenuItem{
 			{
 				Text:          "Sites",
@@ -283,8 +283,22 @@ func addMenus() []page.MenuSection {
 				URI:           "/admin/plugins",
 				Authenticated: true,
 			},
-			// TODO menu items for site admin
-		}}, {
+		},
+	}, {
+		Section: "admin_site_sidebar",
+		Items: []page.MenuItem{
+			{
+				Text:          "Pages",
+				URI:           "/admin/sites",
+				Authenticated: true,
+			},
+			{
+				Text:          "Menus",
+				URI:           "/admin/settings",
+				Authenticated: true,
+			},
+		},
+	}, {
 		Section: "header",
 		Items: []page.MenuItem{
 			{
