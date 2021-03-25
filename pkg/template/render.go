@@ -62,7 +62,6 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 
 	// Get the site from context
 	site := r.Context().Value(middleware.SiteContextKey)
-	user := r.Context().Value(middleware.UserContextKey)
 
 	if site != nil {
 		btr.CurrentTheme = site.(structs.Site).Theme.Slug
@@ -82,16 +81,14 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	}
 
 	stylesheets := []string{
-		"/default/css/main.css",
+		"/default/css/main.min.css",
+		"/default/css/milligram-1-4-1.min.css",
+		"/default/css/normalize-8-0-1.min.css",
 	}
 
 	if strings.HasPrefix(r.URL.Path, "/admin") {
 		scripts = append(scripts, "/default/js/admin.js")
 		stylesheets = append(stylesheets, "/default/css/admin.css")
-	}
-	var userFromContext structs.User
-	if user != nil && user.(structs.User).ID > 0 {
-		userFromContext = user.(structs.User)
 	}
 
 	data := structs.PageData{
@@ -105,7 +102,7 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		Warning:     string(warningMessage),
 		Message:     string(stringMessage),
 		Year:        strconv.Itoa(time.Now().Year()),
-		Menus:       btr.buildMenus(userFromContext),
+		Menus:       btr.buildMenus(r),
 	}
 
 	data = mergePageData(data, pageData)
@@ -137,7 +134,19 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	utility.ErrorHandler(err, false)
 }
 
-func (btr *BeuboTemplateRenderer) buildMenus(user structs.User) []page.Menu {
+func (btr *BeuboTemplateRenderer) buildMenus(r *http.Request) []page.Menu {
+	userFromContext := r.Context().Value(middleware.UserContextKey)
+	adminSiteFromContext := r.Context().Value(middleware.AdminSiteContextKey)
+	var user structs.User
+	if userFromContext != nil && userFromContext.(structs.User).ID > 0 {
+		user = userFromContext.(structs.User)
+	}
+	var adminSite structs.Site
+	if adminSiteFromContext != nil && adminSiteFromContext.(structs.Site).ID > 0 {
+		adminSite = adminSiteFromContext.(structs.Site)
+	}
+
+	// TODO query database and fetch menu config
 	menuItems := []page.MenuItem{
 		{Text: "Home", URI: "/"},
 		{Text: "Login", URI: "/login"},
@@ -205,13 +214,26 @@ func (btr *BeuboTemplateRenderer) buildMenus(user structs.User) []page.Menu {
 			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Plugins", URI: "/admin/plugins"})
 		}
 
+		adminSiteSidebarMenu := []page.MenuItem{}
+
+		if user.CanAccess(btr.DB, "manage_pages") && adminSite.ID > 0 {
+			// TODO check if user has permission to access adminSite
+			adminSiteSidebarMenu = append(adminSiteSidebarMenu, page.MenuItem{Text: "Pages", URI: fmt.Sprintf("/admin/sites/a/%d/", adminSite.ID)})
+			adminSiteSidebarMenu = append(adminSiteSidebarMenu, page.MenuItem{Text: "Plugins", URI: fmt.Sprintf("/admin/sites/a/%d/plugins", adminSite.ID)})
+		}
+
 		menus = []page.Menu{menu.DefaultMenu{
 			Items:      adminHeaderMenu,
 			Identifier: "header",
 			T:          btr.T,
 		}, menu.DefaultMenu{
 			Items:      adminSidebarMenu,
-			Identifier: "sidebar",
+			Identifier: "admin_sidebar",
+			Template:   "menu.sidebar",
+			T:          btr.T,
+		}, menu.DefaultMenu{
+			Items:      adminSiteSidebarMenu,
+			Identifier: "admin_site_sidebar",
 			Template:   "menu.sidebar",
 			T:          btr.T,
 		}}

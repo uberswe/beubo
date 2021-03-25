@@ -9,6 +9,7 @@ import (
 	"github.com/uberswe/beubo/pkg/structs/page/component"
 	"github.com/uberswe/beubo/pkg/utility"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,6 +26,7 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 
 	i, err := strconv.Atoi(id)
+	log.Printf("SA: %d\n", i)
 
 	utility.ErrorHandler(err, false)
 
@@ -95,7 +97,7 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pageData := structs.PageData{
-		Template: "admin.page",
+		Template: "admin.site.page",
 		Title:    "Admin - Pages",
 		Components: []page.Component{
 			component.Button{

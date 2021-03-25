@@ -12,6 +12,8 @@ const (
 	UserContextKey key = "user"
 	// SiteContextKey is used to fetch and store the site struct from context
 	SiteContextKey key = "site"
+	// AdminSiteContextKey is used to fetch and store the site struct from context, this is the id when managing a site in the admin area
+	AdminSiteContextKey key = "adminSite"
 )
 
 // BeuboMiddleware holds parameters relevant to Beubo middlewares

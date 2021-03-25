@@ -119,6 +119,7 @@ func routesInit() {
 
 	// TODO I don't like this /sites/a/ structure of the routes, consider changing it
 	siteAdmin := admin.PathPrefix("/sites/a/{id:[0-9]+}").Subrouter()
+	siteAdmin.Use(beuboMiddleware.AdminSite)
 
 	siteAdmin.HandleFunc("/", beuboRouter.SiteAdmin)
 	siteAdmin.HandleFunc("/menus", beuboRouter.MenuAdmin)
