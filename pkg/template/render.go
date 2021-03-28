@@ -5,8 +5,6 @@ import (
 	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/plugin"
 	"github.com/uberswe/beubo/pkg/structs"
-	"github.com/uberswe/beubo/pkg/structs/page"
-	"github.com/uberswe/beubo/pkg/structs/page/menu"
 	"github.com/uberswe/beubo/pkg/utility"
 	"gorm.io/gorm"
 	"html/template"
@@ -45,7 +43,6 @@ func (btr *BeuboTemplateRenderer) Init() {
 
 // RenderHTMLPage handles rendering of the html template and should be the last function called before returning the response
 func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.Request, pageData structs.PageData) {
-
 	if os.Getenv("ASSETS_DIR") != "" {
 		rootDir = os.Getenv("ASSETS_DIR")
 	}
@@ -134,111 +131,51 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 	utility.ErrorHandler(err, false)
 }
 
-func (btr *BeuboTemplateRenderer) buildMenus(r *http.Request) []page.Menu {
+func (btr *BeuboTemplateRenderer) buildMenus(r *http.Request) []structs.MenuSection {
+	siteID := 0
 	userFromContext := r.Context().Value(middleware.UserContextKey)
 	adminSiteFromContext := r.Context().Value(middleware.AdminSiteContextKey)
+	siteFromContext := r.Context().Value(middleware.SiteContextKey)
 	var user structs.User
 	if userFromContext != nil && userFromContext.(structs.User).ID > 0 {
 		user = userFromContext.(structs.User)
 	}
+	var Site structs.Site
+	if siteFromContext != nil && siteFromContext.(structs.Site).ID > 0 {
+		Site = siteFromContext.(structs.Site)
+		// If we are in the admin area we are not viewing a specific site and want global menus
+		if !strings.HasPrefix(r.URL.Path, "/admin") {
+			siteID = int(Site.ID)
+		}
+	}
 	var adminSite structs.Site
 	if adminSiteFromContext != nil && adminSiteFromContext.(structs.Site).ID > 0 {
 		adminSite = adminSiteFromContext.(structs.Site)
+		siteID = int(adminSite.ID)
 	}
 
-	// TODO query database and fetch menu config
-	menuItems := []page.MenuItem{
-		{Text: "Home", URI: "/"},
-		{Text: "Login", URI: "/login"},
+	menus := structs.FetchMenusBySiteID(btr.DB, siteID)
+
+	for i, section := range menus {
+		menus[i].T = btr.T
+		menus[i].Items = setRenderForMenuItems(btr, structs.FetchMenuItemsBySectionId(btr.DB, int(section.ID)), &user)
 	}
 
-	// DB is not available during installation
-	if btr.DB != nil {
-		setting := structs.FetchSettingByKey(btr.DB, "enable_user_registration")
-		if !(setting.ID == 0 || setting.Value == "false") {
-			menuItems = append(menuItems, page.MenuItem{Text: "Register", URI: "/register"})
-		}
-	}
-
-	menus := []page.Menu{menu.DefaultMenu{
-		Items:      menuItems,
-		Identifier: "header",
-		T:          btr.T,
-	}}
-
-	if user.ID > 0 {
-		adminHeaderMenu := []page.MenuItem{
-			{Text: "Home", URI: "/"},
-			{Text: "Logout", URI: "/logout"},
-		}
-
-		if user.CanAccess(btr.DB, "manage_sites") ||
-			user.CanAccess(btr.DB, "manage_pages") ||
-			user.CanAccess(btr.DB, "manage_users") ||
-			user.CanAccess(btr.DB, "manage_user_roles") ||
-			user.CanAccess(btr.DB, "manage_plugins") ||
-			user.CanAccess(btr.DB, "manage_settings") {
-			adminHeaderMenu = []page.MenuItem{
-				{Text: "Home", URI: "/"},
-				{Text: "Admin", URI: "/admin"},
-				{Text: "Logout", URI: "/logout"},
-			}
-		}
-
-		adminSidebarMenu := []page.MenuItem{}
-
-		if user.CanAccess(btr.DB, "manage_sites") {
-			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Sites", URI: "/admin/"})
-		}
-
-		if user.CanAccess(btr.DB, "manage_settings") {
-			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Settings", URI: "/admin/settings"})
-		}
-
-		if user.CanAccess(btr.DB, "manage_users") {
-			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{
-				Text: "Users",
-				URI:  "/admin/users",
-				Items: []page.MenuItem{
-					{
-						Text: "Roles",
-						URI:  "/admin/users/roles",
-					},
-				},
-				// Submenus need template to be defined
-				T: btr.T,
-			})
-		}
-
-		if user.CanAccess(btr.DB, "manage_plugins") {
-			adminSidebarMenu = append(adminSidebarMenu, page.MenuItem{Text: "Plugins", URI: "/admin/plugins"})
-		}
-
-		adminSiteSidebarMenu := []page.MenuItem{}
-
-		if user.CanAccess(btr.DB, "manage_pages") && adminSite.ID > 0 {
-			// TODO check if user has permission to access adminSite
-			adminSiteSidebarMenu = append(adminSiteSidebarMenu, page.MenuItem{Text: "Pages", URI: fmt.Sprintf("/admin/sites/a/%d/", adminSite.ID)})
-			adminSiteSidebarMenu = append(adminSiteSidebarMenu, page.MenuItem{Text: "Plugins", URI: fmt.Sprintf("/admin/sites/a/%d/plugins", adminSite.ID)})
-		}
-
-		menus = []page.Menu{menu.DefaultMenu{
-			Items:      adminHeaderMenu,
-			Identifier: "header",
-			T:          btr.T,
-		}, menu.DefaultMenu{
-			Items:      adminSidebarMenu,
-			Identifier: "admin_sidebar",
-			Template:   "menu.sidebar",
-			T:          btr.T,
-		}, menu.DefaultMenu{
-			Items:      adminSiteSidebarMenu,
-			Identifier: "admin_site_sidebar",
-			Template:   "menu.sidebar",
-			T:          btr.T,
-		}}
-	}
 	return menus
+}
+
+func setRenderForMenuItems(btr *BeuboTemplateRenderer, items []structs.MenuItem, user *structs.User) []structs.MenuItem {
+	var result []structs.MenuItem
+	for _, item := range items {
+		item.T = btr.T
+		item.Items = setRenderForMenuItems(btr, structs.FetchMenuItemsByParentId(btr.DB, int(item.ID)), user)
+		if item.Authenticated && user != nil && user.ID > 0 {
+			result = append(result, item)
+		} else if !item.Authenticated && (user == nil || user.ID == 0) {
+			result = append(result, item)
+		}
+	}
+	return result
 }
 
 // findAndParseTemplates finds all the templates in the rootDir and makes a template map

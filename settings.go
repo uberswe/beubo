@@ -10,8 +10,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/uberswe/beubo/pkg/routes"
 	"github.com/uberswe/beubo/pkg/structs"
-	"github.com/uberswe/beubo/pkg/structs/page"
-	"github.com/uberswe/beubo/pkg/structs/page/menu"
 	"github.com/uberswe/beubo/pkg/template"
 	"github.com/uberswe/beubo/pkg/utility"
 	"github.com/urfave/negroni"
@@ -262,16 +260,6 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	menuItems := []page.MenuItem{
-		{Text: "Home", URI: "/"},
-	}
-
-	menus := []page.Menu{menu.DefaultMenu{
-		Items:      menuItems,
-		Identifier: "header",
-		T:          beuboTemplateRenderer.T,
-	}}
-
 	extra = make(map[string]map[string]string)
 	token, err := utility.GetFlash(w, r, "token")
 	if err == nil {
@@ -284,7 +272,6 @@ func Install(w http.ResponseWriter, r *http.Request) {
 		Template: "page",
 		Title:    "Install",
 		Extra:    extra,
-		Menus:    menus,
 	}
 	beuboTemplateRenderer.RenderHTMLPage(w, r, pageData)
 	return

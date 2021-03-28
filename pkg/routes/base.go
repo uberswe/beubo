@@ -5,6 +5,7 @@ import (
 	beuboPage "github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/structs/page/component"
 	"html/template"
+	"log"
 	"net/http"
 )
 
@@ -17,6 +18,8 @@ func (br *BeuboRouter) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusNotFound)
+
+	log.Println("building 404")
 
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
@@ -33,14 +36,12 @@ func (br *BeuboRouter) PageHandler(w http.ResponseWriter, r *http.Request) {
 					Title:    page.Title,
 					// TODO Components should be defined on the page edit page and defined in the db
 					Components: []beuboPage.Component{component.Text{
-						Content:  template.HTML(page.Content),
-						Theme:    "",
-						Template: "",
-						Class:    "",
-						Section:  "main",
-						T:        br.Renderer.T,
+						Content: template.HTML(page.Content),
+						Section: "main",
+						T:       br.Renderer.T,
 					}},
 				}
+				log.Println("building page")
 
 				br.Renderer.RenderHTMLPage(w, r, pageData)
 				return

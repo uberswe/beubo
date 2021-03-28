@@ -2,9 +2,9 @@ package beubo
 
 import (
 	"fmt"
+	"github.com/uberswe/beubo/pkg/middleware"
 	"github.com/uberswe/beubo/pkg/plugin"
 	"github.com/uberswe/beubo/pkg/structs"
-	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/utility"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
@@ -30,7 +30,7 @@ var (
 )
 
 func setupDB() *gorm.DB {
-	log.Println("Opening database")
+	log.Println("Opening database...")
 	dialector := getDialector(databaseUser, databasePassword, databaseHost, databasePort, databaseName, databaseDriver)
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -86,7 +86,7 @@ func databaseInit() {
 		}
 	}
 
-	log.Println("Running database migrations")
+	log.Println("Running database migrations...")
 
 	err := DB.AutoMigrate(
 		&structs.User{},
@@ -102,8 +102,10 @@ func databaseInit() {
 		&plugin.PluginSite{},
 		&structs.Role{},
 		&structs.Feature{},
-		&page.MenuSection{},
-		&page.MenuItem{})
+		&structs.MenuSection{},
+		&structs.MenuItem{},
+		&structs.MenuPermission{},
+		&structs.MenuSetting{})
 	utility.ErrorHandler(err, true)
 }
 
@@ -115,7 +117,6 @@ func prepareSeed(email string, password string) {
 
 func databaseSeed() {
 	theme := addThemes()
-	_ = addMenus()
 
 	// user registration is disabled by default
 	disableRegistration := structs.Setting{Key: "enable_user_registration", Value: "false"}
@@ -162,18 +163,192 @@ func databaseSeed() {
 		DB.Create(&role)
 	}
 
+	menuItems := []structs.MenuItem{
+		{
+			Text:          "Home",
+			URI:           "/",
+			Authenticated: true,
+		},
+		{
+			Text:          "Home",
+			URI:           "/",
+			Authenticated: false,
+		},
+		{
+			Text:          "Admin",
+			URI:           "/admin",
+			Authenticated: true,
+			Permissions: []structs.MenuPermission{
+				{
+					Permission: "manage_sites",
+					Show:       true,
+				},
+			},
+		},
+		{
+			Text:          "Login",
+			URI:           "/login",
+			Authenticated: false,
+		},
+		{
+			Text:          "Logout",
+			URI:           "/logout",
+			Authenticated: true,
+		},
+		{
+			Text: "Register",
+			URI:  "/register",
+			Settings: []structs.MenuSetting{
+				{
+					Setting:     "enable_user_registration",
+					ShouldEqual: "true",
+					Show:        true,
+				},
+			},
+			Authenticated: false,
+		},
+	}
+
+	var adminSidebarMenu []structs.MenuItem
+
+	adminSidebarMenu = append(adminSidebarMenu, structs.MenuItem{
+		Text:          "Sites",
+		URI:           "/admin/",
+		Authenticated: true,
+		Permissions: []structs.MenuPermission{
+			{
+				Permission: "manage_sites",
+				Show:       true,
+			},
+		},
+	})
+
+	adminSidebarMenu = append(adminSidebarMenu, structs.MenuItem{
+		Text:          "Settings",
+		URI:           "/admin/settings",
+		Authenticated: true,
+		Permissions: []structs.MenuPermission{
+			{
+				Permission: "manage_settings",
+				Show:       true,
+			},
+		},
+	})
+
+	adminSidebarMenu = append(adminSidebarMenu, structs.MenuItem{
+		Text:          "Users",
+		URI:           "/admin/users",
+		Authenticated: true,
+		Permissions: []structs.MenuPermission{
+			{
+				Permission: "manage_users",
+				Show:       true,
+			},
+		},
+		Items: []structs.MenuItem{
+			{
+				Text:          "Roles",
+				URI:           "/admin/users/roles",
+				Authenticated: true,
+				Permissions: []structs.MenuPermission{
+					{
+						Permission: "manage_user_roles",
+						Show:       true,
+					},
+				},
+			},
+		},
+	})
+
+	adminSidebarMenu = append(adminSidebarMenu, structs.MenuItem{
+		Text:          "Plugins",
+		URI:           "/admin/plugins",
+		Authenticated: true,
+		Permissions: []structs.MenuPermission{
+			{
+				Permission: "manage_plugins",
+				Show:       true,
+			},
+		},
+	})
+
+	adminSidebarMenu = append(adminSidebarMenu, structs.MenuItem{
+		Text:          "Menus",
+		URI:           "/admin/menus",
+		Authenticated: true,
+		Permissions: []structs.MenuPermission{
+			{
+				Permission: "manage_menus",
+				Show:       true,
+			},
+		},
+	})
+
+	var adminSiteSidebarMenu []structs.MenuItem
+
+	adminSiteSidebarMenu = append(adminSiteSidebarMenu, structs.MenuItem{
+		Text:          "Pages",
+		URI:           fmt.Sprintf("/admin/sites/a/{%s}/", middleware.AdminSiteContextKey),
+		Authenticated: true,
+		Permissions: []structs.MenuPermission{
+			{
+				Permission: "manage_pages",
+				Show:       true,
+			},
+		},
+	})
+	adminSiteSidebarMenu = append(adminSiteSidebarMenu, structs.MenuItem{
+		Text:          "Plugins",
+		URI:           fmt.Sprintf("/admin/sites/a/{%s}/plugins", middleware.AdminSiteContextKey),
+		Authenticated: true,
+	})
+	adminSiteSidebarMenu = append(adminSiteSidebarMenu, structs.MenuItem{
+		Text:          "Menus",
+		URI:           fmt.Sprintf("/admin/sites/a/{%s}/menus", middleware.AdminSiteContextKey),
+		Authenticated: true,
+	})
+
+	tmp := make([]structs.MenuItem, len(menuItems))
+	copy(tmp, menuItems)
+
+	menus := []structs.MenuSection{
+		{
+			Items:   menuItems,
+			Section: "header",
+			SiteID:  0,
+		},
+		{
+			Items:   adminSidebarMenu,
+			Section: "admin_sidebar",
+			SiteID:  0,
+		},
+		{
+			Items:   adminSiteSidebarMenu,
+			Section: "admin_site_sidebar",
+			SiteID:  1,
+		},
+		{
+			Items:   tmp,
+			Section: "header",
+			SiteID:  1,
+		},
+	}
+	for _, menu := range menus {
+		DB.Where("section = ?", menu.Section).Where("site_id", menu.SiteID).First(&menu)
+		if menu.ID == 0 {
+			DB.Create(&menu)
+		}
+	}
+
 	// Add the specified default test user if the environment is also not set to production
 	if environment != "production" && testuser != "" && testpass != "" {
-		var err error
-
-		// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(testpass), 14)
-
-		utility.ErrorHandler(err, true)
-
-		user := structs.User{Email: testuser, Password: string(hashedPassword)}
+		user := structs.User{Email: testuser}
 		DB.Where("email = ?", user.Email).First(&user)
 		if user.ID == 0 {
+			// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
+			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(testpass), 14)
+			utility.ErrorHandler(err, true)
+			user.Password = string(hashedPassword)
 			user.Roles = []*structs.Role{
 				&adminRole,
 			}
@@ -194,7 +369,7 @@ func databaseSeed() {
 }
 
 func seedData(theme structs.Theme, adminRole structs.Role) {
-	log.Println("Seeding database")
+	log.Println("Seeding database...")
 	var err error
 
 	// Create a site
@@ -257,88 +432,4 @@ func addThemes() (theme structs.Theme) {
 		}
 	}
 	return theme
-}
-
-func addMenus() []page.MenuSection {
-	sections := []page.MenuSection{{
-		Section: "admin_sidebar",
-		Items: []page.MenuItem{
-			{
-				Text:          "Sites",
-				URI:           "/admin/sites",
-				Authenticated: true,
-			},
-			{
-				Text:          "Settings",
-				URI:           "/admin/settings",
-				Authenticated: true,
-			},
-			{
-				Text:          "Users",
-				URI:           "/admin/users",
-				Authenticated: true,
-			},
-			{
-				Text:          "Plugins",
-				URI:           "/admin/plugins",
-				Authenticated: true,
-			},
-		},
-	}, {
-		Section: "admin_site_sidebar",
-		Items: []page.MenuItem{
-			{
-				Text:          "Pages",
-				URI:           "/admin/sites",
-				Authenticated: true,
-			},
-			{
-				Text:          "Menus",
-				URI:           "/admin/settings",
-				Authenticated: true,
-			},
-		},
-	}, {
-		Section: "header",
-		Items: []page.MenuItem{
-			{
-				Text:   "Home",
-				URI:    "/",
-				Always: true,
-			},
-			{
-				Text:          "Login",
-				URI:           "/login",
-				Authenticated: false,
-			},
-			{
-				Text:          "Admin",
-				URI:           "/admin",
-				Authenticated: true,
-			},
-			{
-				Text:          "Logout",
-				URI:           "/logout",
-				Authenticated: true,
-			},
-		},
-	},
-	}
-	// TODO loop sites and add a section for each sites
-	for _, section := range sections {
-		DB.Where("section = ?", section.Section).First(&section)
-		if section.ID == 0 {
-			DB.Create(&section)
-		}
-		for _, m := range section.Items {
-			DB.Where("uri = ?", m.URI).Where("site_id", m.SiteID).First(&m)
-			if m.ID == 0 {
-				DB.Create(&m)
-			}
-		}
-		// TODO add default menu items
-	}
-	// TODO create database models for each site
-	// TODO new sections should be added when a new site is added
-	return sections
 }
