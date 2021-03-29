@@ -318,14 +318,16 @@ func databaseSeed() {
 			SiteID:  0,
 		},
 		{
-			Items:   adminSidebarMenu,
-			Section: "admin_sidebar",
-			SiteID:  0,
+			Items:    adminSidebarMenu,
+			Section:  "admin_sidebar",
+			SiteID:   0,
+			Template: "menu.sidebar",
 		},
 		{
-			Items:   adminSiteSidebarMenu,
-			Section: "admin_site_sidebar",
-			SiteID:  1,
+			Items:    adminSiteSidebarMenu,
+			Section:  "admin_site_sidebar",
+			SiteID:   1,
+			Template: "menu.sidebar",
 		},
 		{
 			Items:   tmp,
@@ -370,7 +372,19 @@ func databaseSeed() {
 
 func seedData(theme structs.Theme, adminRole structs.Role) {
 	log.Println("Seeding database...")
-	var err error
+	user := structs.User{Email: seedEmail}
+	DB.Where("email = ?", user.Email).First(&user)
+	if user.ID == 0 {
+		// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(seedPassword), 14)
+		user.Password = string(hashedPassword)
+
+		utility.ErrorHandler(err, true)
+		user.Roles = []*structs.Role{
+			&adminRole,
+		}
+		DB.Create(&user)
+	}
 
 	// Create a site
 
@@ -381,7 +395,26 @@ func seedData(theme structs.Theme, adminRole structs.Role) {
 		Type:   1,
 	}
 
-	DB.Create(&site)
+	DB.Where("domain = ?", site.Domain).First(&site)
+	if site.ID == 0 {
+		DB.Create(&site)
+		// Seed permissions
+		var users []structs.User
+		DB.Preload("Sites").Find(&users)
+		for _, user := range users {
+			exists := false
+			for _, s := range user.Sites {
+				if s.ID == site.ID {
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				user.Sites = append(user.Sites, &site)
+				DB.Save(&user)
+			}
+		}
+	}
 
 	// Create a page
 	content := `<p>Welcome to Beubo! Beubo is a free, simple, and minimal CMS with unlimited extensibility using plugins. This is the default page and can be changed in the admin area for this site.</p>`
@@ -397,20 +430,9 @@ func seedData(theme structs.Theme, adminRole structs.Role) {
 		Template: "page",
 		SiteID:   int(site.ID),
 	}
-	DB.Create(&page)
-
-	// ASVS 4.0 point 2.4.4 states cost should be at least 13 https://github.com/OWASP/ASVS/
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(seedPassword), 14)
-
-	utility.ErrorHandler(err, true)
-
-	user := structs.User{Email: seedEmail, Password: string(hashedPassword)}
-	DB.Where("email = ?", user.Email).First(&user)
-	if user.ID == 0 {
-		user.Roles = []*structs.Role{
-			&adminRole,
-		}
-		DB.Create(&user)
+	DB.Where("slug = ?", page.Slug).First(&page)
+	if page.ID == 0 {
+		DB.Create(&page)
 	}
 }
 

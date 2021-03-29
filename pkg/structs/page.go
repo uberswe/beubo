@@ -5,7 +5,6 @@ import (
 	"github.com/uberswe/beubo/pkg/structs/page"
 	"gorm.io/gorm"
 	"html/template"
-	"log"
 )
 
 // Page represents the content of a page, I wanted to go with the concept of having everything be a post even if it's a page, contact form or product
@@ -143,9 +142,7 @@ func (pd PageData) Content(section string) template.HTML {
 // Menu renders a menu for the provided section
 func (pd PageData) Menu(section string) template.HTML {
 	result := ""
-	log.Println(section)
 	for _, menu := range pd.Menus {
-		log.Printf("%s == %s", menu.GetIdentifier(), section)
 		if menu.GetIdentifier() == section {
 			return template.HTML(menu.Render())
 		}

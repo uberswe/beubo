@@ -36,7 +36,6 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 			sid := fmt.Sprintf("%d", site.ID)
 			rows = append(rows, component.Row{
 				Columns: []component.Column{
-					{Name: "ID", Value: sid},
 					{Name: "Site", Value: site.Title},
 					{Name: "Domain", Value: site.Domain},
 					{Name: "", Field: component.Button{
@@ -72,7 +71,6 @@ func (br *BeuboRouter) Admin(w http.ResponseWriter, r *http.Request) {
 	table := component.Table{
 		Section: "main",
 		Header: []component.Column{
-			{Name: "ID"},
 			{Name: "Site"},
 			{Name: "Domain"},
 			{Name: ""},
@@ -122,7 +120,6 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 		sid := fmt.Sprintf("%d", setting.ID)
 		rows = append(rows, component.Row{
 			Columns: []component.Column{
-				{Name: "ID", Value: sid},
 				{Name: "Site", Value: setting.Key},
 				{Name: "Domain", Value: setting.Value},
 				{Name: "", Field: component.Button{
@@ -144,7 +141,6 @@ func (br *BeuboRouter) Settings(w http.ResponseWriter, r *http.Request) {
 	table := component.Table{
 		Section: "main",
 		Header: []component.Column{
-			{Name: "ID"},
 			{Name: "Key"},
 			{Name: "Value"},
 			{Name: ""},
@@ -216,7 +212,6 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 			} else {
 				rows = append(rows, component.Row{
 					Columns: []component.Column{
-						{Name: "ID", Value: sid},
 						{Name: "Email", Value: user.Email},
 						{Name: "", Field: component.Button{
 							Link:    template.URL(fmt.Sprintf("/admin/users/edit/%s", sid)),
@@ -239,7 +234,6 @@ func (br *BeuboRouter) Users(w http.ResponseWriter, r *http.Request) {
 	table := component.Table{
 		Section: "main",
 		Header: []component.Column{
-			{Name: "ID"},
 			{Name: "Email"},
 			{Name: ""},
 			{Name: ""},

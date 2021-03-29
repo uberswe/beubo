@@ -291,7 +291,6 @@ func (br *BeuboRouter) AdminUserRoles(w http.ResponseWriter, r *http.Request) {
 		if role.Name == "Administrator" || role.Name == "Member" {
 			rows = append(rows, component.Row{
 				Columns: []component.Column{
-					{Name: "ID", Value: sid},
 					{Name: "Name", Value: role.Name},
 					{},
 					{},
@@ -300,7 +299,6 @@ func (br *BeuboRouter) AdminUserRoles(w http.ResponseWriter, r *http.Request) {
 		} else {
 			rows = append(rows, component.Row{
 				Columns: []component.Column{
-					{Name: "ID", Value: sid},
 					{Name: "Name", Value: role.Name},
 					{Name: "", Field: component.Button{
 						Link:    template.URL(fmt.Sprintf("/admin/users/roles/edit/%s", sid)),
@@ -322,7 +320,6 @@ func (br *BeuboRouter) AdminUserRoles(w http.ResponseWriter, r *http.Request) {
 	table := component.Table{
 		Section: "main",
 		Header: []component.Column{
-			{Name: "ID"},
 			{Name: "Name"},
 			{Name: ""},
 			{Name: ""},

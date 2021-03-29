@@ -158,17 +158,65 @@ func (btr *BeuboTemplateRenderer) buildMenus(r *http.Request) []structs.MenuSect
 
 	for i, section := range menus {
 		menus[i].T = btr.T
-		menus[i].Items = setRenderForMenuItems(btr, structs.FetchMenuItemsBySectionId(btr.DB, int(section.ID)), &user)
+		menus[i].Items = setRenderForMenuItems(btr, structs.FetchMenuItemsBySectionId(btr.DB, int(section.ID)), &user, siteID)
 	}
 
 	return menus
 }
 
-func setRenderForMenuItems(btr *BeuboTemplateRenderer, items []structs.MenuItem, user *structs.User) []structs.MenuItem {
+func setRenderForMenuItems(btr *BeuboTemplateRenderer, items []structs.MenuItem, user *structs.User, siteID int) []structs.MenuItem {
 	var result []structs.MenuItem
 	for _, item := range items {
+		// Parse and replace url parameters
+		if strings.Contains(item.URI, fmt.Sprintf("{%s}", middleware.SiteContextKey)) {
+			item.URI = strings.Replace(item.URI, fmt.Sprintf("{%s}", middleware.SiteContextKey), fmt.Sprintf("%d", siteID), -1)
+		}
+		if strings.Contains(item.URI, fmt.Sprintf("{%s}", middleware.AdminSiteContextKey)) {
+			item.URI = strings.Replace(item.URI, fmt.Sprintf("{%s}", middleware.AdminSiteContextKey), fmt.Sprintf("%d", siteID), -1)
+		}
+		if strings.Contains(item.URI, fmt.Sprintf("{%s}", middleware.UserContextKey)) {
+			item.URI = strings.Replace(item.URI, fmt.Sprintf("{%s}", middleware.UserContextKey), fmt.Sprintf("%d", user.ID), -1)
+		}
+		err := btr.DB.Model(&item).Association("Permissions").Find(&item.Permissions)
+		utility.ErrorHandler(err, false)
+		for _, p := range item.Permissions {
+			if !user.CanAccess(btr.DB, p.Permission) {
+				// If the user doesn't have permission then we continue to the next item
+				continue
+			}
+		}
+		err = btr.DB.Model(&item).Association("Settings").Find(&item.Settings)
+		utility.ErrorHandler(err, false)
+		denied := false
+		for _, s := range item.Settings {
+			setting := structs.FetchSettingByKey(btr.DB, s.Setting)
+			if setting.ID > 0 {
+				if setting.Value != s.ShouldEqual {
+					if s.Show {
+						// If the settings don't match we go on to the next item
+						denied = true
+						continue
+					}
+				} else {
+					if !s.Show {
+						denied = true
+						continue
+					}
+				}
+			} else {
+				if s.Show {
+					denied = true
+					continue
+				}
+			}
+		}
+		if denied {
+			continue
+		}
+		// Process submenu items
 		item.T = btr.T
-		item.Items = setRenderForMenuItems(btr, structs.FetchMenuItemsByParentId(btr.DB, int(item.ID)), user)
+		item.Items = setRenderForMenuItems(btr, structs.FetchMenuItemsByParentId(btr.DB, int(item.ID)), user, siteID)
+		// Check for authentication
 		if item.Authenticated && user != nil && user.ID > 0 {
 			result = append(result, item)
 		} else if !item.Authenticated && (user == nil || user.ID == 0) {

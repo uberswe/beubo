@@ -48,10 +48,8 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 
 	if self != nil && self.(structs.User).ID > 0 {
 		for _, pageStruct := range pages {
-			sid := fmt.Sprintf("%d", pageStruct.ID)
 			rows = append(rows, component.Row{
 				Columns: []component.Column{
-					{Name: "ID", Value: sid},
 					{Name: "Title", Value: pageStruct.Title},
 					{Name: "Slug", Value: pageStruct.Slug},
 					{Name: "", Field: component.Button{
@@ -81,7 +79,6 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 	table := component.Table{
 		Section: "main",
 		Header: []component.Column{
-			{Name: "ID"},
 			{Name: "Site"},
 			{Name: "Domain"},
 			{Name: ""},

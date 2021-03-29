@@ -98,10 +98,14 @@ func routesInit() {
 	admin.HandleFunc("/users/roles/add", beuboRouter.AdminUserRoleAdd).Methods("GET")
 	admin.HandleFunc("/users/roles/add", beuboRouter.AdminUserRoleAddPost).Methods("POST")
 
+	admin.HandleFunc("/menus/new", beuboRouter.AdminMenuAdd).Methods("GET")
+	admin.HandleFunc("/menus/new", beuboRouter.AdminMenuAddPost).Methods("POST")
+
 	admin.HandleFunc("/sites/delete/{id:[0-9]+}", beuboRouter.AdminSiteDelete)
 	admin.HandleFunc("/settings/delete/{id:[0-9]+}", beuboRouter.AdminSettingDelete)
 	admin.HandleFunc("/users/delete/{id:[0-9]+}", beuboRouter.AdminUserDelete)
 	admin.HandleFunc("/users/roles/delete/{id:[0-9]+}", beuboRouter.AdminUserRoleDelete)
+	admin.HandleFunc("/menus/delete/{menuId:[0-9]+}", beuboRouter.AdminMenuDelete)
 
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEdit).Methods("GET")
 	admin.HandleFunc("/sites/edit/{id:[0-9]+}", beuboRouter.AdminSiteEditPost).Methods("POST")
@@ -118,7 +122,10 @@ func routesInit() {
 	admin.HandleFunc("/plugins/edit/{id:[a-zA-Z_]+}", beuboRouter.AdminPluginEdit).Methods("GET")
 	admin.HandleFunc("/plugins/edit/{id:[a-zA-Z_]+}", beuboRouter.AdminPluginEditPost).Methods("POST")
 
-	// TODO I don't like this /sites/a/ structure of the routes, consider changing it
+	admin.HandleFunc("/menus/edit/{menuId:[0-9]+}", beuboRouter.AdminMenuEdit).Methods("GET")
+	admin.HandleFunc("/menus/edit/{menuId:[0-9]+}", beuboRouter.AdminMenuEditPost).Methods("POST")
+
+	// TODO I don't like this /sites/a/ structure of the routes, consider changing it, a stands for admin... problem is we have a global admin and a site admin
 	siteAdmin := admin.PathPrefix("/sites/a/{id:[0-9]+}").Subrouter()
 	siteAdmin.Use(beuboMiddleware.AdminSite)
 

@@ -13,8 +13,8 @@ type MenuSection struct {
 	Section  string     `gorm:"size:255;unique_index:idx_section_site_id"`
 	Items    []MenuItem `gorm:"foreignKey:SectionID"`
 	Site     Site
-	SiteID   int                `gorm:"unique_index:idx_section_site_id"`
-	Template string             `gorm:"-"`
+	SiteID   int `gorm:"unique_index:idx_section_site_id"`
+	Template string
 	Theme    string             `gorm:"-"`
 	T        *template.Template `gorm:"-"`
 }
@@ -24,8 +24,6 @@ func (m MenuSection) GetIdentifier() string {
 }
 
 func (m MenuSection) GetItems() []MenuItem {
-	log.Printf("GetItems on %s\n", m.Section)
-	log.Println(len(m.Items))
 	return m.Items
 }
 
@@ -44,7 +42,6 @@ func (m MenuSection) Render() string {
 		log.Printf("Menu file not found %s\n", path)
 		return ""
 	}
-	log.Println("executing")
 	buf := &bytes.Buffer{}
 	err := foundTemplate.Execute(buf, m)
 	if err != nil {
@@ -119,9 +116,11 @@ func (m MenuItem) SubMenu() template.HTML {
 	return ""
 }
 
-func CreateMenu(db *gorm.DB, section string) MenuSection {
+func CreateMenu(db *gorm.DB, section string, template string, siteID int) MenuSection {
 	menuSection := MenuSection{
-		Section: section,
+		Section:  section,
+		Template: template,
+		SiteID:   siteID,
 	}
 
 	if err := db.Create(&menuSection).Error; err != nil {
@@ -131,8 +130,8 @@ func CreateMenu(db *gorm.DB, section string) MenuSection {
 	return menuSection
 }
 
-func DeleteMenu(db *gorm.DB, id int) MenuSection {
-	setting := FetchMenu(db, id)
+func DeleteMenu(db *gorm.DB, id int, siteID int) MenuSection {
+	setting := FetchMenuWithSiteID(db, id, siteID)
 	db.Delete(&setting)
 	return setting
 }
@@ -140,6 +139,12 @@ func DeleteMenu(db *gorm.DB, id int) MenuSection {
 func FetchMenu(db *gorm.DB, id int) MenuSection {
 	menuSection := MenuSection{}
 	db.Where("id = ?", id).First(&menuSection)
+	return menuSection
+}
+
+func FetchMenuWithSiteID(db *gorm.DB, id int, siteID int) MenuSection {
+	menuSection := MenuSection{}
+	db.Where("id = ?", id).Where("site_id = ?", siteID).First(&menuSection)
 	return menuSection
 }
 
