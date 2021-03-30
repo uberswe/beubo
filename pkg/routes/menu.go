@@ -304,7 +304,6 @@ func (br *BeuboRouter) AdminMenuEdit(w http.ResponseWriter, r *http.Request) {
 	if id != "" {
 		i, err = strconv.Atoi(id)
 		utility.ErrorHandler(err, false)
-
 		if !currentUserCanAccessSite(id, br, r) {
 			w.WriteHeader(http.StatusForbidden)
 			return
@@ -319,15 +318,18 @@ func (br *BeuboRouter) AdminMenuEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := "admin.page"
-	if i > 0 {
-		tmpl = "admin.site.page"
+	extra := make(map[string]interface{})
+	extra["BackPath"] = buildMenuLink("", 0, i)
+	menu.Items = structs.FetchMenuItemsBySectionId(br.DB, int(menu.ID))
+	for i, _ := range menu.Items {
+		menu.Items[i].T = br.Renderer.T
 	}
+	extra["Menu"] = menu
 
 	pageData := structs.PageData{
-		Template: tmpl,
+		Template: "admin.menu.edit",
 		Title:    "Admin - Edit Menu",
-		Extra:    menu,
+		Extra:    extra,
 		Themes:   br.Renderer.GetThemes(),
 	}
 

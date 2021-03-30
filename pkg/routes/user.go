@@ -8,6 +8,7 @@ import (
 	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/structs/page/component"
 	"github.com/uberswe/beubo/pkg/utility"
+	"html"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -291,7 +292,7 @@ func (br *BeuboRouter) AdminUserRoles(w http.ResponseWriter, r *http.Request) {
 		if role.Name == "Administrator" || role.Name == "Member" {
 			rows = append(rows, component.Row{
 				Columns: []component.Column{
-					{Name: "Name", Value: role.Name},
+					{Name: "Name", Value: html.EscapeString(role.Name)},
 					{},
 					{},
 				},
@@ -299,7 +300,7 @@ func (br *BeuboRouter) AdminUserRoles(w http.ResponseWriter, r *http.Request) {
 		} else {
 			rows = append(rows, component.Row{
 				Columns: []component.Column{
-					{Name: "Name", Value: role.Name},
+					{Name: "Name", Value: html.EscapeString(role.Name)},
 					{Name: "", Field: component.Button{
 						Link:    template.URL(fmt.Sprintf("/admin/users/roles/edit/%s", sid)),
 						Class:   "btn btn-primary",

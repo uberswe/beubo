@@ -8,6 +8,7 @@ import (
 	"github.com/uberswe/beubo/pkg/structs/page"
 	"github.com/uberswe/beubo/pkg/structs/page/component"
 	"github.com/uberswe/beubo/pkg/utility"
+	"html"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -50,8 +51,8 @@ func (br *BeuboRouter) SiteAdmin(w http.ResponseWriter, r *http.Request) {
 		for _, pageStruct := range pages {
 			rows = append(rows, component.Row{
 				Columns: []component.Column{
-					{Name: "Title", Value: pageStruct.Title},
-					{Name: "Slug", Value: pageStruct.Slug},
+					{Name: "Title", Value: html.EscapeString(pageStruct.Title)},
+					{Name: "Slug", Value: html.EscapeString(pageStruct.Slug)},
 					{Name: "", Field: component.Button{
 						// TODO fix schema here
 						Link:    template.URL(fmt.Sprintf("/%s", pageStruct.Slug)),

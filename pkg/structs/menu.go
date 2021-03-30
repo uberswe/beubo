@@ -116,6 +116,35 @@ func (m MenuItem) SubMenu() template.HTML {
 	return ""
 }
 
+func (m MenuItem) RenderEditSection() template.HTML {
+	log.Println("RenderEditSection")
+	tmpl := "admin.menu.section"
+	if m.Template != "" {
+		tmpl = m.Template
+	}
+	theme := "default"
+	if m.Theme != "" {
+		theme = m.Theme
+	}
+	path := fmt.Sprintf("%s.%s", theme, tmpl)
+
+	log.Println(path)
+	var foundTemplate *template.Template
+	if foundTemplate = m.T.Lookup(path); foundTemplate == nil {
+		log.Printf("Menu file not found %s\n", path)
+		return ""
+	}
+	log.Println("RenderEditSection 2")
+	buf := &bytes.Buffer{}
+	err := foundTemplate.Execute(buf, m)
+	if err != nil {
+		log.Printf("Component file error executing template %s\n", path)
+		return ""
+	}
+	log.Println("RenderEditSection 3")
+	return template.HTML(buf.String())
+}
+
 func CreateMenu(db *gorm.DB, section string, template string, siteID int) MenuSection {
 	menuSection := MenuSection{
 		Section:  section,
