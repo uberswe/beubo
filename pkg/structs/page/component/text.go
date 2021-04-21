@@ -20,6 +20,16 @@ func (t Text) GetSection() string {
 	return t.Section
 }
 
+// GetT gets the template.Template for the component
+func (t Text) GetT() *template.Template {
+	return t.T
+}
+
+// SetT sets the template.Template for the component
+func (t Text) SetT(temp *template.Template) {
+	t.T = temp
+}
+
 // GetTemplateName is a getter for the Template property
 func (t Text) GetTemplateName() string {
 	return returnTIfNotEmpty(t.Template, "component.text")
@@ -36,6 +46,6 @@ func (t Text) GetTemplate() *template.Template {
 }
 
 // Render calls RenderComponent to turn a Component into a html string for browser output
-func (t Text) Render() string {
-	return page.RenderComponent(t)
+func (t Text) Render(te *template.Template) string {
+	return page.RenderComponent(t, te)
 }

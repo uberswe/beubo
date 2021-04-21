@@ -41,6 +41,7 @@ type PageData struct {
 	Extra       interface{}
 	Components  []page.Component
 	Menus       []MenuSection
+	T           *template.Template
 }
 
 // Tag of a post can be used for post categories or things like meta tag keywords for example
@@ -133,7 +134,7 @@ func (pd PageData) Content(section string) template.HTML {
 	result := ""
 	for _, component := range pd.Components {
 		if component.GetSection() == section {
-			result += component.Render()
+			result += component.Render(pd.T)
 		}
 	}
 	return template.HTML(result)
@@ -144,7 +145,7 @@ func (pd PageData) Menu(section string) template.HTML {
 	result := ""
 	for _, menu := range pd.Menus {
 		if menu.GetIdentifier() == section {
-			return template.HTML(menu.Render())
+			return template.HTML(menu.Render(pd.T))
 		}
 	}
 	return template.HTML(result)

@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func buildMenuLink(action string, menuID int, siteID int) template.URL {
+func buildMenuItemPermissionLink(action string, menuID int, siteID int) template.URL {
 	link := fmt.Sprintf("/%s", strings.ToLower(action))
 	if menuID > 0 {
 		link = fmt.Sprintf("%s/%d", link, menuID)
@@ -26,114 +26,8 @@ func buildMenuLink(action string, menuID int, siteID int) template.URL {
 	return template.URL(fmt.Sprintf("/admin/menus%s", link))
 }
 
-// MenuAdmin shows menus that can be managed
-func (br *BeuboRouter) MenuAdmin(w http.ResponseWriter, r *http.Request) {
-	var err error
-	if !middleware.CanAccess(br.DB, "manage_menus", r) {
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
-	params := mux.Vars(r)
-	id := params["id"]
-	// global menus have site_id 0
-	i := 0
-	if id != "" {
-		i, err = strconv.Atoi(id)
-		utility.ErrorHandler(err, false)
-
-		if !currentUserCanAccessSite(id, br, r) {
-			w.WriteHeader(http.StatusForbidden)
-			return
-		}
-		// TODO check if a user can access global menus
-	}
-
-	var menus []structs.MenuSection
-
-	extra := make(map[string]interface{})
-	extra["SiteID"] = fmt.Sprintf("%d", i)
-
-	if err := br.DB.Where("site_id = ?", i).Find(&menus).Error; err != nil {
-		utility.ErrorHandler(err, false)
-	}
-
-	var rows []component.Row
-
-	for _, menu := range menus {
-		if menu.Section == "header" || menu.Section == "admin_site_sidebar" || menu.Section == "admin_sidebar" {
-			rows = append(rows, component.Row{
-				Columns: []component.Column{
-					{Name: "Section", Value: menu.Section},
-					{Name: "", Field: component.Button{
-						Link:    buildMenuLink("edit", int(menu.ID), i),
-						Class:   "btn btn-primary",
-						Content: "Edit",
-						T:       br.Renderer.T,
-					}},
-					{},
-				},
-			})
-		} else {
-			rows = append(rows, component.Row{
-				Columns: []component.Column{
-					{Name: "Section", Value: menu.Section},
-					{Name: "", Field: component.Button{
-						Link:    buildMenuLink("edit", int(menu.ID), i),
-						Class:   "btn btn-primary",
-						Content: "Edit",
-						T:       br.Renderer.T,
-					}},
-					{Name: "", Field: component.Button{
-						Link:    buildMenuLink("delete", int(menu.ID), i),
-						Class:   "btn btn-primary",
-						Content: "Delete",
-						T:       br.Renderer.T,
-					}},
-				},
-			})
-		}
-	}
-
-	table := component.Table{
-		Section: "main",
-		Header: []component.Column{
-			{Name: "Section"},
-			{Name: ""},
-			{Name: ""},
-		},
-		Rows:             rows,
-		PageNumber:       1,
-		PageDisplayCount: 10,
-		T:                br.Renderer.T,
-	}
-
-	tmpl := "admin.page"
-	if i > 0 {
-		tmpl = "admin.site.page"
-	}
-
-	pageData := structs.PageData{
-		Template: tmpl,
-		Title:    "Admin Menus",
-		Components: []page.Component{
-			component.Button{
-				Section: "main",
-				Link:    buildMenuLink("new", 0, i),
-				Class:   "btn btn-primary",
-				Content: "Add Menu",
-				T:       br.Renderer.T,
-			},
-			table,
-		},
-		Extra: extra,
-	}
-
-	br.Renderer.RenderHTMLPage(w, r, pageData)
-}
-
-// AdminMenuAdd is the route for adding a menu
-func (br *BeuboRouter) AdminMenuAdd(w http.ResponseWriter, r *http.Request) {
+// AdminMenuItemPermissionAdd is the route for adding a menu item to a menu section or menu item
+func (br *BeuboRouter) AdminMenuItemPermissionAdd(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if !middleware.CanAccess(br.DB, "manage_menus", r) {
 		w.WriteHeader(http.StatusForbidden)
@@ -183,7 +77,7 @@ func (br *BeuboRouter) AdminMenuAdd(w http.ResponseWriter, r *http.Request) {
 		},
 		T:      br.Renderer.T,
 		Method: "POST",
-		Action: string(buildMenuLink("new", 0, i)),
+		Action: string(buildMenuItemPermissionLink("new", 0, i)),
 	}
 
 	tmpl := "admin.page"
@@ -193,7 +87,7 @@ func (br *BeuboRouter) AdminMenuAdd(w http.ResponseWriter, r *http.Request) {
 
 	pageData := structs.PageData{
 		Template: tmpl,
-		Title:    "Admin - Add Menu",
+		Title:    "Admin - Add Menu Item",
 		Themes:   br.Renderer.GetThemes(),
 		Components: []page.Component{
 			form,
@@ -203,8 +97,8 @@ func (br *BeuboRouter) AdminMenuAdd(w http.ResponseWriter, r *http.Request) {
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
-// AdminMenuAddPost handles adding of a menu
-func (br *BeuboRouter) AdminMenuAddPost(w http.ResponseWriter, r *http.Request) {
+// AdminMenuItemPermissionAddPost handles adding of a MenuItemPermission
+func (br *BeuboRouter) AdminMenuItemPermissionAddPost(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if !middleware.CanAccess(br.DB, "manage_menus", r) {
 		w.WriteHeader(http.StatusForbidden)
@@ -226,7 +120,7 @@ func (br *BeuboRouter) AdminMenuAddPost(w http.ResponseWriter, r *http.Request) 
 		// TODO check if a user can access global menus
 	}
 
-	path := buildMenuLink("new", 0, i)
+	path := buildMenuItemPermissionLink("new", 0, i)
 
 	successMessage := "Menu created"
 	invalidError := "an error occurred and the menu could not be created."
@@ -251,8 +145,8 @@ func (br *BeuboRouter) AdminMenuAddPost(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, string(path), 302)
 }
 
-// AdminMenuDelete handles the deletion of a menu
-func (br *BeuboRouter) AdminMenuDelete(w http.ResponseWriter, r *http.Request) {
+// AdminMenuItemPermissionDelete handles the deletion of a menu item
+func (br *BeuboRouter) AdminMenuItemPermissionDelete(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if !middleware.CanAccess(br.DB, "manage_menus", r) {
 		w.WriteHeader(http.StatusForbidden)
@@ -284,11 +178,11 @@ func (br *BeuboRouter) AdminMenuDelete(w http.ResponseWriter, r *http.Request) {
 
 	utility.SetFlash(w, "message", []byte("Menu deleted"))
 
-	http.Redirect(w, r, string(buildMenuLink("", 0, i)), 302)
+	http.Redirect(w, r, string(buildMenuItemPermissionLink("", 0, i)), 302)
 }
 
-// AdminMenuEdit is the route for editing a menu
-func (br *BeuboRouter) AdminMenuEdit(w http.ResponseWriter, r *http.Request) {
+// AdminMenuItemPermissionEdit is the route for editing a menu item
+func (br *BeuboRouter) AdminMenuItemPermissionEdit(w http.ResponseWriter, r *http.Request) {
 	if !middleware.CanAccess(br.DB, "manage_menus", r) {
 		w.WriteHeader(http.StatusForbidden)
 		return
@@ -319,8 +213,8 @@ func (br *BeuboRouter) AdminMenuEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	extra := make(map[string]interface{})
-	extra["BackPath"] = buildMenuLink("", 0, i)
-	menu.Items = structs.FetchMenuItemsBySectionId(br.DB, int(menu.ID))
+	extra["BackPath"] = buildMenuItemPermissionLink("", 0, i)
+	menu.Items = structs.FetchMenuItemPermissionsBySectionId(br.DB, int(menu.ID))
 	for i, _ := range menu.Items {
 		err = br.DB.Model(&menu.Items[i]).Association("Permissions").Find(&menu.Items[i].Permissions)
 		utility.ErrorHandler(err, false)
@@ -340,8 +234,8 @@ func (br *BeuboRouter) AdminMenuEdit(w http.ResponseWriter, r *http.Request) {
 	br.Renderer.RenderHTMLPage(w, r, pageData)
 }
 
-// AdminMenuEditPost handles editing of a menu
-func (br *BeuboRouter) AdminMenuEditPost(w http.ResponseWriter, r *http.Request) {
+// AdminMenuItemPermissionEditPost handles editing of a menu item
+func (br *BeuboRouter) AdminMenuItemPermissionEditPost(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if !middleware.CanAccess(br.DB, "manage_menus", r) {
 		w.WriteHeader(http.StatusForbidden)
@@ -366,7 +260,7 @@ func (br *BeuboRouter) AdminMenuEditPost(w http.ResponseWriter, r *http.Request)
 		// TODO check if a user can access global menus
 	}
 
-	path := buildMenuLink("edit", mid, i)
+	path := buildMenuItemPermissionLink("edit", mid, i)
 
 	utility.ErrorHandler(err, false)
 
@@ -385,7 +279,7 @@ func (br *BeuboRouter) AdminMenuEditPost(w http.ResponseWriter, r *http.Request)
 
 	if structs.UpdateMenu(br.DB, mid, section) {
 		utility.SetFlash(w, "message", []byte(successMessage))
-		http.Redirect(w, r, string(buildMenuLink("", 0, i)), 302)
+		http.Redirect(w, r, string(buildMenuItemPermissionLink("", 0, i)), 302)
 		return
 	}
 

@@ -16,6 +16,16 @@ type Button struct {
 	T        *template.Template
 }
 
+// GetT gets the template.Template for the component
+func (b Button) GetT() *template.Template {
+	return b.T
+}
+
+// SetT sets the template.Template for the component
+func (b Button) SetT(t *template.Template) {
+	b.T = t
+}
+
 // GetSection is a getter for the Section property
 func (b Button) GetSection() string {
 	return b.Section
@@ -37,6 +47,6 @@ func (b Button) GetTemplate() *template.Template {
 }
 
 // Render calls RenderComponent to turn a Component into a html string for browser output
-func (b Button) Render() string {
-	return page.RenderComponent(b)
+func (b Button) Render(t *template.Template) string {
+	return page.RenderComponent(b, t)
 }

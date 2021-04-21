@@ -34,6 +34,16 @@ type Column struct {
 	Value string
 }
 
+// GetT gets the template.Template for the component
+func (t Table) GetT() *template.Template {
+	return t.T
+}
+
+// SetT sets the template.Template for the component
+func (t Table) SetT(temp *template.Template) {
+	t.T = temp
+}
+
 // GetTemplateName is a getter for the Template Property
 func (t Table) GetTemplateName() string {
 	return returnTIfNotEmpty(t.Template, "component.table")
@@ -50,19 +60,19 @@ func (t Table) GetTemplate() *template.Template {
 }
 
 // Render calls RenderComponent to turn a Component into a html string for browser output
-func (t Table) Render() string {
-	return page.RenderComponent(t)
+func (t Table) Render(te *template.Template) string {
+	return page.RenderComponent(t, te)
 }
 
 // RenderColumn calls RenderComponent to turn a Column into a html string which is added to the Table Render
-func (t Table) RenderColumn(c Column) string {
-	return page.RenderComponent(c.Field)
+func (t Table) RenderColumn(c Column, te *template.Template) string {
+	return page.RenderComponent(c.Field, te)
 }
 
 // RenderField calls Render to turn a Column into a string which is added to the Table Render
-func (c Column) RenderField(value string, field page.Component) template.HTML {
-	if field != nil && field.Render() != "" {
-		return template.HTML(field.Render())
+func (c Column) RenderField(value string, field page.Component, t *template.Template) template.HTML {
+	if field != nil && field.Render(t) != "" {
+		return template.HTML(field.Render(t))
 	}
 	return template.HTML(value)
 }

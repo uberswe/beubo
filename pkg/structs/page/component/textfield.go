@@ -23,6 +23,16 @@ func (t TextField) GetSection() string {
 	return ""
 }
 
+// GetT gets the template.Template for the component
+func (t TextField) GetT() *template.Template {
+	return t.T
+}
+
+// SetT sets the template.Template for the component
+func (t TextField) SetT(temp *template.Template) {
+	t.T = temp
+}
+
 // GetTemplateName is a getter for the Template property
 func (t TextField) GetTemplateName() string {
 	return returnTIfNotEmpty(t.Template, "component.textfield")
@@ -39,6 +49,6 @@ func (t TextField) GetTemplate() *template.Template {
 }
 
 // Render calls RenderComponent to turn a Component into a html string for browser output
-func (t TextField) Render() string {
-	return page.RenderComponent(t)
+func (t TextField) Render(te *template.Template) string {
+	return page.RenderComponent(t, te)
 }

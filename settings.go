@@ -76,6 +76,7 @@ func settingsInit() {
 	databasePassword = setSetting(os.Getenv("DB_PASSWORD"), databasePassword)
 	shouldRefreshDatabase = setBoolSetting(os.Getenv("REFRESH_DATABASE"), shouldRefreshDatabase)
 	shouldSeed = setBoolSetting(os.Getenv("SEED_DATABASE"), shouldSeed)
+	reloadTemplates = setBoolSetting(os.Getenv("RELOAD_TEMPLATES"), reloadTemplates)
 
 	environment = setSetting(os.Getenv("ENVIRONMENT"), environment)
 
@@ -118,7 +119,7 @@ func startInstallServer() *http.Server {
 	n := negroni.Classic()
 
 	beuboTemplateRenderer := template.BeuboTemplateRenderer{
-		ReloadTemplates: true,
+		ReloadTemplates: reloadTemplates,
 		CurrentTheme:    "install",
 	}
 
@@ -163,7 +164,7 @@ func startInstallServer() *http.Server {
 func Install(w http.ResponseWriter, r *http.Request) {
 
 	beuboTemplateRenderer := template.BeuboTemplateRenderer{
-		ReloadTemplates: true,
+		ReloadTemplates: reloadTemplates,
 		CurrentTheme:    "install",
 	}
 

@@ -18,6 +18,16 @@ type CheckBoxField struct {
 	T          *template.Template
 }
 
+// GetT gets the template.Template for the component
+func (cb CheckBoxField) GetT() *template.Template {
+	return cb.T
+}
+
+// SetT sets the template.Template for the component
+func (cb CheckBoxField) SetT(t *template.Template) {
+	cb.T = t
+}
+
 // GetSection is a getter for the Section property
 func (cb CheckBoxField) GetSection() string {
 	return ""
@@ -39,6 +49,6 @@ func (cb CheckBoxField) GetTemplate() *template.Template {
 }
 
 // Render calls RenderComponent to turn a Component into a html string for browser output
-func (cb CheckBoxField) Render() string {
-	return page.RenderComponent(cb)
+func (cb CheckBoxField) Render(t *template.Template) string {
+	return page.RenderComponent(cb, t)
 }

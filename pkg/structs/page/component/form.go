@@ -16,6 +16,16 @@ type Form struct {
 	Action   string
 }
 
+// GetT gets the template.Template for the component
+func (f Form) GetT() *template.Template {
+	return f.T
+}
+
+// SetT sets the template.Template for the component
+func (f Form) SetT(t *template.Template) {
+	f.T = t
+}
+
 // GetSection is a getter for the Section property
 func (f Form) GetSection() string {
 	return f.Section
@@ -37,14 +47,14 @@ func (f Form) GetTemplate() *template.Template {
 }
 
 // Render calls RenderComponent to turn a Component into a html string for browser output
-func (f Form) Render() string {
-	return page.RenderComponent(f)
+func (f Form) Render(t *template.Template) string {
+	return page.RenderComponent(f, t)
 }
 
 // RenderField calls Render to turn a Column into a string which is added to the Form Render
-func (f Form) RenderField(value string, field page.Component) template.HTML {
-	if field != nil && field.Render() != "" {
-		return template.HTML(field.Render())
+func (f Form) RenderField(value string, field page.Component, t *template.Template) template.HTML {
+	if field != nil && field.Render(t) != "" {
+		return template.HTML(field.Render(t))
 	}
 	return template.HTML(value)
 }

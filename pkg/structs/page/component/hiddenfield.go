@@ -15,6 +15,16 @@ type HiddenField struct {
 	T          *template.Template
 }
 
+// GetT gets the template.Template for the component
+func (hf HiddenField) GetT() *template.Template {
+	return hf.T
+}
+
+// SetT sets the template.Template for the component
+func (hf HiddenField) SetT(t *template.Template) {
+	hf.T = t
+}
+
 // GetSection is a getter for the Section property
 func (hf HiddenField) GetSection() string {
 	return ""
@@ -36,6 +46,6 @@ func (hf HiddenField) GetTemplate() *template.Template {
 }
 
 // Render calls RenderComponent to turn a Component into a html string for browser output
-func (hf HiddenField) Render() string {
-	return page.RenderComponent(hf)
+func (hf HiddenField) Render(t *template.Template) string {
+	return page.RenderComponent(hf, t)
 }

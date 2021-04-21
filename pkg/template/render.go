@@ -88,30 +88,10 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 		stylesheets = append(stylesheets, "/default/css/admin.css")
 	}
 
-	data := structs.PageData{
-		Stylesheets: stylesheets,
-		// TODO make the favicon dynamic
-		Favicon:     "/default/images/favicon.ico",
-		Scripts:     scripts,
-		WebsiteName: siteName,
-		URL:         "http://localhost:3000",
-		Error:       string(errorMessage),
-		Warning:     string(warningMessage),
-		Message:     string(stringMessage),
-		Year:        strconv.Itoa(time.Now().Year()),
-		Menus:       btr.buildMenus(r),
-	}
-
-	data = mergePageData(data, pageData)
-	// PluginHandler is not available during installation
-	if btr.PluginHandler != nil {
-		data = btr.PluginHandler.PageData(r, data)
-	}
-
 	if btr.ReloadTemplates {
 		log.Println("Parsing and loading templates...")
 		var err error
-		btr.T, err = findAndParseTemplates(rootDir)
+		btr.Init()
 		utility.ErrorHandler(err, false)
 	}
 
@@ -125,6 +105,27 @@ func (btr *BeuboTemplateRenderer) RenderHTMLPage(w http.ResponseWriter, r *http.
 			log.Printf("Theme file not found %s\n", path)
 			return
 		}
+	}
+
+	data := structs.PageData{
+		Stylesheets: stylesheets,
+		// TODO make the favicon dynamic
+		Favicon:     "/default/images/favicon.ico",
+		Scripts:     scripts,
+		WebsiteName: siteName,
+		URL:         "http://localhost:3000",
+		Error:       string(errorMessage),
+		Warning:     string(warningMessage),
+		Message:     string(stringMessage),
+		Year:        strconv.Itoa(time.Now().Year()),
+		Menus:       btr.buildMenus(r),
+		T:           btr.T,
+	}
+
+	data = mergePageData(data, pageData)
+	// PluginHandler is not available during installation
+	if btr.PluginHandler != nil {
+		data = btr.PluginHandler.PageData(r, data)
 	}
 
 	err = foundTemplate.Execute(w, data)

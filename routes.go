@@ -125,6 +125,32 @@ func routesInit() {
 	admin.HandleFunc("/menus/edit/{menuId:[0-9]+}", beuboRouter.AdminMenuEdit).Methods("GET")
 	admin.HandleFunc("/menus/edit/{menuId:[0-9]+}", beuboRouter.AdminMenuEditPost).Methods("POST")
 
+	// TODO implement functions
+	admin.HandleFunc("/menus/{menuId:[0-9]+}/menuitems/new", beuboRouter.AdminMenuAdd).Methods("GET")
+	admin.HandleFunc("/menus/{menuId:[0-9]+}/menuitems/new", beuboRouter.AdminMenuAddPost).Methods("POST")
+
+	admin.HandleFunc("/menuitems/edit/{menuItemId:[0-9]+}", beuboRouter.AdminMenuEdit).Methods("GET")
+	admin.HandleFunc("/menuitems/edit/{menuItemId:[0-9]+}", beuboRouter.AdminMenuEditPost).Methods("POST")
+
+	admin.HandleFunc("/menuitems/delete/{menuItemId:[0-9]+}", beuboRouter.AdminMenuAdd).Methods("GET")
+
+	admin.HandleFunc("/menuitems/{menuItemId:[0-9]+}/settings/new", beuboRouter.AdminMenuAdd).Methods("GET")
+	admin.HandleFunc("/menuitems/{menuItemId:[0-9]+}/settings/new", beuboRouter.AdminMenuAddPost).Methods("POST")
+
+	admin.HandleFunc("/menuitems/{menuItemId:[0-9]+}/settings/edit/{menuSettingId:[0-9]+}", beuboRouter.AdminMenuEdit).Methods("GET")
+	admin.HandleFunc("/menuitems/{menuItemId:[0-9]+}/settings/edit/{menuSettingId:[0-9]+}", beuboRouter.AdminMenuEditPost).Methods("POST")
+
+	admin.HandleFunc("/menuitems/{menuItemId:[0-9]+}/settings/delete/{menuSettingId:[0-9]+}", beuboRouter.AdminMenuAdd).Methods("GET")
+
+	admin.HandleFunc("/menuitems/{menuItemId:[0-9]+}/permissions/new", beuboRouter.AdminMenuAdd).Methods("GET")
+	admin.HandleFunc("/menuitems/{menuItemId:[0-9]+}/permissions/new", beuboRouter.AdminMenuAddPost).Methods("POST")
+
+	admin.HandleFunc("/menuitems/{menuItemId:[0-9]+}/permissions/edit/{menuPermissionId:[0-9]+}", beuboRouter.AdminMenuEdit).Methods("GET")
+	admin.HandleFunc("/menuitems/{menuItemId:[0-9]+}/permissions/edit/{menuPermissionId:[0-9]+}", beuboRouter.AdminMenuEditPost).Methods("POST")
+
+	admin.HandleFunc("/menuitems/{menuItemId:[0-9]+}/permissions/delete/{menuPermissionId:[0-9]+}", beuboRouter.AdminMenuAdd).Methods("GET")
+	// End TODO
+
 	// TODO I don't like this /sites/a/ structure of the routes, consider changing it, a stands for admin... problem is we have a global admin and a site admin
 	siteAdmin := admin.PathPrefix("/sites/a/{id:[0-9]+}").Subrouter()
 	siteAdmin.Use(beuboMiddleware.AdminSite)

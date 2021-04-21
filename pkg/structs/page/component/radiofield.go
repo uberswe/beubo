@@ -18,6 +18,16 @@ type RadioField struct {
 	T          *template.Template
 }
 
+// GetT gets the template.Template for the component
+func (rf RadioField) GetT() *template.Template {
+	return rf.T
+}
+
+// SetT sets the template.Template for the component
+func (rf RadioField) SetT(t *template.Template) {
+	rf.T = t
+}
+
 // GetSection is a getter for the Section property
 func (rf RadioField) GetSection() string {
 	return ""
@@ -39,6 +49,6 @@ func (rf RadioField) GetTemplate() *template.Template {
 }
 
 // Render calls RenderComponent to turn a Component into a html string for browser output
-func (rf RadioField) Render() string {
-	return page.RenderComponent(rf)
+func (rf RadioField) Render(t *template.Template) string {
+	return page.RenderComponent(rf, t)
 }

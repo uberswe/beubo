@@ -11,25 +11,22 @@ import (
 type Component interface {
 	GetSection() string
 	// render returns a html template string with the content of the field
-	Render() string
+	Render(t *template.Template) string
 	GetTemplateName() string
 	GetTheme() string
-	GetTemplate() *template.Template
+	SetT(t *template.Template)
+	GetT() *template.Template
 }
 
 // RenderComponent takes the provided component and finds the relevant template and renders this into a string
-func RenderComponent(c Component) string {
+func RenderComponent(c Component, t *template.Template) string {
 	path := fmt.Sprintf("%s.%s", c.GetTheme(), c.GetTemplateName())
-	var foundTemplate *template.Template
-	if c.GetTemplate() == nil {
-		return ""
-	}
-	if foundTemplate = c.GetTemplate().Lookup(path); foundTemplate == nil {
+	if t.Lookup(path) == nil {
 		log.Printf("Component file not found %s\n", path)
 		return ""
 	}
 	buf := &bytes.Buffer{}
-	err := foundTemplate.Execute(buf, c)
+	err := t.Lookup(path).Execute(buf, c)
 	if err != nil {
 		log.Printf("Component file error executing template %s\n", path)
 		return ""

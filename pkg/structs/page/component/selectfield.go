@@ -22,6 +22,16 @@ type SelectFieldOption struct {
 	Content string
 }
 
+// GetT gets the template.Template for the component
+func (sf SelectField) GetT() *template.Template {
+	return sf.T
+}
+
+// SetT sets the template.Template for the component
+func (sf SelectField) SetT(t *template.Template) {
+	sf.T = t
+}
+
 // GetSection is a getter for the Section property
 func (sf SelectField) GetSection() string {
 	return ""
@@ -43,6 +53,6 @@ func (sf SelectField) GetTemplate() *template.Template {
 }
 
 // Render calls RenderComponent to turn a Component into a html string for browser output
-func (sf SelectField) Render() string {
-	return page.RenderComponent(sf)
+func (sf SelectField) Render(t *template.Template) string {
+	return page.RenderComponent(sf, t)
 }

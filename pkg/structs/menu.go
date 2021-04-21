@@ -19,6 +19,16 @@ type MenuSection struct {
 	T        *template.Template `gorm:"-"`
 }
 
+// GetT gets the template.Template for the component
+func (m MenuSection) GetT() *template.Template {
+	return m.T
+}
+
+// SetT sets the template.Template for the component
+func (m MenuSection) SetT(t *template.Template) {
+	m.T = t
+}
+
 func (m MenuSection) GetIdentifier() string {
 	return m.Section
 }
@@ -27,7 +37,7 @@ func (m MenuSection) GetItems() []MenuItem {
 	return m.Items
 }
 
-func (m MenuSection) Render() string {
+func (m MenuSection) Render(t *template.Template) string {
 	tmpl := "menu.default"
 	if m.Template != "" {
 		tmpl = m.Template
@@ -37,13 +47,13 @@ func (m MenuSection) Render() string {
 		theme = m.Theme
 	}
 	path := fmt.Sprintf("%s.%s", theme, tmpl)
-	var foundTemplate *template.Template
-	if foundTemplate = m.T.Lookup(path); foundTemplate == nil {
+	if t.Lookup(path) == nil {
 		log.Printf("Menu file not found %s\n", path)
 		return ""
 	}
+	m.SetT(t)
 	buf := &bytes.Buffer{}
-	err := foundTemplate.Execute(buf, m)
+	err := t.Lookup(path).Execute(buf, m)
 	if err != nil {
 		log.Printf("Component file error executing template %s\n", path)
 		return ""
